@@ -1,10 +1,9 @@
 #pragma once
 
-#include <Rxt/graphics/loader.hpp>
 #include <Rxt/graphics/sdl.hpp>
 #include <Rxt/graphics/gl.hpp>
-#include <Rxt/graphics/shader/texture_quad.hpp>
-#include <Rxt/graphics/shader/grid_quad.hpp>
+#include <Rxt/graphics/shader/texture_quad_2D.hpp>
+#include <Rxt/graphics/shader/grid_quad_2D.hpp>
 
 #include <Rxt/util.hpp>
 #include <Rxt/range.hpp>
@@ -12,6 +11,8 @@
 #include <glm/gtx/transform.hpp>
 
 namespace gl = Rxt::gl;
+using Rxt::shader_programs::texture_quad_2D;
+using Rxt::shader_programs::grid_quad_2D;
 
 template <class V>
 auto invert_y(V v) { v.y = -v.y; return v; }
@@ -20,7 +21,7 @@ grid_coord nds_to_grid(glm::vec2 nds, glm::vec2 scale) { return floor(nds * scal
 
 struct grid_context : public Rxt::sdl::simple_gui
 {
-    Rxt::file_loader const& _loader;
+    gl::program_loader _loader;
 
     grid_size world_size;
     grid_size viewport_size;
@@ -28,22 +29,18 @@ struct grid_context : public Rxt::sdl::simple_gui
 
     grid_coord viewport_position {0};
 
-    gl::program tex_prog = _loader.find_program("texture_quad");
-    gl::program quad_prog = _loader.find_program("grid_quad");
+    texture_quad_2D tex_prog {_loader};
+    grid_quad_2D quad_prog {_loader};
 
-    Rxt::texture_quad b_texs {tex_prog};
-    Rxt::grid_quad b_quads {quad_prog};
+    texture_quad_2D::data b_texs {tex_prog};
+    grid_quad_2D::data b_quads {quad_prog};
 
-    grid_context(const char* title, grid_size world_size, glm::uvec2 tile_px,
-                 Rxt::file_loader const& fl = Rxt::default_file_loader())
+    grid_context(const char* title, grid_size world_size, glm::uvec2 tile_px)
         : simple_gui(title, tile_px * world_size)
-        , _loader(fl)
         , world_size(world_size)
         , viewport_size(world_size)
         , tile_size_px(tile_px)
     {}
-
-    virtual ~grid_context() {}
 
     static constexpr bool is_torus() { return true; }
 

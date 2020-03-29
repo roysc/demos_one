@@ -6,6 +6,7 @@
 #include "tiles.hpp"
 
 #include <Rxt/graphics/sdl.hpp>
+#include <Rxt/graphics/gl.hpp>
 #include <Rxt/graphics/color.hpp>
 #include <Rxt/graphics/glm.hpp>
 #include <Rxt/runtime.hpp>
@@ -31,7 +32,6 @@ using glm::vec4;
 namespace sdl = Rxt::sdl;
 namespace gl = Rxt::gl;
 using Rxt::dbg::print;
-using Rxt::grid_quad;
 
 using std::chrono::steady_clock;
 using time_point = steady_clock::time_point;
@@ -64,11 +64,11 @@ struct game_context : public grid_context
     time_point t_last = steady_clock::now();
 
     grid_coord cursor_position {0}; // relative to viewport
-    grid_quad b_quads_sticky {quad_prog}; // for cursor
-    grid_quad b_mobile_entities {quad_prog};
-    grid_quad b_immobile_entities {quad_prog}; // static
+    grid_quad_2D::data b_quads_sticky {quad_prog}; // for cursor
+    grid_quad_2D::data b_mobile_entities {quad_prog};
+    grid_quad_2D::data b_immobile_entities {quad_prog}; // static
 
-    bool p_edge_scroll = false;
+    bool p_edge_scroll = true;
 
     std::variant<std::monostate,
                  selection_tool,
@@ -172,10 +172,12 @@ void game_context::step()
 
     keys.scan();
 
+    // Per-tick handlers
     if (p_edge_scroll) {
         h_edge_scroll();
     }
 
+    // Timer-based handlers
     {
         auto now = steady_clock::now();
         tick_duration dt = now - t_last;
@@ -270,7 +272,7 @@ void game_context::render_cursor()
         [this] (selection_tool& select) {
             // render cursor drag area
             if (auto& origin = select.drag_origin) {
-                auto [a, b] = ordered(*origin, cursor_position);
+                auto [a, b] = Rxt::ordered(*origin, cursor_position);
                 b_quads_sticky.position.storage[0] = a;
                 b_quads_sticky.size.storage[0] = b - a + 1;
             }
@@ -348,7 +350,7 @@ void game_context::h_mouse_up(SDL_MouseButtonEvent button)
         auto visitor = Rxt::overloaded {
             [this] (selection_tool& select) {
                 if (auto& origin = select.drag_origin) {
-                    auto [a, b] = ordered(*origin, cursor_position);
+                    auto [a, b] = Rxt::ordered(*origin, cursor_position);
                     select.selection.emplace(a + viewport_position, b - a + 1);
                     select.drag_origin = {};
                     render_cursor();
