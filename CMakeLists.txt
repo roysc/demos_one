@@ -1,12 +1,8 @@
 # "plaza" demo
 cmake_minimum_required(VERSION 3.8)
-project(GridQuest VERSION 0.1)
+project(Plaza VERSION 0.1)
 
-if(IS_DIRECTORY external/Rxt)
-    add_subdirectory(external/Rxt)
-else()
-    find_package(Rxt)
-endif()
+find_package(Rxt)
 
 # set(CMAKE_CXX17_STANDARD_COMPILE_OPTION "-std=c++17")
 # set(CMAKE_CXX20_STANDARD_COMPILE_OPTION "-std=c++2a")
