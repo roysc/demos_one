@@ -38,7 +38,7 @@ auto create_map(uvec2 size, int seed)
 {
     int width = size.x, height = size.y;
 
-    OSN::Noise<4> osn4(42);
+    OSN::Noise<4> osn4(seed);
     auto noise_4D = [&] (auto... args) { return osn4.eval(args...); };
     auto get_noise = [&] (vec2 c, float r) {
         return sample_clifford_torus(c.x, c.y, noise_4D, r);

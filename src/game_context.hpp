@@ -78,7 +78,7 @@ struct game_context : public grid_context
     // std::function<void()> move_entities;
     grid_map<tile_id> grid_layer;
 
-    game_context();
+    game_context(int);
     ~game_context() override { metronome.join(); }
 
     template <class M>
@@ -100,7 +100,7 @@ struct game_context : public grid_context
     void h_edge_scroll();
 };
 
-game_context::game_context()
+game_context::game_context(int seed)
     : grid_context {"demo", world_size, tile_size_px}
     , grid_layer (boost::extents[world_size[0]][world_size[1]])
 {
@@ -141,7 +141,7 @@ game_context::game_context()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    auto image = create_map(world_size, 42);
+    auto image = create_map(world_size, seed);
     render_texture(data(image));
 
     // initialize cursor
