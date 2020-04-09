@@ -15,6 +15,7 @@ struct agent_traits
     unsigned char age;
 };
 
+inline
 auto create_agent(entt::registry& r, bool male, grid_coord pos)
 {
     auto e = r.create();
@@ -23,6 +24,7 @@ auto create_agent(entt::registry& r, bool male, grid_coord pos)
     return e;
 }
 
+inline
 auto displace(agent_position& pos, grid_offset d)
 {
     pos.coord += d;
