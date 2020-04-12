@@ -5,20 +5,13 @@
 
 #include <cmath>
 
-using grid_coord = glm::ivec2;
-using grid_offset = glm::ivec2;
-using grid_size = glm::uvec2;
-
 using Vec4u8 = glm::tvec4<unsigned char, glm::highp>;
 using image_data = boost::multi_array<Vec4u8, 2>;
-
-template <class T>
-using grid_map = boost::multi_array<T, 2>;
 
 // Clifford torus: the simplest and most symmetric flat embedding (in R^4)
 // of the cartesian product of two circles
 template <class FP, class Sampler>
-FP sample_clifford_torus(FP nx, FP ny, Sampler&& sample_4D, const double R)
+FP sample_clifford_torus(FP nx, FP ny, const double R, Sampler&& sample_4D)
 {
     using std::sin;
     using std::cos;
@@ -30,4 +23,4 @@ FP sample_clifford_torus(FP nx, FP ny, Sampler&& sample_4D, const double R)
                      C * cos(angle_y), C * sin(angle_y));
 }
 
-image_data create_map(grid_size size, int seed);
+image_data create_map(glm::uvec2 size, int seed);

@@ -1,18 +1,20 @@
 find_package(fmt 6.0 REQUIRED)
 
 set(_HEADERS
-    game_context.hpp
-    grid_context.hpp
+    map_editor.hpp
+    grid_display.hpp
     space.hpp
     agent.hpp
+    tiles.hpp
+    grid.hpp
 )
 
 set(_SOURCES
-    main.cpp
-    game_context.cpp
-    grid_context.cpp
+    map_editor_main.cpp
+    map_editor.cpp
+    grid_display.cpp
     space.cpp
 )
 
-add_executable(demo ${_HEADERS} ${_SOURCES})
-target_link_libraries(demo RxtGraphics fmt::fmt)
+add_executable(map_editor ${_HEADERS} ${_SOURCES})
+target_link_libraries(map_editor RxtGraphics fmt::fmt)

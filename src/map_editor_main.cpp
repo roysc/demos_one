@@ -1,14 +1,12 @@
-#include "game_context.hpp"
+#include "map_editor.hpp"
 
 #include <Rxt/graphics/sdl.hpp>
 
 #include <string>
 
-namespace sdl = Rxt::sdl;
-
 extern "C" void step_state(void* c)
 {
-    sdl::step<game_context>(c);
+    Rxt::sdl::step<map_editor>(c);
 }
 
 int main(int argc, char** argv)
@@ -17,8 +15,8 @@ int main(int argc, char** argv)
     if (argc > 1) {
         seed = std::stoi(argv[1]);
     }
-    auto context = new game_context(seed);
-    auto loop = sdl::make_looper(context, step_state);
+    auto context = new map_editor(seed);
+    auto loop = Rxt::sdl::make_looper(context, step_state);
     loop();
 
     return 0;

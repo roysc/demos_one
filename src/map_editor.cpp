@@ -1,18 +1,30 @@
-#include "game_context.hpp"
+#include "map_editor.hpp"
 
-game_context::game_context(int seed)
-    : grid_context {"demo", world_size, tile_size_px}
+#include <Rxt/range.hpp>
+#include <Rxt/io.hpp>
+#include <Rxt/graphics/color.hpp>
+#include <Rxt/graphics/glm.hpp>
+
+namespace gl = Rxt::gl;
+namespace sdl = Rxt::sdl;
+using Rxt::print;
+
+map_editor::map_editor(int seed)
+    : grid_display {"demo", world_size, tile_size_px}
     , grid_layer (boost::extents[world_size[0]][world_size[1]])
+    , update_features([this] { _update_features(); })
+    , update_cursor([this] { _update_cursor(); })
+    , update_tool([this] { _update_tool(); })
 {
     keys.on_press["C-W"]    = [this] { should_quit(true); };
     keys.on_press["C"]      = [this] {
-        viewport_position = grid_coord {0};
+        _viewport_position = grid_coord {0};
         update_viewport();
     };
     keys.on_press["Escape"] = [this] {
         current_tool = {};
         update_viewport();
-        update_selection();
+        update_tool();
         print("Disabled modes\n");
     };
 
@@ -21,7 +33,7 @@ game_context::game_context(int seed)
     keys.on_press["B"] = [this] { current_tool = pen_tool {}; print("Tool: pen\n"); };
 
     keys.on_press["I"] = [this] {
-        print("pos=({0:+}, {1:+}) ", viewport_position.x, viewport_position.y);
+        print("pos=({0:+}, {1:+}) ", _viewport_position.x, _viewport_position.y);
         print("size=({0}, {1}) ", viewport_size.x, viewport_size.y);
         print("cursor=({0:+}, {1:+})\n", cursor_position.x, cursor_position.y);
         if (auto select_mode = get_tool<selection_tool>();
@@ -31,22 +43,22 @@ game_context::game_context(int seed)
         }
     };
 
-    keys.on_scan["Left"]  = [this] { h_move_viewport(-1, 0); };
-    keys.on_scan["Right"] = [this] { h_move_viewport(+1, 0); };
-    keys.on_scan["Down"]  = [this] { h_move_viewport(0, -1); };
-    keys.on_scan["Up"]    = [this] { h_move_viewport(0, +1); };
-    keys.on_press["."] = std::bind(&grid_context::h_scale_viewport, this, +1);
-    keys.on_press[","] = std::bind(&grid_context::h_scale_viewport, this, -1);
+    keys.on_scan["Left"]  = [this] { move_viewport(-1, 0); };
+    keys.on_scan["Right"] = [this] { move_viewport(+1, 0); };
+    keys.on_scan["Down"]  = [this] { move_viewport(0, -1); };
+    keys.on_scan["Up"]    = [this] { move_viewport(0, +1); };
+    keys.on_press["."] = std::bind(&grid_display::scale_viewport, this, +1);
+    keys.on_press[","] = std::bind(&grid_display::scale_viewport, this, -1);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     auto image = create_map(world_size, seed);
-    update_texture(data(image));
+    _update_background(data(image));
 
     // initialize cursor
     b_quads_sticky.position.storage = {cursor_position};
-    b_quads_sticky.color.storage = {vec4(0, 1, 1, .5)};
+    b_quads_sticky.color.storage = {Rxt::rgba(0, 1, 1, .5)};
     b_quads_sticky.size.storage = {grid_size{1}};
     b_quads_sticky.update();
 
@@ -58,11 +70,9 @@ game_context::game_context(int seed)
     glClearColor(russet.r, russet.g, russet.b, 1);
 
     metronome = sdl::start_metronome(tick_duration {1}, [this] { return !should_quit(); });
-
-    auto e = create_agent(registry, true, grid_coord {-1,0});
 }
 
-void game_context::step()
+void map_editor::step()
 {
     SDL_Event event;
     SDL_WaitEvent(&event);
@@ -77,19 +87,11 @@ void game_context::step()
         h_edge_scroll();
     }
 
-    // Timer-based handlers
-    {
-        auto now = steady_clock::now();
-        tick_duration dt = now - t_last;
-        // if more than one tick has passed, render
-        if (dt.count() > 1) {
-            for (int i = 0; i < dt.count(); ++i) {
-                // move_entities();
-            }
-            update_entities(dt);
-            t_last = now;
-        }
-    }
+    update_model.flush();
+    update_viewport.flush();
+    update_features.flush();
+    update_cursor.flush();
+    update_tool.flush();
 
     if (is_dirty()) {
         draw();
@@ -97,28 +99,27 @@ void game_context::step()
     }
 }
 
-void game_context::draw()
+void map_editor::draw()
 {
     glClear(GL_COLOR_BUFFER_BIT);
 
-    b_texs.draw();
-    b_mobile_entities.draw();
-    b_immobile_entities.draw();
+    b_background.draw();
+    b_features.draw();
     b_quads.draw();
 
     { // todo: use UBOs and ubo_guard
         gl::uniform<grid_coord> u_vpos {quad_prog, "viewportPosition"};
         set(u_vpos, grid_coord {0});
         b_quads_sticky.draw();
-        set(u_vpos, viewport_position);
+        set(u_vpos, _viewport_position);
     }
 
     SDL_GL_SwapWindow(window.get());
 }
 
-void game_context::update_features()
+void map_editor::_update_features()
 {
-    b_immobile_entities.clear();
+    b_features.clear();
 
     auto shape = grid_layer.shape();
     for (unsigned y = 0; y < shape[1]; ++y) {
@@ -126,30 +127,30 @@ void game_context::update_features()
             auto cell = grid_layer[x][y];
             if (cell != 0) {
                 auto tile = tiles.at(cell);
-                b_immobile_entities.push(grid_coord {x, y}, grid_size {1}, Rxt::rgba(tile.color, 1));
+                b_features.push(grid_coord {x, y}, grid_size {1}, Rxt::rgba(tile.color, 1));
             }
         }
     }
-    b_immobile_entities.update();
+    b_features.update();
 
     set_dirty();
 }
 
-void game_context::update_entities(tick_duration dt)
-{
-    b_mobile_entities.clear();
+// void map_editor::_update_entities(tick_duration dt)
+// {
+//     b_mobile_entities.clear();
 
-    auto view = registry.view<agent_position>();
-    for (auto e: view) {
-        auto& pos = view.get<agent_position>(e);
-        b_mobile_entities.push(pos.coord, grid_size {1}, Rxt::rgba(0, 1, 0, 1));
-    }
-    b_mobile_entities.update();
+//     auto view = registry.view<agent_position>();
+//     for (auto e: view) {
+//         auto& pos = view.get<agent_position>(e);
+//         b_mobile_entities.push(pos.coord, grid_size {1}, Rxt::rgba(0, 1, 0, 1));
+//     }
+//     b_mobile_entities.update();
 
-    set_dirty();
-}
+//     set_dirty();
+// }
 
-void game_context::update_selection()
+void map_editor::_update_tool()
 {
     // render selected regions
     b_quads.clear();
@@ -163,7 +164,7 @@ void game_context::update_selection()
     set_dirty();
 }
 
-void game_context::update_cursor()
+void map_editor::_update_cursor()
 {
     b_quads_sticky.position.storage[0] = cursor_position;
     b_quads_sticky.size.storage[0] = grid_size(1);
@@ -179,7 +180,7 @@ void game_context::update_cursor()
         },
         [this] (pen_tool& pen) {
             if (pen.down) {
-                grid_coord pos = cursor_position + viewport_position;
+                grid_coord pos = cursor_position + _viewport_position;
                 pos.x %= world_size.x;
                 pos.y %= world_size.y;
                 grid_layer[pos.x][pos.y] = pen.ink_fg;
@@ -198,14 +199,14 @@ void game_context::update_cursor()
 
 grid_coord nds_to_grid(glm::vec2 nds, glm::vec2 scale) { return floor(nds * scale); }
 
-void game_context::h_mouse_motion(SDL_MouseMotionEvent motion)
+void map_editor::h_mouse_motion(SDL_MouseMotionEvent motion)
 {
     auto [x, y] = sdl::nds_coords(*window, motion.x, motion.y);
     cursor_position = nds_to_grid(glm::vec2{x, y}, glm::vec2(viewport_size / 2u));
     update_cursor();
 }
 
-void game_context::h_mouse_down(SDL_MouseButtonEvent button)
+void map_editor::h_mouse_down(SDL_MouseButtonEvent button)
 {
     auto left_visitor = Rxt::overloaded {
         [this] (selection_tool& select) {
@@ -227,7 +228,7 @@ void game_context::h_mouse_down(SDL_MouseButtonEvent button)
                 update_cursor();
             } else if (select.selection) {
                 select.selection = {};
-                update_selection();
+                update_tool();
             }
         },
         [] (auto) {}
@@ -245,7 +246,7 @@ void game_context::h_mouse_down(SDL_MouseButtonEvent button)
     }
 }
 
-void game_context::h_mouse_up(SDL_MouseButtonEvent button)
+void map_editor::h_mouse_up(SDL_MouseButtonEvent button)
 {
     switch (button.button) {
     case SDL_BUTTON_LEFT: {
@@ -253,10 +254,10 @@ void game_context::h_mouse_up(SDL_MouseButtonEvent button)
             [this] (selection_tool& select) {
                 if (auto& origin = select.drag_origin) {
                     auto [a, b] = Rxt::ordered(*origin, cursor_position);
-                    select.selection.emplace(a + viewport_position, b - a + 1);
+                    select.selection.emplace(a + _viewport_position, b - a + 1);
                     select.drag_origin = {};
                     update_cursor();
-                    update_selection();
+                    update_tool();
                 }
             },
             [this] (pen_tool& pen) {
@@ -271,8 +272,10 @@ void game_context::h_mouse_up(SDL_MouseButtonEvent button)
 }
 
 // edge-of-screen cursor scrolling
-void game_context::h_edge_scroll()
+void map_editor::h_edge_scroll()
 {
+    using glm::ivec2;
+
     // (0,0) is center-screen, so offset it to the corner
     ivec2 offset_pos = cursor_position + ivec2(viewport_size / 2u);
     ivec2 dv {0};
@@ -284,11 +287,11 @@ void game_context::h_edge_scroll()
         }
     }
     if (dv != ivec2 {0}) {
-        h_move_viewport(dv.x, dv.y);
+        move_viewport(dv.x, dv.y);
     }
 }
 
-void game_context::handle(SDL_Event event)
+void map_editor::handle(SDL_Event event)
 {
     switch (event.type) {
     case SDL_QUIT: { should_quit(true); return; }

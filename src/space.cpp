@@ -1,7 +1,7 @@
 #include "space.hpp"
 #include "OpenSimplexNoise.hh"
 
-image_data create_map(grid_size size, int seed)
+image_data create_map(glm::uvec2 size, int seed)
 {
     using glm::vec2;
 
@@ -10,7 +10,7 @@ image_data create_map(grid_size size, int seed)
     OSN::Noise<4> osn4(seed);
     auto noise_4D = [&] (auto... args) { return osn4.eval(args...); };
     auto get_noise = [&] (vec2 c, float r) {
-        return sample_clifford_torus(c.x, c.y, noise_4D, r);
+        return sample_clifford_torus(c.x, c.y, r, noise_4D);
     };
 
     image_data image(boost::extents[width][height]);
