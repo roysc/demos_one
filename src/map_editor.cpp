@@ -21,6 +21,7 @@ map_editor::map_editor(int seed)
         _viewport_position = grid_coord {0};
         update_viewport();
     };
+
     keys.on_press["Escape"] = [this] {
         current_tool = {};
         update_viewport();
@@ -65,8 +66,7 @@ map_editor::map_editor(int seed)
     update_model();
     update_viewport();
 
-    // glClearColor(0, 0.69, 0, 1);
-    auto russet = Rxt::rgb_hex(0x80461B);
+    using Rxt::colors::russet;
     glClearColor(russet.r, russet.g, russet.b, 1);
 
     metronome = sdl::start_metronome(tick_duration {1}, [this] { return !should_quit(); });
@@ -135,20 +135,6 @@ void map_editor::_update_features()
 
     set_dirty();
 }
-
-// void map_editor::_update_entities(tick_duration dt)
-// {
-//     b_mobile_entities.clear();
-
-//     auto view = registry.view<agent_position>();
-//     for (auto e: view) {
-//         auto& pos = view.get<agent_position>(e);
-//         b_mobile_entities.push(pos.coord, grid_size {1}, Rxt::rgba(0, 1, 0, 1));
-//     }
-//     b_mobile_entities.update();
-
-//     set_dirty();
-// }
 
 void map_editor::_update_tool()
 {
