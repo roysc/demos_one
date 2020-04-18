@@ -8,6 +8,7 @@
 #include <Rxt/runtime.hpp>
 #include <Rxt/time.hpp>
 #include <Rxt/util.hpp>
+#include <Rxt/graphics/sdl.hpp>
 
 #include <functional>
 #include <optional>
@@ -41,9 +42,12 @@ struct map_editor : public grid_display
 
     static constexpr grid_size world_size {64};
     static constexpr grid_size tile_size_px {8};
+    static constexpr Rxt::rgba cursor_color {0, 1, 1, .5};
 
     Rxt::sdl::key_dispatcher keys;
-    std::thread metronome;
+#ifndef __EMSCRIPTEN__
+    Rxt::sdl::metronome metronome{tick_duration{1}, [this] { return !should_quit(); }};
+#endif
     time_point t_last = steady_clock::now();
 
     Rxt::lazy_action update_features, update_cursor, update_tool;
@@ -62,12 +66,11 @@ struct map_editor : public grid_display
     grid_map<tile_id> grid_layer;
 
     map_editor(int);
-    ~map_editor() override { metronome.join(); }
 
     template <class M>
     M* get_tool() { return std::get_if<M>(&current_tool); }
 
-    void step();
+    void step(SDL_Event);
     void draw();
 
     // void _update_entities(tick_duration);

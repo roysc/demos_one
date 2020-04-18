@@ -2,10 +2,7 @@
 cmake_minimum_required(VERSION 3.8)
 project(Plaza VERSION 0.1)
 
-find_package(Rxt)
-
-# set(CMAKE_CXX17_STANDARD_COMPILE_OPTION "-std=c++17")
-# set(CMAKE_CXX20_STANDARD_COMPILE_OPTION "-std=c++2a")
+find_package(Rxt 0.1 REQUIRED COMPONENTS Graphics NO_CMAKE_FIND_ROOT_PATH)
 
 # Global options
 set(CMAKE_CXX_STANDARD 20)

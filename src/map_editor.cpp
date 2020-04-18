@@ -58,9 +58,7 @@ map_editor::map_editor(int seed)
     _update_background(data(image));
 
     // initialize cursor
-    b_quads_sticky.position.storage = {cursor_position};
-    b_quads_sticky.color.storage = {Rxt::rgba(0, 1, 1, .5)};
-    b_quads_sticky.size.storage = {grid_size{1}};
+    b_quads_sticky.push(cursor_position, grid_size{1}, cursor_color);
     b_quads_sticky.update();
 
     update_model();
@@ -68,14 +66,10 @@ map_editor::map_editor(int seed)
 
     using Rxt::colors::russet;
     glClearColor(russet.r, russet.g, russet.b, 1);
-
-    metronome = sdl::start_metronome(tick_duration {1}, [this] { return !should_quit(); });
 }
 
-void map_editor::step()
+void map_editor::step(SDL_Event event)
 {
-    SDL_Event event;
-    SDL_WaitEvent(&event);
     do {
         handle(event);
     } while (SDL_PollEvent(&event));
@@ -152,16 +146,15 @@ void map_editor::_update_tool()
 
 void map_editor::_update_cursor()
 {
-    b_quads_sticky.position.storage[0] = cursor_position;
-    b_quads_sticky.size.storage[0] = grid_size(1);
+    grid_program::vertex cursor{cursor_position, grid_size{1}, cursor_color};
 
     auto visitor = Rxt::overloaded {
-        [this] (selection_tool& select) {
+        [&, this] (selection_tool& select) {
             // render cursor drag area
             if (auto& origin = select.drag_origin) {
                 auto [a, b] = Rxt::ordered(*origin, cursor_position);
-                b_quads_sticky.position.storage[0] = a;
-                b_quads_sticky.size.storage[0] = b - a + 1;
+                std::get<0>(cursor) = a;
+                std::get<1>(cursor) = b - a + 1;
             }
         },
         [this] (pen_tool& pen) {
@@ -178,6 +171,7 @@ void map_editor::_update_cursor()
     };
     visit(visitor, current_tool);
 
+    b_quads_sticky.set(0, cursor);
     b_quads_sticky.update();
 
     set_dirty();
