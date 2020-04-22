@@ -5,12 +5,38 @@
 #include <Rxt/graphics/color.hpp>
 #include <Rxt/graphics/glm.hpp>
 
+#include <string>
+#include <iostream>
+
 namespace gl = Rxt::gl;
 namespace sdl = Rxt::sdl;
 using Rxt::print;
 
+extern "C" void step_state(void* c)
+{
+    sdl::step<map_editor>(c);
+}
+
+int main(int argc, char** argv)
+{
+    int seed = 42;
+    if (argc > 1) {
+        seed = std::stoi(argv[1]);
+    }
+
+    try {
+        auto context = new map_editor(seed);
+        auto loop = sdl::make_looper(context, step_state);
+        loop();
+    } catch (std::exception& e) {
+        std::cout << "caught exception: " << e.what() << '\n';
+    }
+
+    return 0;
+}
+
 map_editor::map_editor(int seed)
-    : grid_display {"demo", world_size, tile_size_px}
+    : grid_display {"Plaza: map_editor", world_size, tile_size_px}
     , grid_layer (boost::extents[world_size[0]][world_size[1]])
     , update_features([this] { _update_features(); })
     , update_cursor([this] { _update_cursor(); })
@@ -56,10 +82,6 @@ map_editor::map_editor(int seed)
 
     auto image = create_map(world_size, seed);
     _update_background(data(image));
-
-    // initialize cursor
-    b_quads_sticky.push(cursor_position, grid_size{1}, cursor_color);
-    b_quads_sticky.update();
 
     update_model();
     update_viewport();
@@ -146,15 +168,16 @@ void map_editor::_update_tool()
 
 void map_editor::_update_cursor()
 {
-    grid_program::vertex cursor{cursor_position, grid_size{1}, cursor_color};
+    grid_coord pos = cursor_position;
+    grid_size size{1};
 
     auto visitor = Rxt::overloaded {
         [&, this] (selection_tool& select) {
             // render cursor drag area
             if (auto& origin = select.drag_origin) {
                 auto [a, b] = Rxt::ordered(*origin, cursor_position);
-                std::get<0>(cursor) = a;
-                std::get<1>(cursor) = b - a + 1;
+                pos = a;
+                size = b - a + 1;
             }
         },
         [this] (pen_tool& pen) {
@@ -163,7 +186,6 @@ void map_editor::_update_cursor()
                 pos.x %= world_size.x;
                 pos.y %= world_size.y;
                 grid_layer[pos.x][pos.y] = pen.ink_fg;
-                // print("pen: {} at ({}, {})\n", tiles.at(pen.ink_fg).description, pos.x, pos.y);
                 update_features();
             }
         },
@@ -171,7 +193,8 @@ void map_editor::_update_cursor()
     };
     visit(visitor, current_tool);
 
-    b_quads_sticky.set(0, cursor);
+    b_quads_sticky.clear();
+    b_quads_sticky.push(pos, size, cursor_color);
     b_quads_sticky.update();
 
     set_dirty();
@@ -254,11 +277,9 @@ void map_editor::h_mouse_up(SDL_MouseButtonEvent button)
 // edge-of-screen cursor scrolling
 void map_editor::h_edge_scroll()
 {
-    using glm::ivec2;
-
     // (0,0) is center-screen, so offset it to the corner
-    ivec2 offset_pos = cursor_position + ivec2(viewport_size / 2u);
-    ivec2 dv {0};
+    grid_offset offset_pos = cursor_position + grid_offset(viewport_size / 2u);
+    grid_offset dv {0};
     for (unsigned i = 0; i < dv.length(); ++i) {
         if (offset_pos[i] == 0) {
             dv[i] = -1;
@@ -266,7 +287,7 @@ void map_editor::h_edge_scroll()
             dv[i] = +1;
         }
     }
-    if (dv != ivec2 {0}) {
+    if (dv != grid_offset {0}) {
         move_viewport(dv.x, dv.y);
     }
 }

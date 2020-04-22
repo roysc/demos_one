@@ -2,7 +2,6 @@
 
 #include "space.hpp"
 #include "grid_display.hpp"
-// #include "agent.hpp"
 #include "tiles.hpp"
 
 #include <Rxt/runtime.hpp>
@@ -40,9 +39,9 @@ struct map_editor : public grid_display
     using tick_duration = Rxt::duration_fps<30>;
     using tool_state = std::variant<std::monostate, selection_tool, pen_tool>;
 
-    static constexpr grid_size world_size {64};
-    static constexpr grid_size tile_size_px {8};
-    static constexpr Rxt::rgba cursor_color {0, 1, 1, .5};
+    static constexpr grid_size world_size {32};
+    static constexpr grid_size tile_size_px {16};
+    const Rxt::rgba cursor_color {0, 1, 1, .5};
 
     Rxt::sdl::key_dispatcher keys;
 #ifndef __EMSCRIPTEN__

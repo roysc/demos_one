@@ -13,13 +13,11 @@ set(_HEADERS
     map_editor.hpp
     grid_display.hpp
     space.hpp
-    agent.hpp
     tiles.hpp
-    grid.hpp
+    # modvec.hpp
 )
 
 set(_SOURCES
-    map_editor_main.cpp
     map_editor.cpp
     grid_display.cpp
     space.cpp
