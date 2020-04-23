@@ -22,9 +22,9 @@ using time_point = steady_clock::time_point;
 
 struct selection_tool
 {
-    using region = std::tuple<grid_coord, grid_size>;
+    using region = std::tuple<ivec, uvec>;
     std::optional<region> selection;
-    std::optional<grid_coord> drag_origin;
+    std::optional<ivec> drag_origin;
 };
 
 struct pen_tool
@@ -39,10 +39,6 @@ struct map_editor : public grid_display
     using tick_duration = Rxt::duration_fps<30>;
     using tool_state = std::variant<std::monostate, selection_tool, pen_tool>;
 
-    static constexpr grid_size world_size {32};
-    static constexpr grid_size tile_size_px {16};
-    const Rxt::rgba cursor_color {0, 1, 1, .5};
-
     Rxt::sdl::key_dispatcher keys;
 #ifndef __EMSCRIPTEN__
     Rxt::sdl::metronome metronome{tick_duration{1}, [this] { return !should_quit(); }};
@@ -51,7 +47,8 @@ struct map_editor : public grid_display
 
     Rxt::lazy_action update_features, update_cursor, update_tool;
 
-    grid_coord cursor_position {0}; // relative to viewport
+    const Rxt::rgba cursor_color {0, 1, 1, .5};
+    ivec cursor_position {0}; // relative to viewport
     grid_program::data b_quads {quad_prog};
     grid_program::data b_quads_sticky {quad_prog}; // for cursor
     // grid_program::data b_mobile_entities {quad_prog};

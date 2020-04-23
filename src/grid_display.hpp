@@ -10,9 +10,8 @@
 #endif
 #include <Rxt/util.hpp>
 
-using grid_coord = glm::ivec2;
-using grid_offset = glm::ivec2;
-using grid_size = glm::uvec2;
+using ivec = glm::ivec2;
+using uvec = glm::uvec2;
 
 struct grid_display : public Rxt::sdl::simple_gui
 {
@@ -24,11 +23,11 @@ struct grid_display : public Rxt::sdl::simple_gui
 #endif
     Rxt::gl::program_loader loader;
 
-    grid_size world_size;
-    grid_size viewport_size;
-    grid_size tile_size_px;
+    uvec world_size;
+    uvec viewport_size_px;
+    uvec scale_factor;
 
-    grid_coord _viewport_position {0};
+    ivec viewport_position {0};
 
     texture_program tex_prog {loader};
     grid_program quad_prog {loader};
@@ -37,8 +36,13 @@ struct grid_display : public Rxt::sdl::simple_gui
 
     Rxt::lazy_action update_model, update_viewport;
 
-    grid_display(char const* title, grid_size world_size, grid_size tile_px);
+    grid_display(char const* title, uvec world_size, uvec scale = uvec{1});
     ~grid_display() override {}
+
+    uvec viewport_size() const
+    {
+        return uvec(glm::vec2(viewport_size_px) / glm::vec2(scale_factor));
+    }
 
     void _update_background(void*);
     void _update_model();
@@ -46,7 +50,7 @@ struct grid_display : public Rxt::sdl::simple_gui
 
     void move_viewport(int dx, int dy)
     {
-        _viewport_position += grid_offset{dx, dy};
+        viewport_position += ivec{dx, dy};
         update_viewport();
     }
 

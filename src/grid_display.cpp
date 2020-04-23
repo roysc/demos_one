@@ -7,11 +7,11 @@ namespace gl = Rxt::gl;
 template <unsigned ix, class Vec>
 Vec invert(Vec v) { v[ix] = -v[ix]; return v; }
 
-grid_display::grid_display(const char* title, grid_size world_size, grid_size tile_px)
-    : simple_gui(title, tile_px * world_size)
+grid_display::grid_display(const char* title, uvec world_size, uvec scale)
+    : simple_gui(title, scale * world_size)
     , world_size(world_size)
-    , viewport_size(world_size)
-    , tile_size_px(tile_px)
+    , viewport_size_px(scale * world_size)
+    , scale_factor(scale)
     , update_model{[this] { _update_model(); }}
     , update_viewport{[this] { _update_viewport(); }}
 {}
@@ -19,16 +19,13 @@ grid_display::grid_display(const char* title, grid_size world_size, grid_size ti
 void grid_display::scale_viewport(int exp)
 {
     // simulate zoom in/out by scaling down/up resp.; correct position to keep centered
+    const uvec min_scale{1}, max_scale = world_size;
     if (exp > 0) {
-        if (viewport_size.x >= world_size.x || viewport_size.y >= world_size.y)
-            return;
-        viewport_size *= 2;
-        tile_size_px /= 2;
+        if (scale_factor.x > min_scale.x && scale_factor.y > min_scale.y)
+            scale_factor /= 2;
     } else {
-        if (viewport_size.x <= 1 || viewport_size.y <= 1)
-            return;
-        viewport_size /= 2;
-        tile_size_px *= 2;
+        if (scale_factor.x < max_scale.x && scale_factor.y < max_scale.y)
+            scale_factor *= 2;
     }
     update_viewport();
 }
@@ -66,16 +63,16 @@ void grid_display::_update_viewport()
     using glm::vec2;
     using glm::vec3;
 
-    vec2 vp_rel_size = vec2(viewport_size) / vec2(world_size);
-    vec2 vp_rel_pos = vec2(_viewport_position) / vec2(world_size);
+    vec2 vp_rel_size = vec2(viewport_size()) / vec2(world_size);
+    vec2 vp_rel_pos = vec2(viewport_position) / vec2(world_size);
     glm::mat4 tex_view_matrix =
         glm::translate(vec3(vp_rel_pos, 0)) *
         glm::scale(vec3(invert<1>(vp_rel_size), 0)) *
         glm::translate(vec3(-.5, -.5, 0));
 
     gl::set_uniform(tex_prog, "viewMatrix", tex_view_matrix);
-    gl::set_uniform(quad_prog, "viewportPosition", _viewport_position);
-    set_uniform(quad_prog, "viewportSize", viewport_size);
+    gl::set_uniform(quad_prog, "viewportPosition", viewport_position);
+    set_uniform(quad_prog, "viewportSize", viewport_size());
 
     set_dirty();
 }
