@@ -11,7 +11,8 @@ endif()
 
 set(_HEADERS
     map_editor.hpp
-    grid_display.hpp
+    texture_grid.hpp
+    grid_view.hpp
     space.hpp
     tiles.hpp
     # modvec.hpp
@@ -19,7 +20,8 @@ set(_HEADERS
 
 set(_SOURCES
     map_editor.cpp
-    grid_display.cpp
+    texture_grid.cpp
+    grid_view.cpp
     space.cpp
 )
 

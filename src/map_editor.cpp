@@ -35,23 +35,28 @@ int main(int argc, char** argv)
     return 0;
 }
 
+template <class F> void send(F&& f) { f(); }
+
 map_editor::map_editor(int seed)
-    : grid_display{"Plaza: map_editor", uvec{128}, uvec{4}}
-    , grid_layer{boost::extents[world_size[0]][world_size[1]]}
+    : grid_view{uvec{128}, uvec{4}}
+    , texture_grid{static_cast<grid_view&>(*this)}
+    , simple_gui{"Plaza: map_editor", viewport_size_px}
+    , grid_layer{boost::extents[grid_size[0]][grid_size[1]]}
     , update_features{[this] { _update_features(); }}
     , update_cursor{[this] { _update_cursor(); }}
     , update_tool{[this] { _update_tool(); }}
+    , update_viewport{[this] { _update_viewport(); }}
 {
     keys.on_press["C-W"]    = [this] { should_quit(true); };
     keys.on_press["C"]      = [this] {
         viewport_position = ivec {0};
-        update_viewport();
+        send(update_viewport);
     };
 
     keys.on_press["Escape"] = [this] {
         current_tool = {};
-        update_viewport();
-        update_tool();
+        send(update_viewport);
+        send(update_tool);
         print("Disabled modes\n");
     };
 
@@ -70,21 +75,29 @@ map_editor::map_editor(int seed)
         }
     };
 
-    keys.on_scan["Left"]  = [this] { move_viewport(-1, 0); };
-    keys.on_scan["Right"] = [this] { move_viewport(+1, 0); };
-    keys.on_scan["Down"]  = [this] { move_viewport(0, -1); };
-    keys.on_scan["Up"]    = [this] { move_viewport(0, +1); };
-    keys.on_press["."] = std::bind(&grid_display::scale_viewport, this, +1);
-    keys.on_press[","] = std::bind(&grid_display::scale_viewport, this, -1);
+    auto move = [this] (int dx, int dy) {
+        move_viewport(dx, dy);
+        send(update_viewport);
+    };
+    auto scale = [this] (int a) {
+        scale_viewport(a);
+        send(update_viewport);
+    };
+
+    keys.on_scan["Left"]  = std::bind(move, -1, 0);
+    keys.on_scan["Right"] = std::bind(move, +1, 0);
+    keys.on_scan["Down"]  = std::bind(move, 0, -1);
+    keys.on_scan["Up"]    = std::bind(move, 0, +1);
+    keys.on_press["."] = std::bind(scale, +1);
+    keys.on_press[","] = std::bind(scale, -1);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    auto image = create_map(world_size, seed);
-    _update_background(data(image));
+    auto image = create_map(grid_size, seed);
+    update_texture(data(image));
 
-    update_model();
-    update_viewport();
+    send(update_viewport);
 
     using Rxt::colors::russet;
     glClearColor(russet.r, russet.g, russet.b, 1);
@@ -103,7 +116,6 @@ void map_editor::step(SDL_Event event)
         h_edge_scroll();
     }
 
-    update_model.flush();
     update_viewport.flush();
     update_features.flush();
     update_cursor.flush();
@@ -119,7 +131,7 @@ void map_editor::draw()
 {
     glClear(GL_COLOR_BUFFER_BIT);
 
-    b_background.draw();
+    texture_grid::draw();
     b_features.draw();
     b_quads.draw();
 
@@ -183,7 +195,7 @@ void map_editor::_update_cursor()
         [this] (pen_tool& pen) {
             if (pen.down) {
                 ivec pos = cursor_position + viewport_position;
-                pos %= world_size;
+                pos %= grid_size;
                 grid_layer[pos.x][pos.y] = pen.ink_fg;
                 update_features();
             }
@@ -301,4 +313,14 @@ void map_editor::handle(SDL_Event event)
     case SDL_MOUSEBUTTONDOWN: { h_mouse_down(event.button); break; }
     case SDL_MOUSEBUTTONUP: { h_mouse_up(event.button); break; }
     }
+}
+
+void map_editor::_update_viewport()
+{
+    texture_grid::update_viewport();
+
+    gl::set_uniform(quad_prog, "viewportPosition", viewport_position);
+    set_uniform(quad_prog, "viewportSize", viewport_size());
+
+    set_dirty();
 }
