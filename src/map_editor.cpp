@@ -35,7 +35,9 @@ int main(int argc, char** argv)
     return 0;
 }
 
-template <class F> void send(F&& f) { f(); }
+template <class F> void send(F&& f) { f(); } // todo wrapper for lazy updates
+
+ivec nds_to_grid(glm::vec2 nds, glm::vec2 scale) { return floor(nds * scale); }
 
 map_editor::map_editor(int seed)
     : grid_view{uvec{128}, uvec{4}}
@@ -60,7 +62,7 @@ map_editor::map_editor(int seed)
         print("Disabled modes\n");
     };
 
-    keys.on_press["E"] = [this] { p_edge_scroll = !p_edge_scroll; };
+    keys.on_press["E"] = [this] { enable_edge_scroll = !enable_edge_scroll; };
     keys.on_press["S"] = [this] { current_tool = selection_tool {}; print("Tool: select\n"); };
     keys.on_press["B"] = [this] { current_tool = pen_tool {}; print("Tool: pen\n"); };
 
@@ -68,9 +70,8 @@ map_editor::map_editor(int seed)
         print("pos={} ", viewport_position);
         print("scale={} ", scale_factor);
         print("cursor={}\n", cursor_position);
-        if (auto select_mode = get_tool<selection_tool>();
-            select_mode && select_mode->selection) {
-            auto [a, b] = *select_mode->selection;
+        if (selection_tool select; get_tool(select) && select.selection) {
+            auto [a, b] = *select.selection;
             print("selected: pos=({}, {}) size=({}, {})\n", a.x, a.y, b.x, b.y);
         }
     };
@@ -112,7 +113,7 @@ void map_editor::step(SDL_Event event)
     keys.scan();
 
     // Per-tick handlers
-    if (p_edge_scroll) {
+    if (enable_edge_scroll) {
         h_edge_scroll();
     }
 
@@ -168,8 +169,8 @@ void map_editor::_update_tool()
 {
     // render selected regions
     b_quads.clear();
-    if (auto select = get_tool<selection_tool>()) {
-        for (auto [a, b]: Rxt::to_range(select->selection)) {
+    if (selection_tool select; get_tool(select)) {
+        for (auto [a, b]: Rxt::to_range(select.selection)) {
             b_quads.push(a, b, Rxt::rgba(Rxt::colors::hot_pink, 0.5)); //todo
         }
     }
@@ -210,8 +211,6 @@ void map_editor::_update_cursor()
 
     set_dirty();
 }
-
-ivec nds_to_grid(glm::vec2 nds, glm::vec2 scale) { return floor(nds * scale); }
 
 void map_editor::h_mouse_motion(SDL_MouseMotionEvent motion)
 {

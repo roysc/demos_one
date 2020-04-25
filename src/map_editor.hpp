@@ -70,14 +70,19 @@ struct map_editor
     const Rxt::rgba cursor_color {0, 1, 1, .5};
     ivec cursor_position {0}; // relative to viewport
 
-    bool p_edge_scroll = true;
+    bool enable_edge_scroll = true;
     tool_state current_tool;
     grid_map<tile_id> grid_layer;
 
     map_editor(int);
 
     template <class M>
-    M* get_tool() { return std::get_if<M>(&current_tool); }
+    bool get_tool(M& out)
+    {
+        M* ret = std::get_if<M>(&current_tool);
+        if (ret) out = *ret;
+        return ret;
+    }
 
     void step(SDL_Event);
     void draw();
