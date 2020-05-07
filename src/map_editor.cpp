@@ -24,8 +24,9 @@ int main(int argc, char** argv)
         seed = std::stoi(argv[1]);
     }
 
+    uvec size{64};
     try {
-        auto context = new map_editor(seed);
+        auto context = new map_editor(seed, size);
         auto loop = sdl::make_looper(context, step_state);
         loop();
     } catch (std::exception& e) {
@@ -35,23 +36,29 @@ int main(int argc, char** argv)
     return 0;
 }
 
-template <class F> void send(F&& f) { f(); } // todo wrapper for lazy updates
+template <class F> void send(F&& f) { f(); } // todo wrapper for lazy updates/signal
 
 ivec nds_to_grid(glm::vec2 nds, glm::vec2 scale) { return floor(nds * scale); }
 
-map_editor::map_editor(int seed)
-    : grid_view{uvec{128}, uvec{4}}
-    , texture_grid{static_cast<grid_view&>(*this)}
-    , simple_gui{"Plaza: map_editor", viewport_size_px}
-    , grid_layer{boost::extents[grid_size[0]][grid_size[1]]}
+map_editor::map_editor(int seed, uvec size, grid_viewport vp)
+    : simple_gui{"Plaza: map_editor", vp.size_pixels()} // fixme
+    , grid_size{size}
+    , viewport{vp}
+    , background{size}
+    , grid_layer{boost::extents[viewport.max_scale[0]][viewport.max_scale[1]]}
     , update_features{[this] { _update_features(); }}
     , update_cursor{[this] { _update_cursor(); }}
     , update_tool{[this] { _update_tool(); }}
-    , update_viewport{[this] { _update_viewport(); }}
+    , update_viewport{
+    [this] {
+        interface.set_viewport(viewport);
+        background.set_viewport(viewport);
+        set_dirty();
+    }}
 {
     keys.on_press["C-W"]    = [this] { should_quit(true); };
     keys.on_press["C"]      = [this] {
-        viewport_position = ivec {0};
+        viewport.position = ivec {0};
         send(update_viewport);
     };
 
@@ -67,8 +74,8 @@ map_editor::map_editor(int seed)
     keys.on_press["B"] = [this] { current_tool = pen_tool {}; print("Tool: pen\n"); };
 
     keys.on_press["I"] = [this] {
-        print("pos={} ", viewport_position);
-        print("scale={} ", scale_factor);
+        print("pos={} ", viewport.position);
+        print("scale={} ", viewport.scale_factor);
         print("cursor={}\n", cursor_position);
         if (selection_tool select; get_tool(select) && select.selection) {
             auto [a, b] = *select.selection;
@@ -77,11 +84,11 @@ map_editor::map_editor(int seed)
     };
 
     auto move = [this] (int dx, int dy) {
-        move_viewport(dx, dy);
+        viewport.move(dx, dy);
         send(update_viewport);
     };
     auto scale = [this] (int a) {
-        scale_viewport(a);
+        viewport.scale(a);
         send(update_viewport);
     };
 
@@ -96,7 +103,8 @@ map_editor::map_editor(int seed)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     auto image = create_map(grid_size, seed);
-    update_texture(data(image));
+    background.set_texture(data(image));
+
 
     send(update_viewport);
 
@@ -132,16 +140,9 @@ void map_editor::draw()
 {
     glClear(GL_COLOR_BUFFER_BIT);
 
-    texture_grid::draw();
+    background.draw();
     b_features.draw();
-    b_quads.draw();
-
-    { // todo: use UBOs and ubo_guard
-        gl::uniform<ivec> u_vpos {quad_prog, "viewportPosition"};
-        set(u_vpos, ivec {0});
-        b_quads_sticky.draw();
-        set(u_vpos, viewport_position);
-    }
+    interface.draw(viewport);
 
     SDL_GL_SwapWindow(window.get());
 }
@@ -168,15 +169,11 @@ void map_editor::_update_features()
 void map_editor::_update_tool()
 {
     // render selected regions
-    b_quads.clear();
     if (selection_tool select; get_tool(select)) {
         for (auto [a, b]: Rxt::to_range(select.selection)) {
-            b_quads.push(a, b, Rxt::rgba(Rxt::colors::hot_pink, 0.5)); //todo
+            interface.set_selection(a, b);
         }
     }
-    b_quads.update();
-
-    set_dirty();
 }
 
 void map_editor::_update_cursor()
@@ -195,19 +192,16 @@ void map_editor::_update_cursor()
         },
         [this] (pen_tool& pen) {
             if (pen.down) {
-                ivec pos = cursor_position + viewport_position;
+                ivec pos = cursor_position + viewport.position;
                 pos %= grid_size;
                 grid_layer[pos.x][pos.y] = pen.ink_fg;
-                update_features();
+                send(update_features);
             }
         },
         [] (auto) {}
     };
     visit(visitor, current_tool);
-
-    b_quads_sticky.clear();
-    b_quads_sticky.push(pos, size, cursor_color);
-    b_quads_sticky.update();
+    interface.set_cursor(pos, size);
 
     set_dirty();
 }
@@ -215,8 +209,8 @@ void map_editor::_update_cursor()
 void map_editor::h_mouse_motion(SDL_MouseMotionEvent motion)
 {
     auto [x, y] = sdl::nds_coords(*window, motion.x, motion.y);
-    cursor_position = nds_to_grid(glm::vec2{x, y}, glm::vec2(viewport_size() / 2u));
-    update_cursor();
+    cursor_position = nds_to_grid(glm::vec2{x, y}, glm::vec2(viewport.size_cells() / 2u));
+    send(update_cursor);
 }
 
 void map_editor::h_mouse_down(SDL_MouseButtonEvent button)
@@ -224,11 +218,11 @@ void map_editor::h_mouse_down(SDL_MouseButtonEvent button)
     auto left_visitor = Rxt::overloaded {
         [this] (selection_tool& select) {
             select.drag_origin = cursor_position;
-            update_cursor();
+            send(update_cursor);
         },
         [this] (pen_tool& pen) {
             pen.down = true;
-            update_cursor();
+            send(update_cursor);
         },
         [] (auto) {}
     };
@@ -238,10 +232,10 @@ void map_editor::h_mouse_down(SDL_MouseButtonEvent button)
         [this] (selection_tool& select) {
             if (select.drag_origin) {
                 select.drag_origin.reset();
-                update_cursor();
+                send(update_cursor);
             } else if (select.selection) {
                 select.selection = {};
-                update_tool();
+                send(update_tool);
             }
         },
         [] (auto) {}
@@ -267,10 +261,10 @@ void map_editor::h_mouse_up(SDL_MouseButtonEvent button)
             [this] (selection_tool& select) {
                 if (auto& origin = select.drag_origin) {
                     auto [a, b] = Rxt::ordered(*origin, cursor_position);
-                    select.selection.emplace(a + viewport_position, b - a + 1);
+                    select.selection.emplace(a + viewport.position, b - a + 1);
                     select.drag_origin = {};
-                    update_cursor();
-                    update_tool();
+                    send(update_cursor);
+                    send(update_tool);
                 }
             },
             [this] (pen_tool& pen) {
@@ -288,7 +282,7 @@ void map_editor::h_mouse_up(SDL_MouseButtonEvent button)
 void map_editor::h_edge_scroll()
 {
     // (0,0) is center-screen, so offset it to the corner
-    uvec vpst = viewport_size();
+    uvec vpst = viewport.size_cells();
     ivec offset_pos = cursor_position + ivec{vpst / 2u};
     ivec dv {0};
     for (unsigned i = 0; i < dv.length(); ++i) {
@@ -299,7 +293,7 @@ void map_editor::h_edge_scroll()
         }
     }
     if (dv != ivec{0}) {
-        move_viewport(dv.x, dv.y);
+        viewport.move(dv.x, dv.y);
     }
 }
 
@@ -312,14 +306,4 @@ void map_editor::handle(SDL_Event event)
     case SDL_MOUSEBUTTONDOWN: { h_mouse_down(event.button); break; }
     case SDL_MOUSEBUTTONUP: { h_mouse_up(event.button); break; }
     }
-}
-
-void map_editor::_update_viewport()
-{
-    texture_grid::update_viewport();
-
-    gl::set_uniform(quad_prog, "viewportPosition", viewport_position);
-    set_uniform(quad_prog, "viewportSize", viewport_size());
-
-    set_dirty();
 }

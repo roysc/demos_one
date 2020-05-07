@@ -11,8 +11,8 @@ endif()
 
 set(_HEADERS
     map_editor.hpp
-    texture_grid.hpp
-    grid_view.hpp
+    texture_display.hpp
+    grid_viewport.hpp
     space.hpp
     tiles.hpp
     # modvec.hpp
@@ -20,14 +20,16 @@ set(_HEADERS
 
 set(_SOURCES
     map_editor.cpp
-    texture_grid.cpp
-    grid_view.cpp
+    texture_display.cpp
+    grid_viewport.cpp
     space.cpp
 )
 
 add_executable(map_editor ${_HEADERS} ${_SOURCES})
 target_link_libraries(map_editor PUBLIC Rxt::Graphics)
 Rxt_emscripten_link_boost(map_editor)
+
+target_include_directories(map_editor PRIVATE ${PROJECT_SOURCE_DIR}/external)
 
 if(EMSCRIPTEN)
     set_target_properties(map_editor PROPERTIES SUFFIX ".html")

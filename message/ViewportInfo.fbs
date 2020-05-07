@@ -1,7 +1,0 @@
-namespace flatbuffer;
-
-table ViewportInfo {
-    position: [int: 2];
-    scale: [int: 2];
-}
-

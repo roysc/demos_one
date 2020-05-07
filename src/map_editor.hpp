@@ -1,19 +1,15 @@
 #pragma once
 
-#include "texture_grid.hpp"
 #include "space.hpp"
 #include "tiles.hpp"
 
-#include <Rxt/runtime.hpp>
+#include "texture_display.hpp"
+#include "interface_display.hpp"
+
 #include <Rxt/time.hpp>
 #include <Rxt/util.hpp>
 #include <Rxt/graphics/sdl.hpp>
 #include <Rxt/graphics/gl.hpp>
-#ifdef RXT_WEBGL2
-  #include <Rxt/graphics/shader/webgl_grid_quad_2D.hpp>
-#else
-  #include <Rxt/graphics/shader/grid_quad_2D.hpp>
-#endif
 
 #include <functional>
 #include <optional>
@@ -40,41 +36,34 @@ struct pen_tool
 };
 
 struct map_editor
-    : public virtual grid_view
-    , public virtual Rxt::sdl::simple_gui
-    , public virtual texture_grid
+    : public virtual Rxt::sdl::simple_gui
     , public virtual Rxt::simple_runtime
 {
     using tick_duration = Rxt::duration_fps<30>;
     using tool_state = std::variant<std::monostate, selection_tool, pen_tool>;
 
-#ifdef RXT_WEBGL2
-    using grid_program = Rxt::shader_programs::webgl::grid_quad_2D;
-#else
-    using grid_program = Rxt::shader_programs::grid_quad_2D;
-#endif
-
-    grid_program quad_prog{};
-    grid_program::data b_quads {quad_prog};
-    grid_program::data b_quads_sticky {quad_prog}; // for cursor
-    grid_program::data b_features {quad_prog}; // static
-
-    Rxt::sdl::key_dispatcher keys;
-#ifndef __EMSCRIPTEN__
-    Rxt::sdl::metronome metronome{tick_duration{1}, [this] { return !should_quit(); }};
-#endif
-    time_point t_last = steady_clock::now();
-
-    Rxt::lazy_action update_features, update_cursor, update_tool, update_viewport;
-
-    const Rxt::rgba cursor_color {0, 1, 1, .5};
+    uvec grid_size;
+    grid_viewport viewport;
     ivec cursor_position {0}; // relative to viewport
 
     bool enable_edge_scroll = true;
     tool_state current_tool;
     grid_map<tile_id> grid_layer;
 
-    map_editor(int);
+    texture_display background;
+    interface_display interface;
+    interface_display::grid_program::data b_features {interface.quad_prog}; // static
+
+    Rxt::sdl::key_dispatcher keys;
+    Rxt::sdl::metronome metronome{tick_duration{1}, [this] { return !should_quit(); }};
+    time_point t_last = steady_clock::now();
+
+    Rxt::lazy_action update_features, update_cursor, update_tool, update_viewport;
+
+    map_editor(int, uvec, grid_viewport);
+    map_editor(int seed, uvec size)
+        : map_editor(seed, size, grid_viewport{size, uvec{8}})
+    {}
 
     template <class M>
     bool get_tool(M& out)

@@ -1,6 +1,6 @@
-#include "grid_view.hpp"
+#include "grid_viewport.hpp"
 
-void grid_view::scale_viewport(int exp)
+void grid_viewport::scale(int exp)
 {
     // simulate zoom in/out by scaling down/up resp.; correct position to keep centered
     const uvec min_scale{1};

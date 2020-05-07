@@ -1,4 +1,4 @@
-#include "texture_grid.hpp"
+#include "texture_display.hpp"
 
 #include <glm/gtx/transform.hpp>
 
@@ -7,12 +7,11 @@ namespace gl = Rxt::gl;
 template <unsigned ix, class Vec>
 Vec invert(Vec v) { v[ix] = -v[ix]; return v; }
 
-texture_grid::texture_grid(grid_view gv)
-    : grid_view{gv}
-    , grid_size{gv.max_scale}
+texture_display::texture_display(uvec size)
+    : grid_size{size}
 {}
 
-void texture_grid::update_texture(void* image)
+void texture_display::set_texture(void* image)
 {
     gl::use_guard _g(tex_prog);
     gl::bind_vao_guard _a(b_texture.va);
@@ -33,13 +32,13 @@ void texture_grid::update_texture(void* image)
     b_texture.update();
 }
 
-void texture_grid::update_viewport()
+void texture_display::set_viewport(grid_viewport const& viewport)
 {
     using glm::vec2;
     using glm::vec3;
 
-    vec2 vp_rel_size = vec2(viewport_size()) / vec2(grid_size);
-    vec2 vp_rel_pos = vec2(viewport_position) / vec2(grid_size);
+    vec2 vp_rel_size = vec2(viewport.size_cells()) / vec2(grid_size);
+    vec2 vp_rel_pos = vec2(viewport.position) / vec2(grid_size);
     glm::mat4 tex_view_matrix =
         glm::translate(vec3(vp_rel_pos, 0)) *
         glm::scale(vec3(invert<1>(vp_rel_size), 0)) *
