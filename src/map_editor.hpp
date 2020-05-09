@@ -82,9 +82,9 @@ struct map_editor
     void _update_tool();
     void _update_viewport();
 
-    void handle(SDL_Event);
-    void h_mouse_motion(SDL_MouseMotionEvent);
-    void h_mouse_down(SDL_MouseButtonEvent);
-    void h_mouse_up(SDL_MouseButtonEvent);
-    void h_edge_scroll();
+    void handle_input(SDL_Event);
+    void handle_mouse_motion(SDL_MouseMotionEvent);
+    void handle_mouse_down(SDL_MouseButtonEvent);
+    void handle_mouse_up(SDL_MouseButtonEvent);
+    void handle_edge_scroll();
 };
