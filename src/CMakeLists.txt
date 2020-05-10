@@ -10,25 +10,27 @@ if(EMSCRIPTEN)
 endif()
 
 set(_HEADERS
-    map_editor.hpp
-    texture_display.hpp
-    grid_viewport.hpp
     space.hpp
     tiles.hpp
     # modvec.hpp
+    gui/grid_viewport.hpp
+    gui/texture_display.hpp
+    gui/interface_display.hpp
+    gui/map_editor.hpp
 )
 
 set(_SOURCES
-    map_editor.cpp
-    texture_display.cpp
-    grid_viewport.cpp
     space.cpp
+    gui/grid_viewport.cpp
+    gui/texture_display.cpp
+    gui/map_editor.cpp
 )
 
 add_executable(map_editor ${_HEADERS} ${_SOURCES})
 target_link_libraries(map_editor PUBLIC Rxt::Graphics)
 Rxt_emscripten_link_boost(map_editor)
 
+target_include_directories(map_editor PRIVATE ${PROJECT_SOURCE_DIR}/src)
 target_include_directories(map_editor PRIVATE ${PROJECT_SOURCE_DIR}/external)
 
 if(EMSCRIPTEN)
