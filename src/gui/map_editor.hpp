@@ -36,11 +36,14 @@ struct pen_tool
 };
 
 struct map_editor
-    : public virtual Rxt::sdl::simple_gui
-    , public virtual Rxt::simple_runtime
+    : Rxt::sdl::simple_gui
+    , Rxt::sdl::input_handler<map_editor>
 {
     using tick_duration = Rxt::duration_fps<30>;
     using tool_state = std::variant<std::monostate, selection_tool, pen_tool>;
+
+    bool _should_quit;
+    bool should_quit() const { return _should_quit; }
 
     uvec grid_size;
     grid_viewport viewport;
@@ -82,7 +85,8 @@ struct map_editor
     void _update_tool();
     void _update_viewport();
 
-    void handle_input(SDL_Event);
+    void handle_should_quit() { _should_quit = true; }
+    void handle_key_down(SDL_Keysym k) { keys.press(k); }
     void handle_mouse_motion(SDL_MouseMotionEvent);
     void handle_mouse_down(SDL_MouseButtonEvent);
     void handle_mouse_up(SDL_MouseButtonEvent);

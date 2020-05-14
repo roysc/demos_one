@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Rxt/runtime.hpp>
 #include <Rxt/graphics/sdl.hpp>
 
 #ifdef RXT_WEBGL2

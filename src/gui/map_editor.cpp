@@ -56,7 +56,7 @@ map_editor::map_editor(int seed, uvec size, grid_viewport vp)
         set_dirty();
     }}
 {
-    keys.on_press["C-W"]    = [this] { should_quit(true); };
+    keys.on_press["C-W"]    = [this] { _should_quit = true; };
     keys.on_press["C"]      = [this] {
         viewport.position = ivec {0};
         send(update_viewport);
@@ -122,7 +122,8 @@ void map_editor::step(SDL_Event event)
 
     // Per-tick handlers
     if (enable_edge_scroll) {
-        handle_edge_scroll();
+        viewport.edge_scroll(cursor_position, 1);
+        send(update_viewport);
     }
 
     update_viewport.flush();
@@ -275,36 +276,5 @@ void map_editor::handle_mouse_up(SDL_MouseButtonEvent button)
         visit(visitor, current_tool);
         break;
     }
-    }
-}
-
-// edge-of-screen cursor scrolling
-void map_editor::handle_edge_scroll()
-{
-    // (0,0) is center-screen, so offset it to the corner
-    auto vpsize = viewport.size_cells();
-    ivec offset_pos = cursor_position + ivec(vpsize / 2u);
-    ivec dv {0};
-    for (unsigned i = 0; i < dv.length(); ++i) {
-        if (offset_pos[i] == 0) {
-            dv[i] = -1;
-        } else if (offset_pos[i] + 1 == vpsize[i]) {
-            dv[i] = +1;
-        }
-    }
-    if (dv != ivec{0}) {
-        viewport.move(dv.x, dv.y);
-        send(update_viewport);
-    }
-}
-
-void map_editor::handle_input(SDL_Event event)
-{
-    switch (event.type) {
-    case SDL_QUIT: { should_quit(true); return; }
-    case SDL_KEYDOWN: { keys.press(event.key.keysym); break; }
-    case SDL_MOUSEMOTION: { handle_mouse_motion(event.motion); break; }
-    case SDL_MOUSEBUTTONDOWN: { handle_mouse_down(event.button); break; }
-    case SDL_MOUSEBUTTONUP: { handle_mouse_up(event.button); break; }
     }
 }
