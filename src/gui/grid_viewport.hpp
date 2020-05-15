@@ -1,4 +1,5 @@
 #pragma once
+
 #include <glm/glm.hpp>
 
 using ivec = glm::ivec2;
@@ -7,7 +8,7 @@ using uvec = glm::uvec2;
 struct grid_viewport
 {
     uvec max_scale; //grid_size
-    uvec scale_factor {4};
+    uvec scale_factor {1};
     uvec size_px {max_scale * scale_factor};
     ivec position {0};
     unsigned margin_size = 1;

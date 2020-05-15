@@ -1,6 +1,9 @@
 #pragma once
 
+#include "grid_viewport.hpp"
+
 #include <Rxt/graphics/sdl.hpp>
+#include <Rxt/graphics/color.hpp>
 
 #ifdef RXT_WEBGL2
   #include <Rxt/graphics/shader/webgl_grid_quad_2D.hpp>
