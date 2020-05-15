@@ -26,8 +26,7 @@ int main(int argc, char** argv)
 
     uvec size{64};
     try {
-        auto context = new map_editor(seed, size);
-        auto loop = sdl::make_looper(context, step_state);
+        auto loop = sdl::make_looper(new map_editor(seed, size), step_state);
         loop();
     } catch (std::exception& e) {
         std::cout << "caught exception: " << e.what() << '\n';
@@ -41,7 +40,7 @@ template <class F> void send(F&& f) { f(); } // todo wrapper for lazy updates/si
 ivec nds_to_grid(glm::vec2 nds, glm::vec2 scale) { return floor(nds * scale); }
 
 map_editor::map_editor(int seed, uvec size, grid_viewport vp)
-    : simple_gui{"Plaza: map_editor", vp.size_pixels()} // fixme
+    : simple_gui{"plaza: map_editor", vp.size_pixels()} // fixme
     , grid_size{size}
     , viewport{vp}
     , background{size}
@@ -56,7 +55,7 @@ map_editor::map_editor(int seed, uvec size, grid_viewport vp)
         set_dirty();
     }}
 {
-    keys.on_press["C-W"]    = [this] { _should_quit = true; };
+    keys.on_press["C-W"]    = [this] { _quit = true; };
     keys.on_press["C"]      = [this] {
         viewport.position = ivec {0};
         send(update_viewport);
@@ -104,7 +103,6 @@ map_editor::map_editor(int seed, uvec size, grid_viewport vp)
 
     auto image = create_map(grid_size, seed);
     background.set_texture(data(image));
-
 
     send(update_viewport);
 
