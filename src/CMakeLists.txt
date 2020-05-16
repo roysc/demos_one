@@ -14,7 +14,6 @@ add_library(plaza_gui
     gui/texture_display.hpp
     gui/interface_display.hpp
 
-    gui/grid_viewport.cpp
     gui/texture_display.cpp
 )
 target_link_libraries(plaza_gui PUBLIC Rxt::Graphics)

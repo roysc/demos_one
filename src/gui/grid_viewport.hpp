@@ -13,7 +13,18 @@ struct grid_viewport
     ivec position {0};
     unsigned margin_size = 1;
 
-    void scale(int);
+    void scale(int exp)
+    {
+        // simulate zoom in/out by scaling down/up resp.; correct position to keep centered
+        const uvec min_scale{1};
+        if (exp > 0) {
+            if (scale_factor.x > min_scale.x && scale_factor.y > min_scale.y)
+                scale_factor /= 2;
+        } else {
+            if (scale_factor.x < max_scale.x && scale_factor.y < max_scale.y)
+                scale_factor *= 2;
+        }
+    }
 
     void move(int dx, int dy)
     {
