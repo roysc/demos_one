@@ -8,40 +8,47 @@ template<class... T>
 struct observable
 {
     using observer_function = std::function<void(T const&...)>;
-
     std::vector<observer_function> observers;
     // using ArgsTuple = std::tuple<T...>;
 
     template <class F>
     auto hook(F&& obs) { observers.emplace_back(obs); return observers.size() - 1; }
-
-    void notify_observers(T const&... a) { for (auto& obs: observers) { obs(a...); } }
-
     auto hooks()
     {
-        struct Ret {
+        struct appender {
             observable<T...>& self;
-            template <class F> operator+=(F&& obs) { self.hook(obs); }
+            auto& operator<<(observer_function obs) { self.hook(obs); return *this; }
         };
-        return ret{*this};
+        return appender{*this};
     }
+    auto operator()() { return hooks(); }
+
+    template <class... Ts>
+    void notify_all(Ts const&... a) { for (auto& obs: observers) { obs(a...); } }
 };
 
 template <class T>
 struct observable_value : public observable<T>
 {
-    // observable_value(T arg) : wrapped(arg) {}
+    T wrapped;
+
     template <class ...Args>
     observable_value(Args&&... args) : wrapped{args...} {}
 
-    T wrapped;
-    void notify_observers() { observable<T>::notify_observers(wrapped); }
-    void set(T that) { wrapped = that; notify_observers(); }
+    T& operator*() { return wrapped; }
+    T const& operator*() const { return wrapped; }
+    T const* operator->() const { return &wrapped; }
+
+    void set(T that) { wrapped = that; notify_all(); }
     template <class... As>
     void emplace(As&&... args) { set(T{std::forward<As>(args)...}); }
-    template <class F>
-    void modify(F&& f) { f(wrapped); notify_observers(); }
 
-    T const& get() const { return wrapped; }
-    T const* operator->() const { return &wrapped; }
+    template <class F>
+    void modify(F&& f) { f(wrapped); notify_all(); }
+
+    void notify_all() { observable<T>::notify_all(wrapped); }
 };
+
+// Allows "block" syntax
+#define Pz_observe(var_, ...) ((var_).hooks()) << [&](__VA_ARGS__)
+#define Pz_notify_observers(var_) (notify_observers(var_))

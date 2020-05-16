@@ -36,35 +36,83 @@ canvas::canvas(grid_viewport vp)
     , viewport{vp}
     , tool(&selector)
 {
-    viewport.hook([&](auto& gv) { ui.set_viewport(gv); set_dirty(); });
-    cursor.hook([&](auto& c) { ui.set_cursor(c.position, c.size); set_dirty(); });
-    selector.hook([&](auto& s) {
-        for (auto [a, b]: Rxt::to_range(s.selection)) {
-            ui.set_selection(a, b);
-        }
-        set_dirty();
-    });
-    cursor.hook([&](auto& c){ std::cout << "cursor=" << c.position << "\n"; });
+    keys.on_press["C-W"] = [this] { quit = true; };
 
-    // viewport.hook([&](auto& gv) {
-    //                   ui.set_viewport(gv);
-    //                   set_dirty();
-    //               });
-    viewport.hooks() += (auto& gv) {
-        ui.set_viewport(gv);
+    set(p_ui.u_.viewport_position, ivec{0});
+    set(p_ui.u_.viewport_size, vp.size_cells());
+
+    Pz_observe(viewport, auto& vp) {
+        set(p_obj.u_.viewport_position, vp.position);
+        set(p_obj.u_.viewport_size, vp.size_cells());
+        std::cout << "viewport=(@:" << vp.position << ", s:" << vp.size_cells() << ")\n";
         set_dirty();
     };
-    cursor.hook([&](auto& c) {
-                    ui.set_cursor(c.position, c.size);
-                    set_dirty();
-                });
-    selector.hook([&](auto& s) {
-        for (auto [a, b]: Rxt::to_range(s.selection)) {
-            ui.set_selection(a, b);
-        }
-        set_dirty();
-    });
 
-    set_dirty();
+    Pz_observe(cursor, auto& c) {
+        cursor.update(b_ui);
+        std::cout << "cursor=" << cursor.position << "\n";
+        set_dirty();
+    };
+
+    Pz_observe(selector, auto& s) {
+        selector.update(b_ui, b_obj);
+        set_dirty();
+    };
+
+    notify_observers(viewport);
+
     glClearColor(0, 0, 0, 1);
+}
+
+void canvas::step(SDL_Event event)
+{
+    do {
+        handle_input(event);
+    } while (SDL_PollEvent(&event));
+
+    keys.scan();
+
+    // Per-tick handlers
+    if (enable_edge_scroll) {
+        viewport.edge_scroll(cursor.position, 1);
+    }
+
+    if (is_dirty()) {
+        draw();
+        set_dirty(false);
+    }
+}
+
+void canvas::draw()
+{
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    b_ui.draw();
+    b_obj.draw();
+
+    SDL_GL_SwapWindow(window.get());
+}
+
+void canvas::handle_mouse_down(SDL_MouseButtonEvent button)
+{
+    switch (button.button) {
+    case SDL_BUTTON_LEFT: {
+        if (tool) tool->mouse_down(0);
+        break;
+    }
+    case SDL_BUTTON_RIGHT: {
+        if (tool) tool->mouse_down(1);
+        break;
+    }
+    }
+}
+
+void canvas::handle_mouse_up(SDL_MouseButtonEvent button)
+{
+    switch (button.button) {
+    case SDL_BUTTON_LEFT: {
+        if (tool) tool->mouse_up(0);
+        break;
+    }
+    }
 }

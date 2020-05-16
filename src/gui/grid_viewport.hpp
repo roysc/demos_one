@@ -1,4 +1,5 @@
 #pragma once
+#include "../observable.hpp"
 
 #include <glm/glm.hpp>
 
@@ -13,6 +14,11 @@ struct grid_viewport
     ivec position {0};
     unsigned margin_size = 1;
 
+    observable<grid_viewport> _obs;
+    auto hooks() { return _obs.hooks(); }
+    friend void notify_observers(grid_viewport& v) { v._obs.notify_all(v); }
+    // friend get_observer(grid_viewport& v) {return v._obs;}
+
     void scale(int exp)
     {
         // simulate zoom in/out by scaling down/up resp.; correct position to keep centered
@@ -24,11 +30,13 @@ struct grid_viewport
             if (scale_factor.x < max_scale.x && scale_factor.y < max_scale.y)
                 scale_factor *= 2;
         }
+        _obs.notify_all(*this);
     }
 
     void move(int dx, int dy)
     {
         position += ivec{dx, dy};
+        _obs.notify_all(*this);
     }
 
     // size in number of cells
