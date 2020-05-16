@@ -4,20 +4,11 @@
 
 #include <Rxt/graphics/sdl.hpp>
 #include <Rxt/graphics/color.hpp>
-
-#ifdef RXT_WEBGL2
-  #include <Rxt/graphics/shader/webgl_grid_quad_2D.hpp>
-#else
-  #include <Rxt/graphics/shader/grid_quad_2D.hpp>
-#endif
+#include <Rxt/graphics/shader/grid_quad_2D.hpp>
 
 struct interface_display
 {
-#ifdef RXT_WEBGL2
-    using grid_program = Rxt::shader_programs::webgl::grid_quad_2D;
-#else
-    using grid_program = Rxt::shader_programs::grid_quad_2D;
-#endif
+    using grid_program = Rxt::shader_programs::webcompat::grid_quad_2D;
 
     const Rxt::rgba cursor_color {0, 1, 1, .5};
     const Rxt::rgba selection_color {Rxt::colors::hot_pink, 0.5};
