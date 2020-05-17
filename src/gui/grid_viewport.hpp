@@ -12,7 +12,7 @@ struct grid_viewport
     uvec scale_factor {1};
     uvec size_px {max_scale * scale_factor};
     ivec position {0};
-    unsigned margin_size = 1;
+    float margin_size = .1;
 
     observable<grid_viewport> _obs;
     auto hooks() { return _obs.hooks(); }
@@ -51,13 +51,16 @@ struct grid_viewport
     {
         // (0,0) is center-screen, so offset it to the corner
         auto vpsize = size_cells();
-        auto offset_pos = cursor_position + ivec(vpsize / 2u);
+        auto offset_pos = to_nds(cursor_position + ivec(vpsize / 2u));
         ivec dv {0};
 
+        // std::cout << "edge_scroll? "
+        //           << "nds=" << offset_pos
         for (unsigned i = 0; i < dv.length(); ++i) {
             if (offset_pos[i] < margin_size) {
                 dv[i] = -speed;
-            } else if (offset_pos[i] + margin_size >= vpsize[i]) {
+                // dv[dv.offset_pos < margin_size] = -speed;
+            } else if (offset_pos[i] + margin_size >= 2) {
                 dv[i] = +speed;
             }
         }
@@ -67,4 +70,20 @@ struct grid_viewport
         }
         return false;
     }
+
+    auto from_nds(float x, float y) const
+    {
+        return floor(glm::vec2(x, y) * glm::vec2(size_cells() / 2u));
+    }
+
+    glm::vec2 to_nds(ivec p) const { return glm::vec2(p) / glm::vec2(size_cells() / 2u); }
 };
+
+// namespace Rxt
+// {
+// // // template <class S>
+// // auto& stream_out(S& out, grid_viewport const& v)
+// // {
+// //     out << v.position
+// // }
+// }

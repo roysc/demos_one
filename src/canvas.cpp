@@ -20,7 +20,7 @@ int main(int argc, char** argv)
 
     try {
         auto loop = sdl::make_looper(
-            new canvas(grid_viewport{uvec(640)}),
+            new canvas(grid_viewport{uvec(80), uvec(8)}),
             step_state
         );
         loop();
@@ -31,35 +31,60 @@ int main(int argc, char** argv)
     return 0;
 }
 
-canvas::canvas(grid_viewport vp)
-    : simple_gui("plaza: canvas", vp.size_pixels())
-    , viewport{vp}
-    , tool(&selector)
+void canvas::_set_controls()
 {
     keys.on_press["C-W"] = [this] { quit = true; };
 
+    auto move = [this] (int dx, int dy) { viewport.move(dx, dy); set_dirty(); };
+    auto scale = [this] (int a) { viewport.scale(a); set_dirty(); };
+
+    keys.on_scan["Left"]  = std::bind(move, -1, 0);
+    keys.on_scan["Right"] = std::bind(move, +1, 0);
+    keys.on_scan["Down"]  = std::bind(move, 0, -1);
+    keys.on_scan["Up"]    = std::bind(move, 0, +1);
+    keys.on_press["."] = std::bind(scale, +1);
+    keys.on_press[","] = std::bind(scale, -1);
+
+    keys.on_press["C"] = [&] { cursor_tool = &cursor; set_dirty(); };
+    keys.on_press["S"] = [&] { cursor_tool = &selector; set_dirty(); };
+}
+
+canvas::canvas(grid_viewport vp)
+    : simple_gui("plaza: canvas", vp.size_pixels())
+    , viewport{vp}
+    , cursor_tool(&selector)
+{
+    _set_controls();
+
     set(p_ui.u_.viewport_position, ivec{0});
-    set(p_ui.u_.viewport_size, vp.size_cells());
 
     Pz_observe(viewport, auto& vp) {
+        set(p_ui.u_.viewport_size, viewport.size_cells());
         set(p_obj.u_.viewport_position, vp.position);
         set(p_obj.u_.viewport_size, vp.size_cells());
-        std::cout << "viewport=(@:" << vp.position << ", s:" << vp.size_cells() << ")\n";
         set_dirty();
     };
-
-    Pz_observe(cursor, auto& c) {
-        cursor.update(b_ui);
-        std::cout << "cursor=" << cursor.position << "\n";
-        set_dirty();
-    };
-
-    Pz_observe(selector, auto& s) {
-        selector.update(b_ui, b_obj);
-        set_dirty();
-    };
-
     notify_observers(viewport);
+
+    Pz_observe_on(cursor, cursor, auto& c) {
+        c.update_cursor(b_ui);
+        set_dirty();
+    };
+
+    Pz_observe_on(selector, cursor, auto& s) {
+        s.update_cursor(b_ui);
+        set_dirty();
+    };
+
+    Pz_observe_on(selector, selection, auto& s) {
+        s.update_selection(b_obj);
+        if (s.selection) {
+            auto [a, b] = *s.selection;
+            std::cout << "selection=(" << a << ", " << b << ")\n";
+        } else
+            std::cout << "selection=null\n";
+        set_dirty();
+    };
 
     glClearColor(0, 0, 0, 1);
 }
@@ -74,7 +99,7 @@ void canvas::step(SDL_Event event)
 
     // Per-tick handlers
     if (enable_edge_scroll) {
-        viewport.edge_scroll(cursor.position, 1);
+        viewport.edge_scroll(cursor_tool->get_position(), 1);
     }
 
     if (is_dirty()) {
@@ -87,8 +112,8 @@ void canvas::draw()
 {
     glClear(GL_COLOR_BUFFER_BIT);
 
-    b_ui.draw();
     b_obj.draw();
+    b_ui.draw();
 
     SDL_GL_SwapWindow(window.get());
 }
@@ -97,11 +122,11 @@ void canvas::handle_mouse_down(SDL_MouseButtonEvent button)
 {
     switch (button.button) {
     case SDL_BUTTON_LEFT: {
-        if (tool) tool->mouse_down(0);
+        if (cursor_tool) cursor_tool->mouse_down(0);
         break;
     }
     case SDL_BUTTON_RIGHT: {
-        if (tool) tool->mouse_down(1);
+        if (cursor_tool) cursor_tool->mouse_down(1);
         break;
     }
     }
@@ -111,7 +136,7 @@ void canvas::handle_mouse_up(SDL_MouseButtonEvent button)
 {
     switch (button.button) {
     case SDL_BUTTON_LEFT: {
-        if (tool) tool->mouse_up(0);
+        if (cursor_tool) cursor_tool->mouse_up(0);
         break;
     }
     }
