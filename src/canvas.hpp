@@ -13,34 +13,10 @@
 #include "observable.hpp"
 #include "mouse.hpp"
 
-// struct mouse_painter : grid_mouse_tool, observable<>
-// {
-//     mouse_cursor* cursor {};
-//     bool brush_down = false;
-//     uvec brush_size {1};
-
-//     mouse_painter(mouse_cursor* c) : cursor{c} {}
-
-//     void mouse_down(int) override { brush_down = true; }
-//     void mouse_up(int) override { brush_down = false; }
-//     void mouse_motion(ivec pos) override { if (brush_down) paint(cursor->position); }
-
-//     void paint(ivec pos) {}
-// };
-
-// template <class P>
-// struct display
-// {
-//     using program_type = P;
-//     using program_data = typename P::data;
-
-//     P _prog;
-//     program_data _bufs{_prog};
-//     auto& program() {return _prog;}
-//     auto& buffers() {return _bufs;}
-// };
-
 using grid_program = Rxt::shader_programs::webcompat::grid_quad_2D;
+using grid_mouse = mouse_tool<ivec>;
+using grid_cursor = mouse_cursor_tool<ivec>;
+using grid_select = mouse_select_tool<ivec>;
 
 struct ent_buffers : grid_program::data
 {
@@ -56,6 +32,16 @@ struct ent_buffers : grid_program::data
 
 struct ui_buffers : grid_program::data
 {
+    // grid_program _p;
+    // grid_program& get_program() { return _p; }
+    // variant<grid_program*, grid_program> _pp;
+    // grid_program& get_program()
+    // {
+    //     auto v = overload {[](grid_program* p) {return *p;}, [](grid_program& p) {return p;}};
+    //     return visit(v, _pp);
+    // }
+    // grid_program::uniforms* operator->() { return &get_program().u_; }
+
     void set_cursor(position_vec p, size_vec s, Rxt::rgba color)
     {
         clear();
@@ -73,9 +59,9 @@ struct canvas
     bool quit = false;
 
     grid_viewport viewport;
-    mouse_cursor cursor;
-    mouse_select selector {&viewport};
-    grid_mouse_tool* cursor_tool;
+    grid_cursor cursor;
+    grid_select selector {&viewport};
+    grid_mouse* cursor_tool;
 
     grid_program p_ui, p_obj;
     ui_buffers b_ui{p_ui};

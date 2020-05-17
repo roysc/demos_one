@@ -18,18 +18,17 @@ struct empty_mouse_tool : mouse_tool<P>
     void mouse_motion(P) override {};
 };
 
-using grid_mouse_tool = mouse_tool<ivec>;
-
-struct mouse_cursor : grid_mouse_tool//grid_mouse_tool
+template <class P>
+struct mouse_cursor_tool : mouse_tool<P>//grid_mouse_tool
 {
-    ivec position {0};
+    P position {0};
     const Rxt::rgba cursor_color {0, 1, 1, .5};
 
-    observable<mouse_cursor> hook_cursor;
+    observable<mouse_cursor_tool> hook_cursor;
 
-    ivec get_position() const override { return position; }
+    P get_position() const override { return position; }
 
-    void mouse_motion(ivec pos) override
+    void mouse_motion(P pos) override
     {
         position = pos;
         hook_cursor.notify_all(*this);
@@ -45,25 +44,26 @@ struct mouse_cursor : grid_mouse_tool//grid_mouse_tool
     }
 };
 
-struct mouse_select : grid_mouse_tool
+template <class P>
+struct mouse_select_tool : mouse_tool<P>
 {
-    using region = std::tuple<ivec, ivec>;
+    using region = std::tuple<P, P>;
 
     grid_viewport* viewport {};
 
-    ivec position {0};
-    std::optional<ivec> drag_origin;
+    P position {0};
+    std::optional<P> drag_origin;
     std::optional<region> selection;
     Rxt::rgba color = {1, 0, 1, 0.3};
 
-    observable<mouse_select> hook_cursor;
-    observable<mouse_select> hook_selection;
+    observable<mouse_select_tool> hook_cursor;
+    observable<mouse_select_tool> hook_selection;
 
-    mouse_select(grid_viewport* v) : viewport{v} {}
+    mouse_select_tool(grid_viewport* v) : viewport{v} {}
 
-    ivec get_position() const override { return position; }
+    P get_position() const override { return position; }
 
-    void mouse_motion(ivec pos) override
+    void mouse_motion(P pos) override
     {
         position = pos;
         hook_cursor.notify_all(*this);
@@ -85,7 +85,7 @@ struct mouse_select : grid_mouse_tool
         case 0:
             if (drag_origin) {
                 auto abspos = position + viewport->position;
-                auto [a, b] = Rxt::ordered(*drag_origin, abspos);
+                auto [a, b] = Rxt::box(*drag_origin, abspos);
                 selection = {a, b};
                 drag_origin = {};
                 hook_cursor.notify_all(*this);
@@ -108,7 +108,7 @@ struct mouse_select : grid_mouse_tool
     void update_cursor(UIbuf& bc) const
     {
         if (drag_origin) {
-            auto [a, b] = Rxt::ordered(position, *drag_origin - viewport->position);
+            auto [a, b] = Rxt::box(position, *drag_origin - viewport->position);
             bc.set_cursor(a, b-a+1, color);
         } else {
             bc.set_cursor(position, uvec{1}, color);
