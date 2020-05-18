@@ -11,13 +11,16 @@ struct grid_viewport
     uvec max_scale; //grid_size
     uvec scale_factor {1};
     uvec size_px {max_scale * scale_factor};
-    ivec position {0};
+    ivec _position {0};
     float margin_size = .1;
 
     observable<grid_viewport> _obs;
     auto hooks() { return _obs.hooks(); }
     friend void notify_observers(grid_viewport& v) { v._obs.notify_all(v); }
     // friend get_observer(grid_viewport& v) {return v._obs;}
+
+    ivec position() const {return _position;}
+    void position(ivec p) {_position = p; _obs.notify_all(*this); }
 
     void scale(int exp)
     {
@@ -35,7 +38,7 @@ struct grid_viewport
 
     void move(int dx, int dy)
     {
-        position += ivec{dx, dy};
+        _position += ivec{dx, dy};
         _obs.notify_all(*this);
     }
 
@@ -78,12 +81,3 @@ struct grid_viewport
 
     glm::vec2 to_nds(ivec p) const { return glm::vec2(p) / glm::vec2(size_cells() / 2u); }
 };
-
-// namespace Rxt
-// {
-// // // template <class S>
-// // auto& stream_out(S& out, grid_viewport const& v)
-// // {
-// //     out << v.position
-// // }
-// }

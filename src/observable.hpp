@@ -21,7 +21,6 @@ struct observable
         };
         return appender{*this};
     }
-    auto operator()() { return hooks(); }
 
     template <class... Ts>
     void notify_all(Ts&&... a) { for (auto& obs: observers) { obs(std::forward<Ts>(a)...); } }
@@ -51,5 +50,5 @@ struct observable_value : public observable<T>
 
 // Allows "block" syntax
 #define Pz_observe(var_, ...) ((var_).hooks()) << [&](__VA_ARGS__)
-#define Pz_observe_on(var_, chan_, ...) ((var_).hook_##chan_)() << [&](__VA_ARGS__)
+#define Pz_observe_on(var_, chan_, ...) ((var_)._hook_##chan_##_.hooks()) << [&](__VA_ARGS__)
 #define Pz_notify_observers(var_) (notify_observers(var_))

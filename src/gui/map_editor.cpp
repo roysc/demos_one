@@ -57,7 +57,7 @@ map_editor::map_editor(int seed, uvec size, grid_viewport vp)
 {
     keys.on_press["C-W"]    = [this] { _quit = true; };
     keys.on_press["C"]      = [this] {
-        viewport.position = ivec {0};
+        viewport.position(ivec{0});
         send(update_viewport);
     };
 
@@ -73,7 +73,7 @@ map_editor::map_editor(int seed, uvec size, grid_viewport vp)
     keys.on_press["B"] = [this] { current_tool = pen_tool {}; print("Tool: pen\n"); };
 
     keys.on_press["I"] = [this] {
-        print("pos={} ", viewport.position);
+                             print("pos={} ", viewport.position());
         print("scale={} ", viewport.scale_factor);
         print("cursor={}\n", cursor_position);
         if (selection_tool select; get_tool(select) && select.selection) {
@@ -184,14 +184,14 @@ void map_editor::_update_cursor()
         [&, this] (selection_tool& select) {
             // render cursor drag area
             if (auto& origin = select.drag_origin) {
-                auto [a, b] = Rxt::ordered(*origin, cursor_position);
+                auto [a, b] = Rxt::box(*origin, cursor_position);
                 pos = a;
                 size = b - a + 1;
             }
         },
         [this] (pen_tool& pen) {
             if (pen.down) {
-                ivec penpos = cursor_position + viewport.position;
+                ivec penpos = cursor_position + viewport.position();
                 penpos %= grid_size;
                 grid_layer[penpos.x][penpos.y] = pen.ink_fg;
                 send(update_features);
@@ -259,8 +259,8 @@ void map_editor::handle_mouse_up(SDL_MouseButtonEvent button)
         auto visitor = Rxt::overloaded {
             [this] (selection_tool& select) {
                 if (auto& origin = select.drag_origin) {
-                    auto [a, b] = Rxt::ordered(*origin, cursor_position);
-                    select.selection.emplace(a + viewport.position, b - a + 1);
+                    auto [a, b] = Rxt::box(*origin, cursor_position);
+                    select.selection.emplace(a + viewport.position(), b - a + 1);
                     select.drag_origin = {};
                     send(update_cursor);
                     send(update_tool);

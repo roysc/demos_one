@@ -21,7 +21,7 @@ struct interface_display
 
     void set_viewport(grid_viewport const& v)
     {
-        set_uniform(quad_prog, "viewportPosition", v.position);
+        set_uniform(quad_prog, "viewportPosition", v.position());
         set_uniform(quad_prog, "viewportSize", v.size_cells());
     }
 
@@ -47,7 +47,7 @@ struct interface_display
             Rxt::gl::uniform<ivec> u_vpos {quad_prog, "viewportPosition"};
             set(u_vpos, ivec {0});
             b_quads_sticky.draw();
-            set(u_vpos, viewport.position);
+            set(u_vpos, viewport.position());
         }
     }
 };

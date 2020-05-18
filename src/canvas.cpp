@@ -45,38 +45,31 @@ void canvas::_set_controls()
     keys.on_press["."] = std::bind(scale, +1);
     keys.on_press[","] = std::bind(scale, -1);
 
-    keys.on_press["C"] = [&] { cursor_tool = &cursor; set_dirty(); };
-    keys.on_press["S"] = [&] { cursor_tool = &selector; set_dirty(); };
-}
+    keys.on_press["C"] = [&] { mouse_tool = &cursor; set_dirty(); };
+ }
 
 canvas::canvas(grid_viewport vp)
     : simple_gui("plaza: canvas", vp.size_pixels())
     , viewport{vp}
-    , cursor_tool(&selector)
 {
     _set_controls();
 
     set(p_ui.u_.viewport_position, ivec{0});
 
     Pz_observe(viewport, auto& vp) {
-        set(p_ui.u_.viewport_size, viewport.size_cells());
-        set(p_obj.u_.viewport_position, vp.position);
+        set(p_ui.u_.viewport_size, vp.size_cells());
+        set(p_obj.u_.viewport_position, vp.position());
         set(p_obj.u_.viewport_size, vp.size_cells());
         set_dirty();
     };
     notify_observers(viewport);
 
-    Pz_observe_on(cursor, cursor, auto& c) {
+    Pz_observe_on(cursor, motion, auto& c) {
         c.update_cursor(b_ui);
         set_dirty();
     };
 
-    Pz_observe_on(selector, cursor, auto& s) {
-        s.update_cursor(b_ui);
-        set_dirty();
-    };
-
-    Pz_observe_on(selector, selection, auto& s) {
+    Pz_observe_on(cursor, selection, auto& s) {
         s.update_selection(b_obj);
         if (s.selection) {
             auto [a, b] = *s.selection;
@@ -99,7 +92,7 @@ void canvas::step(SDL_Event event)
 
     // Per-tick handlers
     if (enable_edge_scroll) {
-        viewport.edge_scroll(cursor_tool->get_position(), 1);
+        viewport.edge_scroll(cursor.position(), 1);
     }
 
     if (is_dirty()) {
@@ -122,11 +115,11 @@ void canvas::handle_mouse_down(SDL_MouseButtonEvent button)
 {
     switch (button.button) {
     case SDL_BUTTON_LEFT: {
-        if (cursor_tool) cursor_tool->mouse_down(0);
+        if (mouse_tool) mouse_tool->mouse_down(0);
         break;
     }
     case SDL_BUTTON_RIGHT: {
-        if (cursor_tool) cursor_tool->mouse_down(1);
+        if (mouse_tool) mouse_tool->mouse_down(1);
         break;
     }
     }
@@ -136,7 +129,7 @@ void canvas::handle_mouse_up(SDL_MouseButtonEvent button)
 {
     switch (button.button) {
     case SDL_BUTTON_LEFT: {
-        if (cursor_tool) cursor_tool->mouse_up(0);
+        if (mouse_tool) mouse_tool->mouse_up(0);
         break;
     }
     }

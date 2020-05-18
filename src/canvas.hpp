@@ -15,7 +15,7 @@
 
 using grid_program = Rxt::shader_programs::webcompat::grid_quad_2D;
 using grid_mouse = mouse_tool<ivec>;
-using grid_cursor = mouse_cursor_tool<ivec>;
+// using grid_cursor = mouse_cursor_tool<ivec>;
 using grid_select = mouse_select_tool<ivec>;
 
 struct ent_buffers : grid_program::data
@@ -59,9 +59,8 @@ struct canvas
     bool quit = false;
 
     grid_viewport viewport;
-    grid_cursor cursor;
-    grid_select selector {&viewport};
-    grid_mouse* cursor_tool;
+    grid_select cursor {&viewport};
+    grid_mouse* mouse_tool {&cursor};
 
     grid_program p_ui, p_obj;
     ui_buffers b_ui{p_ui};
@@ -76,7 +75,7 @@ struct canvas
         auto [x, y] = Rxt::sdl::nds_coords(*window, motion.x, motion.y);
         auto gridpos = viewport.from_nds(x, y);
 
-        if (cursor_tool) cursor_tool->mouse_motion(gridpos);
+        cursor.mouse_motion(gridpos);
     }
 
     void handle_mouse_down(SDL_MouseButtonEvent button);

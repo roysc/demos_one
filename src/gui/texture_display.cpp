@@ -38,7 +38,7 @@ void texture_display::set_viewport(grid_viewport const& viewport)
     using glm::vec3;
 
     vec2 vp_rel_size = vec2(viewport.size_cells()) / vec2(grid_size);
-    vec2 vp_rel_pos = vec2(viewport.position) / vec2(grid_size);
+    vec2 vp_rel_pos = vec2(viewport.position()) / vec2(grid_size);
     glm::mat4 tex_view_matrix =
         glm::translate(vec3(vp_rel_pos, 0)) *
         glm::scale(vec3(invert<1>(vp_rel_size), 0)) *
