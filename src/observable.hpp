@@ -2,25 +2,24 @@
 
 #include <functional>
 #include <vector>
-// #include <tuple>
 
 template<class... T>
 struct observable
 {
     using observer_function = std::function<void(T const&...)>;
-    std::vector<observer_function> observers;
-    // using ArgsTuple = std::tuple<T...>;
 
-    template <class F>
-    auto hook(F&& obs) { observers.emplace_back(obs); return observers.size() - 1; }
-    auto hooks()
+    std::vector<observer_function> observers;
+
+    auto hook(observer_function obs) { observers.emplace_back(obs); return observers.size() - 1; }
+    auto hook(std::function<void()> obs) { hook([=](auto&&) { obs(); }); }
+
+    struct _appender
     {
-        struct appender {
-            observable<T...>& self;
-            auto& operator<<(observer_function obs) { self.hook(obs); return *this; }
-        };
-        return appender{*this};
-    }
+        observable<T...>& self;
+        template <class F>
+        auto& operator<<(F&& obs) { self.hook(obs); return *this; }
+    };
+    auto hooks() { return _appender{*this}; }
 
     template <class... Ts>
     void notify_all(Ts&&... a) { for (auto& obs: observers) { obs(std::forward<Ts>(a)...); } }
