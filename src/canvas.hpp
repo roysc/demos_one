@@ -1,17 +1,9 @@
 #pragma once
 
-// #include "texture_display.hpp"
-#include "gui/interface_display.hpp"
-
-#include <Rxt/time.hpp>
-#include <Rxt/range.hpp>
-#include <Rxt/util.hpp>
-#include <Rxt/graphics/sdl.hpp>
-#include <Rxt/graphics/gl.hpp>
-
-#include <optional>
-#include "observable.hpp"
 #include "mouse.hpp"
+
+#include <Rxt/graphics/sdl.hpp>
+#include <Rxt/graphics/shader/grid_quad_2D.hpp>
 
 using grid_program = Rxt::shader_programs::webcompat::grid_quad_2D;
 using grid_mouse = mouse_tool<ivec>;

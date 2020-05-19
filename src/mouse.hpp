@@ -1,6 +1,11 @@
 #pragma once
 
 #include "viewport.hpp"
+#include <Rxt/graphics/color.hpp>
+#include <Rxt/range.hpp>
+#include <Rxt/util.hpp>
+
+#include <optional>
 
 template <class P>
 struct mouse_tool
