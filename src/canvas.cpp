@@ -46,6 +46,9 @@ void canvas::_set_controls()
     keys.on_press[","] = std::bind(scale, -1);
 
     keys.on_press["C"] = [&] { mouse_tool = &selector; set_dirty(); };
+
+    // keys.on_press["Space"] = [&] { _lines.add(selector.cursor_position()); };
+    // keys.on_press["W"] =[&] { _lines.close(); };
  }
 
 canvas::canvas(grid_viewport vp)

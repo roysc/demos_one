@@ -8,8 +8,8 @@
 struct grid_traits
 {
     using vec_type = ivec;
-    using observable_type = lazy_observable;
-    // using observable_type = observable<>;
+    using observable_type = observable<>;
+    // using observable_type = lazy_observable;
 };
 
 using grid_program = Rxt::shader_programs::webcompat::grid_quad_2D;
@@ -52,6 +52,8 @@ struct canvas
     bool quit = false;
 
     std::vector<ivec> _line_points;
+
+    // observer_router obr;
 
     grid_viewport viewport;
     grid_selector selector {viewport};

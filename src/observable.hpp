@@ -3,6 +3,7 @@
 #include <Rxt/util.hpp>
 #include <functional>
 #include <vector>
+#include <tuple>
 
 template<class T>
 struct basic_observable
@@ -72,8 +73,13 @@ struct observable_value : public basic_observable<T>
 // struct cursor_selection {};
 // }
 
-// template <class... Tag>
+// template <class... Tags>
 // struct observer_router
 // {
-//     std::tuple<typename Tag::observer_type> subjects;
+//     std::tuple<observable<Tags>...> subjects;
+
+//     template <class Tag>
+//     auto get_hooks(Tag) { return std::get<observable<Tag>>(subjects).hooks(); }
 // };
+
+// #define Pz_observe(obr_, chan_) ((obr_).get_hooks(tag::chan_{})) << [&](tag::chan_)

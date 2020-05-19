@@ -35,6 +35,7 @@ struct _viewport_ivec2
 
     typename Tr::observable_type _hooks_;
     auto hooks() { return _hooks_.hooks(); }
+    // auto subject(tag::viewport) { return _hooks_; }
 
     ivec position() const {return _position;}
     void position(ivec p) {_position = p; _hooks_.notify_all(); }
@@ -185,7 +186,8 @@ struct _viewport_
     using type = std::conditional_t<
         std::is_same_v<typename Tr::vec_type, ivec>,
         _viewport_ivec2<Tr>,
-        _viewport_fvec2<Tr>
+        void
+        // _viewport_fvec2<Tr>
         >;
 };
 
