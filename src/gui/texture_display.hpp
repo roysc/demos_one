@@ -1,10 +1,10 @@
 #pragma once
 
+#include "grid_viewport.hpp"
+
 #include <Rxt/graphics/gl.hpp>
 #include <Rxt/graphics/shader/texture_quad_2D.hpp>
 #include <Rxt/util.hpp>
-
-#include "../viewport.hpp"
 
 struct texture_display
 {

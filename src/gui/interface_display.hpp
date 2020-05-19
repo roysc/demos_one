@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../viewport.hpp"
+#include "grid_viewport.hpp"
 
 #include <Rxt/graphics/sdl.hpp>
 #include <Rxt/graphics/color.hpp>

@@ -5,10 +5,18 @@
 #include <Rxt/graphics/sdl.hpp>
 #include <Rxt/graphics/shader/grid_quad_2D.hpp>
 
+struct grid_traits
+{
+    using vec_type = ivec;
+    using observable_type = lazy_observable;
+    // using observable_type = observable<>;
+};
+
 using grid_program = Rxt::shader_programs::webcompat::grid_quad_2D;
-using grid_mouse = mouse_tool<ivec>;
-using grid_selector = mouse_select_tool<ivec>;
-using grid_painter = mouse_paint_tool<ivec>;
+using grid_viewport = viewport<grid_traits>;
+using grid_mouse = mouse_tool<grid_traits::vec_type>;
+using grid_selector = mouse_select_tool<grid_traits>;
+using grid_painter = mouse_paint_tool<grid_traits>;
 
 struct model_buffers : grid_program::data
 {
@@ -47,9 +55,7 @@ struct canvas
 
     grid_viewport viewport;
     grid_selector selector {viewport};
-
     grid_painter tile_painter {selector, [&](ivec p, int){_line_points.emplace_back(p);}};
-
     grid_mouse* mouse_tool {&selector};
 
     grid_program p_ui, p_model;

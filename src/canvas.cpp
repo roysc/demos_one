@@ -56,24 +56,28 @@ canvas::canvas(grid_viewport vp)
 
     set(p_ui.u_.viewport_position, ivec{0});
 
+    // Pz_observe(obs, viewport)
+    // Pz_observe(obs, cursor_motion)
+    // Pz_observe(obs, cursor_selection)
+
     // actions.add
-    Pz_observe(viewport, auto& vp) {
-        set(p_ui.u_.viewport_size, vp.size_cells());
-        set(p_model.u_.viewport_position, vp.position());
-        set(p_model.u_.viewport_size, vp.size_cells());
+    Pz_observe(viewport) {
+        set(p_ui.u_.viewport_size, viewport.size_cells());
+        set(p_model.u_.viewport_position, viewport.position());
+        set(p_model.u_.viewport_size, viewport.size_cells());
         set_dirty();
     };
-    notify_observers(viewport);
+    Pz_notify(viewport);
 
-    Pz_observe_on(selector, motion, auto& c) {
-        c.update_cursor(b_ui);
+    Pz_observe_on(selector, motion) {
+        selector.update_cursor(b_ui);
         set_dirty();
     };
 
-    Pz_observe_on(selector, selection, auto& s) {
-        s.update_selection(b_model);
-        if (s.selection) {
-            auto [a, b] = *s.selection;
+    Pz_observe_on(selector, selection) {
+        selector.update_selection(b_model);
+        if (selector.selection) {
+            auto [a, b] = *selector.selection;
             std::cout << "selection=(" << a << ", " << b << ")\n";
         } else
             std::cout << "selection=null\n";
@@ -95,6 +99,10 @@ void canvas::step(SDL_Event event)
     if (enable_edge_scroll) {
         viewport.edge_scroll(selector.cursor_position(), 1);
     }
+
+    // Pz_flush(viewport);
+    // Pz_flush_on(selector, motion);
+    // Pz_flush_on(selector, selection);
 
     if (is_dirty()) {
         draw();
