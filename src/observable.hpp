@@ -57,29 +57,22 @@ struct observable_value : public basic_observable<T>
     void notify_all() { basic_observable<T>::notify_all(wrapped); }
 };
 
-// Allows "block" syntax
-#define Pz_observe(var_, ...) ((var_).hooks()) << [&](__VA_ARGS__)
-#define Pz_observe_on(var_, chan_, ...) ((var_)._hook_##chan_##_.hooks()) << [&](__VA_ARGS__)
+// // Allows "block" syntax
+// #define Pz_observe(var_, ...) ((var_).hooks()) << [&](__VA_ARGS__)
+// #define Pz_observe_on(var_, chan_, ...) ((var_)._hook_##chan_##_.hooks()) << [&](__VA_ARGS__)
 
 #define Pz_notify(var_) ((var_)._hooks_.notify_all())
 
 #define Pz_flush_on(var_, chan_) ((var_)._hook_##chan_##_.flush_all())
 #define Pz_flush(var_) ((var_)._hooks_.flush_all())
 
-// namespace tag
-// {
-// struct viewport {};
-// struct cursor_motion {};
-// struct cursor_selection {};
-// }
+template <class... Tags>
+struct observer_router
+{
+    std::tuple<observable<Tags>...> subjects;
 
-// template <class... Tags>
-// struct observer_router
-// {
-//     std::tuple<observable<Tags>...> subjects;
+    template <class Tag>
+    auto& get_subject(Tag t) { return std::get<observable<Tag>>(subjects); }
+};
 
-//     template <class Tag>
-//     auto get_hooks(Tag) { return std::get<observable<Tag>>(subjects).hooks(); }
-// };
-
-// #define Pz_observe(obr_, chan_) ((obr_).get_hooks(tag::chan_{})) << [&](tag::chan_)
+#define Pz_observe(obr_, tag_) ((obr_).get_subject(tag_{}).hooks()) << [&](tag_)

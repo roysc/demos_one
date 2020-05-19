@@ -5,18 +5,43 @@
 #include <Rxt/graphics/sdl.hpp>
 #include <Rxt/graphics/shader/grid_quad_2D.hpp>
 
+namespace tag
+{
+    struct viewport {};
+    struct cursor_motion {};
+    struct cursor_selection {};
+
+}
+
 struct grid_traits
 {
     using vec_type = ivec;
-    using observable_type = observable<>;
+    using size_type = uvec;
+};
+
+template <class Tag>
+struct pubsub_traits
+{
+    using subject_tag = Tag;
+    // using publisher = observable<Tag>;
+    using publisher = observable<>;
+
+    // using observable_type = observable<>;
     // using observable_type = lazy_observable;
+    // using viewport_tag = tag::viewport;
+    // using cursor_motion_tag = tag::cursor_motion;
+    // using cursor_selection_tag = tag::cursor_selection;
 };
 
 using grid_program = Rxt::shader_programs::webcompat::grid_quad_2D;
-using grid_viewport = viewport<grid_traits>;
-using grid_mouse = mouse_tool<grid_traits::vec_type>;
+using grid_viewport = viewport<grid_traits, tag::viewport>;
+
+using ui_traits = mouse_ui<ivec
 using grid_selector = mouse_select_tool<grid_traits>;
 using grid_painter = mouse_paint_tool<grid_traits>;
+
+using obrouter = observer_router<
+    tag::viewport, tag::cursor_motion, tag::cursor_selection>;
 
 struct model_buffers : grid_program::data
 {
@@ -53,7 +78,7 @@ struct canvas
 
     std::vector<ivec> _line_points;
 
-    // observer_router obr;
+    obrouter obr;
 
     grid_viewport viewport;
     grid_selector selector {viewport};
