@@ -15,10 +15,10 @@
 
 using grid_program = Rxt::shader_programs::webcompat::grid_quad_2D;
 using grid_mouse = mouse_tool<ivec>;
-// using grid_cursor = mouse_cursor_tool<ivec>;
-using grid_select = mouse_select_tool<ivec>;
+using grid_selector = mouse_select_tool<ivec>;
+using grid_painter = mouse_paint_tool<ivec>;
 
-struct ent_buffers : grid_program::data
+struct model_buffers : grid_program::data
 {
     const Rxt::rgba select_color {0, 0, 1, 1};
 
@@ -32,16 +32,6 @@ struct ent_buffers : grid_program::data
 
 struct ui_buffers : grid_program::data
 {
-    // grid_program _p;
-    // grid_program& get_program() { return _p; }
-    // variant<grid_program*, grid_program> _pp;
-    // grid_program& get_program()
-    // {
-    //     auto v = overload {[](grid_program* p) {return *p;}, [](grid_program& p) {return p;}};
-    //     return visit(v, _pp);
-    // }
-    // grid_program::uniforms* operator->() { return &get_program().u_; }
-
     void set_cursor(position_vec p, size_vec s, Rxt::rgba color)
     {
         clear();
@@ -49,6 +39,9 @@ struct ui_buffers : grid_program::data
         update();
     }
 };
+
+using fvec = glm::vec2;
+// using grid_edge_painter = mouse_paint_tool<fvec>;
 
 struct canvas
     : Rxt::sdl::simple_gui
@@ -58,13 +51,18 @@ struct canvas
     bool enable_edge_scroll = true;
     bool quit = false;
 
-    grid_viewport viewport;
-    grid_select cursor {&viewport};
-    grid_mouse* mouse_tool {&cursor};
+    std::vector<ivec> _line_points;
 
-    grid_program p_ui, p_obj;
+    grid_viewport viewport;
+    grid_selector selector {viewport};
+
+    grid_painter tile_painter {selector, [&](ivec p, int){_line_points.emplace_back(p);}};
+
+    grid_mouse* mouse_tool {&selector};
+
+    grid_program p_ui, p_model;
     ui_buffers b_ui{p_ui};
-    ent_buffers b_obj{p_obj};
+    model_buffers b_model{p_model};
 
     canvas(grid_viewport vp);
     void step(SDL_Event);
@@ -75,7 +73,7 @@ struct canvas
         auto [x, y] = Rxt::sdl::nds_coords(*window, motion.x, motion.y);
         auto gridpos = viewport.from_nds(x, y);
 
-        cursor.mouse_motion(gridpos);
+        selector.mouse_motion(gridpos);
     }
 
     void handle_mouse_down(SDL_MouseButtonEvent button);

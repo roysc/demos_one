@@ -45,7 +45,7 @@ void canvas::_set_controls()
     keys.on_press["."] = std::bind(scale, +1);
     keys.on_press[","] = std::bind(scale, -1);
 
-    keys.on_press["C"] = [&] { mouse_tool = &cursor; set_dirty(); };
+    keys.on_press["C"] = [&] { mouse_tool = &selector; set_dirty(); };
  }
 
 canvas::canvas(grid_viewport vp)
@@ -56,21 +56,22 @@ canvas::canvas(grid_viewport vp)
 
     set(p_ui.u_.viewport_position, ivec{0});
 
+    // actions.add
     Pz_observe(viewport, auto& vp) {
         set(p_ui.u_.viewport_size, vp.size_cells());
-        set(p_obj.u_.viewport_position, vp.position());
-        set(p_obj.u_.viewport_size, vp.size_cells());
+        set(p_model.u_.viewport_position, vp.position());
+        set(p_model.u_.viewport_size, vp.size_cells());
         set_dirty();
     };
     notify_observers(viewport);
 
-    Pz_observe_on(cursor, motion, auto& c) {
+    Pz_observe_on(selector, motion, auto& c) {
         c.update_cursor(b_ui);
         set_dirty();
     };
 
-    Pz_observe_on(cursor, selection, auto& s) {
-        s.update_selection(b_obj);
+    Pz_observe_on(selector, selection, auto& s) {
+        s.update_selection(b_model);
         if (s.selection) {
             auto [a, b] = *s.selection;
             std::cout << "selection=(" << a << ", " << b << ")\n";
@@ -92,7 +93,7 @@ void canvas::step(SDL_Event event)
 
     // Per-tick handlers
     if (enable_edge_scroll) {
-        viewport.edge_scroll(cursor.position(), 1);
+        viewport.edge_scroll(selector.cursor_position(), 1);
     }
 
     if (is_dirty()) {
@@ -105,7 +106,7 @@ void canvas::draw()
 {
     glClear(GL_COLOR_BUFFER_BIT);
 
-    b_obj.draw();
+    b_model.draw();
     b_ui.draw();
 
     SDL_GL_SwapWindow(window.get());
