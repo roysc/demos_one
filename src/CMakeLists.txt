@@ -10,10 +10,9 @@ if(EMSCRIPTEN)
 endif()
 
 add_library(plaza_gui
-    gui/grid_viewport.hpp
+    viewport.hpp
     gui/texture_display.hpp
     gui/interface_display.hpp
-
     gui/texture_display.cpp
 )
 target_link_libraries(plaza_gui PUBLIC Rxt::Graphics)

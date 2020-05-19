@@ -1,5 +1,5 @@
 #pragma once
-#include "../observable.hpp"
+#include "observable.hpp"
 
 #include <glm/glm.hpp>
 
@@ -81,3 +81,12 @@ struct grid_viewport
 
     glm::vec2 to_nds(ivec p) const { return glm::vec2(p) / glm::vec2(size_cells() / 2u); }
 };
+
+template <class P>
+struct _viewport;
+
+template <>
+struct _viewport<ivec> { using type = grid_viewport; };
+
+template <class P>
+using viewport = typename _viewport<P>::type;

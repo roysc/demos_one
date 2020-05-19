@@ -4,7 +4,7 @@
 #include <Rxt/graphics/shader/texture_quad_2D.hpp>
 #include <Rxt/util.hpp>
 
-#include "grid_viewport.hpp"
+#include "../viewport.hpp"
 
 struct texture_display
 {

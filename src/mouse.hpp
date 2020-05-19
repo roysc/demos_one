@@ -1,5 +1,7 @@
 #pragma once
 
+#include "viewport.hpp"
+
 template <class P>
 struct mouse_tool
 {
