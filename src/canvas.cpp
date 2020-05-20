@@ -62,25 +62,21 @@ canvas::canvas(grid_viewport vp)
 
     set(p_ui.u_.viewport_position, ivec{0});
 
-    // Pz_observe(obs, viewport)
-    // Pz_observe(obs, cursor_motion)
-    // Pz_observe(obs, cursor_selection)
-
-    // actions.add
-    Pz_observe(obr, tag::viewport) {
+    Pz_observe(obr, tags::viewport) {
         set(p_ui.u_.viewport_size, viewport.size_cells());
         set(p_model.u_.viewport_position, viewport.position());
         set(p_model.u_.viewport_size, viewport.size_cells());
         set_dirty();
     };
-    // Pz_notify(viewport);
 
-    Pz_observe(obr, tag::cursor_motion) {
+    Pz_notify(obr, tags::viewport);
+
+    Pz_observe(obr, tags::cursor_motion) {
         selector.update_cursor(b_ui);
         set_dirty();
     };
 
-    Pz_observe(obr, tag::cursor_selection) {
+    Pz_observe(obr, tags::cursor_selection) {
         selector.update_selection(b_model);
         if (selector.selection) {
             auto [a, b] = *selector.selection;

@@ -5,74 +5,109 @@
 #include <vector>
 #include <tuple>
 
-template<class T>
-struct basic_observable
+template <class Tag>
+struct subject
 {
-    using observer_function = T;
+    using tag = Tag;
+    using index = std::size_t;
+    using handler = std::function<void(Tag)>;
 
-    std::vector<observer_function> observers;
-
-    auto hook(observer_function obs) { observers.emplace_back(obs); return observers.size() - 1; }
-    // auto hook(std::function<void()> obs) { hook([=](auto&&) { obs(); }); }
-
-    struct _appender
-    {
-        basic_observable<T>& self;
-        template <class F>
-        auto& operator<<(F&& obs) { self.hook(obs); return *this; }
-    };
-    auto hooks() { return _appender{*this}; }
-
-    template <class... Ts>
-    void notify_all(Ts&&... a) { for (auto& obs: observers) { obs(std::forward<Ts>(a)...); } }
+    virtual void notify_all(Tag) = 0;
+    virtual index hook(handler) = 0;
 };
 
-template <class...T>
-using observable = basic_observable<std::function<void(T const&...)>>;
-
-struct lazy_observable : public basic_observable<Rxt::lazy_action>
+namespace _det
 {
-    void flush_all() { for (auto&& obs: observers) obs.flush(); }
-};
-
-template <class T>
-struct observable_value : public basic_observable<T>
+template <class Sub>
+struct hook_appender
 {
-    T wrapped;
-
-    template <class ...Args>
-    observable_value(Args&&... args) : wrapped{args...} {}
-
-    T& operator*() { return wrapped; }
-    T const& operator*() const { return wrapped; }
-    T const* operator->() const { return &wrapped; }
-
-    void set(T that) { wrapped = that; notify_all(); }
-    template <class... As>
-    void emplace(As&&... args) { set(T{std::forward<As>(args)...}); }
-
+    Sub& self;
     template <class F>
-    void modify(F&& f) { f(wrapped); notify_all(); }
-
-    void notify_all() { basic_observable<T>::notify_all(wrapped); }
+    auto& operator<<(F&& h) { self->hook(h); return *this; }
 };
 
-// // Allows "block" syntax
-// #define Pz_observe(var_, ...) ((var_).hooks()) << [&](__VA_ARGS__)
-// #define Pz_observe_on(var_, chan_, ...) ((var_)._hook_##chan_##_.hooks()) << [&](__VA_ARGS__)
+template <class Sub>
+auto hooks(Sub& s) { return hook_appender<Sub>{s}; }
+}
 
-#define Pz_notify(var_) ((var_)._hooks_.notify_all())
+template<class Tag>
+struct basic_subject : public subject<Tag>
+{
+    using index = typename subject<Tag>::index;
+    using handler = typename subject<Tag>::handler;
 
-#define Pz_flush_on(var_, chan_) ((var_)._hook_##chan_##_.flush_all())
-#define Pz_flush(var_) ((var_)._hooks_.flush_all())
+    std::vector<handler> observers;
+
+    index hook(handler obs) override
+    {
+        observers.push_back(obs);
+        return observers.size() - 1;
+    }
+
+    void notify_all(Tag t) override { for (auto& obs: observers) { obs(t); } }
+    void operator()() { notify_all(Tag{}); }
+};
+
+template<class Tag>
+struct lazy_subject : subject<Tag>
+{
+    using index = typename subject<Tag>::index;
+    using handler = typename subject<Tag>::handler;
+    using lazy_handler = Rxt::lazy_action;
+
+    std::vector<lazy_handler> observers;
+
+    index hook(handler obs) override
+    {
+        observers.push_back(obs);
+        return observers.size() - 1;
+    }
+
+    void notify_all(Tag t) override { for (auto& obs: observers) { obs(t); } }
+    void operator()() { notify_all(Tag{}); }
+
+    auto flush_all(Tag t) override
+    {
+        unsigned ret {};
+        for (auto& obs: observers) { ret += obs.flush(); }
+        return ret;
+    }
+};
+
+template <class Tag>
+using observable = basic_subject<Tag>;
+
+template <class Tag>
+struct _subject_ref
+{
+    using self_ptr = subject<Tag>*;
+    self_ptr self{};
+
+    auto& operator=(self_ptr p) { self = p; }
+    void operator()() { if (!self) throw nullptr; self->notify_all(Tag{}); }
+    // auto hooks() { if (!self) throw nullptr; return self->hooks; }
+};
+
+template <class Tag>
+using subject_ref = _subject_ref<Tag>;
+
+template <class Tag> using eager_observable = observable<Tag>;
 
 template <class... Tags>
 struct observer_router
 {
-    std::tuple<observable<Tags>...> subjects;
+    std::tuple<subject<Tags>*...> subjects;
 
     template <class Tag>
-    auto& get_subject(Tag t) { return std::get<observable<Tag>>(subjects); }
+    auto& get_subject(Tag t) { return std::get<subject<Tag>*>(subjects); }
+
+    template <class Tag>
+    void set_subject(Tag, subject<Tag>& subj) { std::get<subject<Tag>*>(subjects) = &subj; }
+
+    template <class Tag>
+    auto tag_ref(Tag t) { return subject_ref<Tag>{get_subject(t)}; }
 };
 
-#define Pz_observe(obr_, tag_) ((obr_).get_subject(tag_{}).hooks()) << [&](tag_)
+
+#define Pz_observe(obr_, tag_) (_det::hooks((obr_).get_subject(tag_{}))) << [&](tag_)
+#define Pz_notify(obr_, tag_) ((obr_).tag_ref(tag_{})())

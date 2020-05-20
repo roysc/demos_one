@@ -7,19 +7,20 @@
 
 #include <optional>
 
-template <class P>
 struct mouse_tool
 {
     virtual void mouse_down(int) = 0;
     virtual void mouse_up(int) = 0;
 };
 
-template <class Tr>
+// template <class Uitr>
+template <class GT>
 struct mouse_ui
 {
     // using viewport_type = viewport<P, Obs>;
-    using viewport_type = viewport<Tr>;
-    using P = typename Tr::vec_type;
+    // using P = typename GT::vec_type;
+    using P = typename GT::position_type;
+    using viewport_type = viewport<GT>;
 
     P _cursor_position {0};
     viewport_type* _viewport;
@@ -32,32 +33,47 @@ struct mouse_ui
     viewport_type const& viewport() const { return *_viewport; };
 };
 
+namespace tags {
+struct cursor_motion {};
+struct cursor_selection {};
+}
+
 // This is designed to function as both a basic cursor observable state
 // And a mouse tool used by vpointer.
-template <class Tr>
+template <class GT>
 struct mouse_select_tool
-    : public mouse_ui<Tr>
-    , public mouse_tool<typename Tr::vec_type>
+    : public mouse_ui<GT>
+    , public mouse_tool
 {
-    using P = typename Tr::vec_type;
-    using Obs = typename Tr::observable_type;
+    using P = typename GT::position_type;
+    using cursor_motion_tag = tags::cursor_motion;
+    using cursor_selection_tag = tags::cursor_selection;
+
     using region = std::tuple<P, P>;
 
-    using mouse_ui<Tr>::mouse_ui;
-    using mouse_ui<Tr>::cursor_position;
-    using mouse_ui<Tr>::viewport;
+    using MouseUi = mouse_ui<GT>;
+    using MouseUi::MouseUi;
+    using MouseUi::cursor_position;
+    using MouseUi::viewport;
 
     std::optional<P> drag_origin;
     std::optional<region> selection;
     Rxt::rgba color = {1, 0, 1, 0.3};
 
-    Obs _hook_motion_;
-    Obs _hook_selection_;
+    observable<cursor_motion_tag> _hook_motion;
+    observable<cursor_selection_tag> _hook_selection;
+
+    template <class O>
+    void set_router(O& obr)
+    {
+        obr.set_subject(cursor_motion_tag{}, _hook_motion);
+        obr.set_subject(cursor_selection_tag{}, _hook_selection);
+    }
 
     void mouse_motion(P pos)
     {
         cursor_position(pos);
-        _hook_motion_.notify_all();
+        _hook_motion();
     }
 
     void mouse_down(int i) override
@@ -67,7 +83,7 @@ struct mouse_select_tool
             drag_origin = cursor_position() + viewport().position();
             break;
         }
-        _hook_motion_.notify_all();
+        _hook_motion();
     }
 
     void mouse_up(int i) override
@@ -79,17 +95,17 @@ struct mouse_select_tool
                 auto [a, b] = Rxt::box(*drag_origin, abspos);
                 selection = {a, b};
                 drag_origin = {};
-                _hook_motion_.notify_all();
-                _hook_selection_.notify_all();
+                _hook_motion();
+                _hook_selection();
             }
             break;
         case 1:
             if (drag_origin) {
                 drag_origin.reset();
-                _hook_motion_.notify_all();
+                _hook_motion();
             } else if (selection) {
                 selection = {};
-                _hook_selection_.notify_all();
+                _hook_selection();
             }
             break;
         }
@@ -115,16 +131,17 @@ struct mouse_select_tool
     }
 };
 
-template <class Tr>
-struct mouse_paint_tool : mouse_tool<Tr>
+template <class GT>
+struct mouse_paint_tool : mouse_tool
 {
-    using P = typename Tr::vec_type;
-    using paint_method = std::function<void(P, int)>;
+    // using P = typename GT::vec_type;
+    using paint_method = std::function<void(typename GT::position_type, int)>;
 
-    mouse_ui<Tr>& ui;
+    using MouseUi = mouse_ui<GT>;
+    MouseUi& ui;
     paint_method _paint;
 
-    mouse_paint_tool(mouse_ui<Tr>& u, paint_method m = {})
+    mouse_paint_tool(MouseUi& u, paint_method m = {})
         : ui{u}, _paint{m} {}
 
     void set_method(paint_method m) {_paint = m;}
