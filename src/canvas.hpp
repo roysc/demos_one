@@ -46,9 +46,6 @@ struct ui_buffers : grid_program::data
     }
 };
 
-using fvec = glm::vec2;
-// using grid_edge_painter = mouse_paint_tool<fvec>;
-
 struct canvas
     : Rxt::sdl::simple_gui
     , Rxt::sdl::input_handler<canvas>

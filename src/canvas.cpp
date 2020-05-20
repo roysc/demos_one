@@ -35,8 +35,8 @@ void canvas::_set_controls()
 {
     keys.on_press["C-W"] = [this] { quit = true; };
 
-    auto move = [this] (int dx, int dy) { viewport.move(dx, dy); set_dirty(); };
-    auto scale = [this] (int a) { viewport.scale(a); set_dirty(); };
+    auto move = [this] (int dx, int dy) { viewport.move(dx, dy); };
+    auto scale = [this] (int a) { viewport.scale(a); };
 
     keys.on_scan["Left"]  = std::bind(move, -1, 0);
     keys.on_scan["Right"] = std::bind(move, +1, 0);
@@ -45,11 +45,11 @@ void canvas::_set_controls()
     keys.on_press["."] = std::bind(scale, +1);
     keys.on_press[","] = std::bind(scale, -1);
 
-    keys.on_press["C"] = [&] { mouse_tool = &selector; set_dirty(); };
+    keys.on_press["C"] = [&] { mouse_tool = &selector; };
 
     // keys.on_press["Space"] = [&] { _lines.add(selector.cursor_position()); };
     // keys.on_press["W"] =[&] { _lines.close(); };
- }
+}
 
 canvas::canvas(grid_viewport vp)
     : simple_gui("plaza: canvas", vp.size_pixels())
@@ -66,14 +66,10 @@ canvas::canvas(grid_viewport vp)
         set(p_ui.u_.viewport_size, viewport.size_cells());
         set(p_model.u_.viewport_position, viewport.position());
         set(p_model.u_.viewport_size, viewport.size_cells());
-        set_dirty();
     };
-
-    Pz_notify(obr, tags::viewport);
 
     Pz_observe(obr, tags::cursor_motion) {
         selector.update_cursor(b_ui);
-        set_dirty();
     };
 
     Pz_observe(obr, tags::cursor_selection) {
@@ -83,8 +79,9 @@ canvas::canvas(grid_viewport vp)
             std::cout << "selection=(" << a << ", " << b << ")\n";
         } else
             std::cout << "selection=null\n";
-        set_dirty();
     };
+
+    Pz_notify(obr, tags::viewport);
 
     glClearColor(0, 0, 0, 1);
 }
@@ -102,14 +99,14 @@ void canvas::step(SDL_Event event)
         viewport.edge_scroll(selector.cursor_position(), 1);
     }
 
-    // Pz_flush(viewport);
-    // Pz_flush_on(selector, motion);
-    // Pz_flush_on(selector, selection);
+    auto dirty =
+        Pz_flush(viewport, tags::viewport) +
+        Pz_flush(selector, tags::cursor_motion) +
+        Pz_flush(selector, tags::cursor_selection);
 
-    if (is_dirty()) {
+    // Ideally we can track everything from flush()
+    if (dirty)
         draw();
-        set_dirty(false);
-    }
 }
 
 void canvas::draw()

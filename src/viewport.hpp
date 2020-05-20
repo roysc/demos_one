@@ -40,6 +40,7 @@ struct _grid_viewport
     const float margin_size = .1;
 
     observable<subject_tag> _hooks;
+    auto& get_subject(subject_tag) { return _hooks; }
 
     template <class O>
     void set_router(O& obr) { obr.set_subject(subject_tag{}, _hooks); }

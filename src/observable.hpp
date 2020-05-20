@@ -37,6 +37,7 @@ struct basic_subject : public subject<Tag>
     using handler = typename subject<Tag>::handler;
 
     std::vector<handler> observers;
+    unsigned count = 0;
 
     index hook(handler obs) override
     {
@@ -44,8 +45,14 @@ struct basic_subject : public subject<Tag>
         return observers.size() - 1;
     }
 
-    void notify_all(Tag t) override { for (auto& obs: observers) { obs(t); } }
+    void notify_all(Tag t) override
+    {
+        for (auto& obs: observers) { obs(t); }
+        count = 1;
+    }
     void operator()() { notify_all(Tag{}); }
+
+    auto flush() { return count; }
 };
 
 template<class Tag>
@@ -59,16 +66,16 @@ struct lazy_subject : subject<Tag>
 
     index hook(handler obs) override
     {
-        observers.push_back(obs);
+        observers.emplace_back([obs] { obs(Tag{}); });
         return observers.size() - 1;
     }
 
-    void notify_all(Tag t) override { for (auto& obs: observers) { obs(t); } }
+    void notify_all(Tag) override { for (auto& obs: observers) { obs(); } }
     void operator()() { notify_all(Tag{}); }
 
-    auto flush_all(Tag t) override
+    auto flush()
     {
-        unsigned ret {};
+        unsigned ret = 0;
         for (auto& obs: observers) { ret += obs.flush(); }
         return ret;
     }
@@ -111,3 +118,4 @@ struct observer_router
 
 #define Pz_observe(obr_, tag_) (_det::hooks((obr_).get_subject(tag_{}))) << [&](tag_)
 #define Pz_notify(obr_, tag_) ((obr_).tag_ref(tag_{})())
+#define Pz_flush(var_, tag_) ((var_).get_subject(tag_{}).flush())
