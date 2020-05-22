@@ -99,14 +99,15 @@ void canvas::step(SDL_Event event)
         viewport.edge_scroll(selector.cursor_position(), 1);
     }
 
-    auto dirty =
-        Pz_flush(viewport, tags::viewport) +
-        Pz_flush(selector, tags::cursor_motion) +
-        Pz_flush(selector, tags::cursor_selection);
+    // auto dirty =
+    //     Pz_flush(viewport, tags::viewport) +
+    //     Pz_flush(selector, tags::cursor_motion) +
+    //     Pz_flush(selector, tags::cursor_selection);
+
+    auto dirty = Pz_flush_all(obr);
 
     // Ideally we can track everything from flush()
-    if (dirty)
-        draw();
+    if (dirty) draw();
 }
 
 void canvas::draw()

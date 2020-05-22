@@ -18,9 +18,7 @@ using ui_traits = mouse_ui<grid_traits>;
 using grid_selector = mouse_select_tool<grid_traits>;
 using grid_painter = mouse_paint_tool<grid_traits>;
 
-using obrouter = observer_router<
-    // eager_observable,
-    // lazy_observable,
+using tag_router = observer_router<
     tags::viewport, tags::cursor_motion, tags::cursor_selection
     >;
 
@@ -56,7 +54,7 @@ struct canvas
 
     std::vector<ivec> _line_points;
 
-    obrouter obr;
+    tag_router obr;
 
     grid_viewport viewport;
     grid_selector selector {viewport};

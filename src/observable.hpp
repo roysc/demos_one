@@ -12,8 +12,9 @@ struct subject
     using index = std::size_t;
     using handler = std::function<void(Tag)>;
 
-    virtual void notify_all(Tag) = 0;
     virtual index hook(handler) = 0;
+    virtual void notify(Tag) = 0;
+    virtual int flush() = 0;
 };
 
 namespace _det
@@ -31,7 +32,7 @@ auto hooks(Sub& s) { return hook_appender<Sub>{s}; }
 }
 
 template<class Tag>
-struct basic_subject : public subject<Tag>
+struct eager_observable : public subject<Tag>
 {
     using index = typename subject<Tag>::index;
     using handler = typename subject<Tag>::handler;
@@ -45,18 +46,19 @@ struct basic_subject : public subject<Tag>
         return observers.size() - 1;
     }
 
-    void notify_all(Tag t) override
+    void notify(Tag t) override
     {
         for (auto& obs: observers) { obs(t); }
         count = 1;
     }
-    void operator()() { notify_all(Tag{}); }
 
-    auto flush() { return count; }
+    void operator()() { notify(Tag{}); }
+
+    int flush() override { int ret = count; count = 0; return ret; }
 };
 
 template<class Tag>
-struct lazy_subject : subject<Tag>
+struct lazy_observable : subject<Tag>
 {
     using index = typename subject<Tag>::index;
     using handler = typename subject<Tag>::handler;
@@ -70,35 +72,31 @@ struct lazy_subject : subject<Tag>
         return observers.size() - 1;
     }
 
-    void notify_all(Tag) override { for (auto& obs: observers) { obs(); } }
-    void operator()() { notify_all(Tag{}); }
+    void notify(Tag) override { for (auto& obs: observers) { obs(); } }
 
-    auto flush()
+    void operator()() { notify(Tag{}); }
+
+    int flush() override
     {
-        unsigned ret = 0;
+        int ret = 0;
         for (auto& obs: observers) { ret += obs.flush(); }
         return ret;
     }
 };
 
 template <class Tag>
-using observable = basic_subject<Tag>;
+using observable = eager_observable<Tag>;
 
 template <class Tag>
-struct _subject_ref
+struct subject_ref
 {
     using self_ptr = subject<Tag>*;
     self_ptr self{};
 
     auto& operator=(self_ptr p) { self = p; }
-    void operator()() { if (!self) throw nullptr; self->notify_all(Tag{}); }
+    void operator()() { if (!self) throw nullptr; self->notify(Tag{}); }
     // auto hooks() { if (!self) throw nullptr; return self->hooks; }
 };
-
-template <class Tag>
-using subject_ref = _subject_ref<Tag>;
-
-template <class Tag> using eager_observable = observable<Tag>;
 
 template <class... Tags>
 struct observer_router
@@ -113,9 +111,15 @@ struct observer_router
 
     template <class Tag>
     auto tag_ref(Tag t) { return subject_ref<Tag>{get_subject(t)}; }
+
+    int flush()
+    {
+        return (std::get<subject<Tags>*>(subjects)->flush() + ...);
+    }
 };
 
 
 #define Pz_observe(obr_, tag_) (_det::hooks((obr_).get_subject(tag_{}))) << [&](tag_)
 #define Pz_notify(obr_, tag_) ((obr_).tag_ref(tag_{})())
 #define Pz_flush(var_, tag_) ((var_).get_subject(tag_{}).flush())
+#define Pz_flush_all(obr_) ((obr_).flush())

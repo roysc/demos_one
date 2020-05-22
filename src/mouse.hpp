@@ -60,8 +60,8 @@ struct mouse_select_tool
     std::optional<region> selection;
     Rxt::rgba color = {1, 0, 1, 0.3};
 
-    lazy_subject<cursor_motion_tag> _hook_motion;
-    lazy_subject<cursor_selection_tag> _hook_selection;
+    lazy_observable<cursor_motion_tag> _hook_motion;
+    lazy_observable<cursor_selection_tag> _hook_selection;
 
     auto& get_subject(cursor_motion_tag) {return _hook_motion;}
     auto& get_subject(cursor_selection_tag) {return _hook_selection;}
