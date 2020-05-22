@@ -33,22 +33,27 @@ add_executable(map_editor ${_HEADERS} ${_SOURCES}
     gui/map_editor.cpp
 )
 target_link_libraries(map_editor PUBLIC plaza_gui)
-Rxt_emscripten_link_boost(map_editor)
+Rxt_emscripten_use_boost(map_editor)
+
+target_include_directories(map_editor PRIVATE ${PROJECT_SOURCE_DIR}/src)
+target_include_directories(map_editor PRIVATE ${PROJECT_SOURCE_DIR}/external)
 
 add_executable(canvas ${_HEADERS}
     canvas.hpp canvas.cpp
 )
 target_link_libraries(canvas PUBLIC plaza_gui)
 
-target_include_directories(map_editor PRIVATE ${PROJECT_SOURCE_DIR}/src)
-target_include_directories(map_editor PRIVATE ${PROJECT_SOURCE_DIR}/external)
-
-if(EMSCRIPTEN)
-    set_target_properties(map_editor PROPERTIES SUFFIX ".html")
+function(_configure_emscripten _TARGET)
+    set_target_properties(${_TARGET} PROPERTIES SUFFIX ".html")
     install(DIRECTORY "${PROJECT_SOURCE_DIR}/data/" DESTINATION ${PROJECT_BINARY_DIR})
 
     set(_emscripten_options "SHELL:-s USE_BOOST_HEADERS=1")
-    target_compile_options(map_editor PUBLIC ${_emscripten_options})
-    target_link_options(map_editor PUBLIC ${_emscripten_options})
-    # target_link_options(map_editor PUBLIC --emrun) #needed?
+    target_compile_options(${_TARGET} PUBLIC ${_emscripten_options})
+    target_link_options(${_TARGET} PUBLIC ${_emscripten_options})
+    # target_link_options(${_TARGET} PUBLIC --emrun) #needed?
+endfunction()
+
+if(EMSCRIPTEN)
+    _configure_emscripten(map_editor)
+    _configure_emscripten(canvas)
 endif()
