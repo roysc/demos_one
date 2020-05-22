@@ -1,0 +1,7 @@
+* components
+** sprite?
+** mobile?
+** position
+** velocity
+** acceleration
+
