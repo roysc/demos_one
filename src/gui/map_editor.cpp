@@ -73,7 +73,7 @@ map_editor::map_editor(int seed, uvec size, grid_viewport vp)
     keys.on_press["B"] = [this] { current_tool = pen_tool {}; print("Tool: pen\n"); };
 
     keys.on_press["I"] = [this] {
-                             print("pos={} ", viewport.position());
+        print("pos={} ", viewport.position());
         print("scale={} ", viewport.scale_factor);
         print("cursor={}\n", cursor_position);
         if (selection_tool select; get_tool(select) && select.selection) {
