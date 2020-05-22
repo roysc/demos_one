@@ -1,6 +1,6 @@
 #pragma once
 
-#include "space.hpp"
+#include "map.hpp"
 #include "tiles.hpp"
 
 #include "texture_display.hpp"

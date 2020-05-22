@@ -18,14 +18,14 @@ add_library(plaza_gui
 target_link_libraries(plaza_gui PUBLIC Rxt::Graphics)
 
 set(_HEADERS
-    space.hpp
+    map.hpp
     tiles.hpp
     # modvec.hpp
     observable.hpp
 )
 
 set(_SOURCES
-    space.cpp
+    map.cpp
 )
 
 add_executable(map_editor ${_HEADERS} ${_SOURCES}

@@ -1,4 +1,4 @@
-#include "space.hpp"
+#include "map.hpp"
 
 #include "OpenSimplexNoise.hh"
 #include <Rxt/math.hpp>
