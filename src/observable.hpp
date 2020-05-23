@@ -10,10 +10,10 @@ struct subject
 {
     using tag = Tag;
     using index = std::size_t;
-    using handler = std::function<void(Tag)>;
+    using handler = std::function<void(tag)>;
 
     virtual index hook(handler) = 0;
-    virtual void notify(Tag) = 0;
+    virtual void notify(tag) = 0;
     virtual int flush() = 0;
 };
 
@@ -22,18 +22,19 @@ namespace _det
 template <class Sub>
 struct hook_appender
 {
-    Sub& self;
+    Sub* self;
     template <class F>
     auto& operator<<(F&& h) { self->hook(h); return *this; }
 };
 
 template <class Sub>
-auto hooks(Sub& s) { return hook_appender<Sub>{s}; }
+auto hooks(Sub& s) { return hook_appender<Sub>{&s}; }
 }
 
 template<class Tag>
 struct eager_observable : public subject<Tag>
 {
+    using arg_type = Tag;
     using index = typename subject<Tag>::index;
     using handler = typename subject<Tag>::handler;
 
@@ -60,6 +61,7 @@ struct eager_observable : public subject<Tag>
 template<class Tag>
 struct lazy_observable : subject<Tag>
 {
+    using arg_type = Tag;
     using index = typename subject<Tag>::index;
     using handler = typename subject<Tag>::handler;
     using lazy_handler = Rxt::lazy_action;
@@ -98,28 +100,31 @@ struct subject_ref
     // auto hooks() { if (!self) throw nullptr; return self->hooks; }
 };
 
-template <class... Tags>
+template <class... Ts>
 struct observer_router
 {
-    std::tuple<subject<Tags>*...> subjects;
+    std::tuple<subject<Ts>*...> subjects;
 
     template <class Tag>
-    auto& get_subject(Tag t) { return std::get<subject<Tag>*>(subjects); }
+    auto& get_subject(Tag t) { return *std::get<subject<Tag>*>(subjects); }
 
-    template <class Tag>
-    void set_subject(Tag, subject<Tag>& subj) { std::get<subject<Tag>*>(subjects) = &subj; }
-
-    template <class Tag>
-    auto tag_ref(Tag t) { return subject_ref<Tag>{get_subject(t)}; }
+    template <class Sub>
+    void add_subject(Sub& subj)
+    {
+        using Arg = typename Sub::arg_type;
+        std::get<subject<Arg>*>(subjects) = &subj;
+    }
 
     int flush()
     {
-        return (std::get<subject<Tags>*>(subjects)->flush() + ...);
+        auto safe_flush = [](auto* p) { return p ? p->flush() : 0; };
+        return (safe_flush(std::get<subject<Ts>*>(subjects)) + ...);
     }
 };
 
 
-#define Pz_observe(obr_, tag_) (_det::hooks((obr_).get_subject(tag_{}))) << [&](tag_)
+// #define Pz_observe(obr_, tag_) (_det::hooks((obr_).get_subject(tag_{}))) << [&](tag_)
+#define Pz_observe(val_) (_det::hooks((val_))) << [&](auto)
 #define Pz_notify(obr_, tag_) ((obr_).tag_ref(tag_{})())
 #define Pz_flush(var_, tag_) ((var_).get_subject(tag_{}).flush())
 #define Pz_flush_all(obr_) ((obr_).flush())

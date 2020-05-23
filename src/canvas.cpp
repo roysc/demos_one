@@ -57,22 +57,24 @@ canvas::canvas(grid_viewport vp)
 {
     _set_controls();
 
-    viewport.set_router(obr);
-    selector.set_router(obr);
+    obr.add_subject(viewport.on_change);
+    obr.add_subject(selector.on_motion);
+    obr.add_subject(selector.on_selection);
 
     set(p_ui.u_.viewport_position, ivec{0});
 
-    Pz_observe(obr, tags::viewport) {
+    Pz_observe(viewport.on_change) {
         set(p_ui.u_.viewport_size, viewport.size_cells());
         set(p_model.u_.viewport_position, viewport.position());
         set(p_model.u_.viewport_size, viewport.size_cells());
     };
+    viewport.on_change();
 
-    Pz_observe(obr, tags::cursor_motion) {
+    Pz_observe(selector.on_motion) {
         selector.update_cursor(b_ui);
     };
 
-    Pz_observe(obr, tags::cursor_selection) {
+    Pz_observe(selector.on_selection) {
         selector.update_selection(b_model);
         if (selector.selection) {
             auto [a, b] = *selector.selection;
@@ -81,7 +83,10 @@ canvas::canvas(grid_viewport vp)
             std::cout << "selection=null\n";
     };
 
-    Pz_notify(obr, tags::viewport);
+    Pz_observe(painter.on_click) {
+        for (auto [a, b]: _lines)
+            b_lines.add_line(a, b, rgba(Rxt::colors::white, 1));
+    };
 
     glClearColor(0, 0, 0, 1);
 }
@@ -116,6 +121,8 @@ void canvas::draw()
 
     b_model.draw();
     b_ui.draw();
+
+    b_lines.draw();
 
     SDL_GL_SwapWindow(window.get());
 }

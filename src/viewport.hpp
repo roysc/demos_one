@@ -1,30 +1,12 @@
 #pragma once
 #include "observable.hpp"
+#include "events.hpp"
 
 #include <glm/glm.hpp>
 #include <type_traits>
 
 using ivec = glm::ivec2;
 using uvec = glm::uvec2;
-
-// template <class P, class Obs>
-// struct _viewport_base
-// {
-//     P _position {0};
-//     Size max_scale; //grid_size
-//     Size scale_factor {1};
-
-//     const Size size_px {max_scale * scale_factor};
-//     const float margin_size = .1;
-
-//     Obs _hooks_;
-//     auto hooks() { return _hooks_.hooks(); }
-
-//     P position() const {return _position;}
-//     void position(P p) {_position = p; _hooks_.notify_all(); }
-// };
-
-namespace tags { struct viewport {}; }
 
 template <class GT>
 struct _grid_viewport
@@ -39,14 +21,11 @@ struct _grid_viewport
     const Size size_px {max_scale * scale_factor};
     const float margin_size = .1;
 
-    observable<subject_tag> _hooks;
-    auto& get_subject(subject_tag) { return _hooks; }
-
-    template <class O>
-    void set_router(O& obr) { obr.set_subject(subject_tag{}, _hooks); }
+    observable<subject_tag> on_change;
+    auto& get_subject(subject_tag) { return on_change; }
 
     P position() const {return _position;}
-    void position(P p) {_position = p; _hooks(); }
+    void position(P p) {_position = p; on_change(); }
 
     void scale(int exp)
     {
@@ -59,13 +38,13 @@ struct _grid_viewport
             if (scale_factor.x < max_scale.x && scale_factor.y < max_scale.y)
                 scale_factor *= 2;
         }
-        _hooks();
+        on_change();
     }
 
     void move(int dx, int dy)
     {
         _position += P{dx, dy};
-        _hooks();
+        on_change();
     }
 
     // size in number of cells

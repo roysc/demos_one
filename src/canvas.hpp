@@ -19,12 +19,15 @@ using grid_selector = mouse_select_tool<grid_traits>;
 using grid_painter = mouse_paint_tool<grid_traits>;
 
 using tag_router = observer_router<
-    tags::viewport, tags::cursor_motion, tags::cursor_selection
+    tags::viewport,
+    tags::cursor_motion,
+    tags::cursor_selection,
+    tags::object_edit
     >;
 
 struct model_buffers : grid_program::data
 {
-    const Rxt::rgba select_color {0, 0, 1, 1};
+    const rgba select_color {0, 0, 1, 1};
 
     void add_selection(ivec a, ivec b)
     {
@@ -36,10 +39,23 @@ struct model_buffers : grid_program::data
 
 struct ui_buffers : grid_program::data
 {
-    void set_cursor(position_vec p, size_vec s, Rxt::rgba color)
+    void set_cursor(position_vec p, size_vec s, rgba color)
     {
         clear();
         push(p, s, color);
+        update();
+    }
+};
+
+using fvec2 = glm::vec2;
+using line_program = Rxt::shader_programs::solid_color_3D<GL_LINES>;
+struct line_buffers
+    : line_program::data
+{
+    void add_line(fvec2 a, fvec2 b, rgba color)
+    {
+        push(position_vec(a, 0), color);
+        push(position_vec(b, 0), color);
         update();
     }
 };
@@ -52,18 +68,22 @@ struct canvas
     bool enable_edge_scroll = true;
     bool quit = false;
 
-    std::vector<ivec> _line_points;
+    using line = std::pair<fvec2, fvec2>;
+    std::vector<line> _lines;
 
     tag_router obr;
 
     grid_viewport viewport;
     grid_selector selector {viewport};
-    grid_painter tile_painter {selector, [&](ivec p, int){_line_points.emplace_back(p);}};
+    grid_painter painter {selector};
     mouse_tool* mouse_tool {&selector};
 
     grid_program p_ui, p_model;
     ui_buffers b_ui{p_ui};
     model_buffers b_model{p_model};
+
+    line_program p_lines;
+    line_buffers b_lines{p_lines};
 
     canvas(grid_viewport vp);
     void step(SDL_Event);
