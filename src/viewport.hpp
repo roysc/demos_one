@@ -85,17 +85,21 @@ struct _grid_viewport
     {
         using glm::vec2;
         using glm::vec3;
-        vec2 rel_size = vec2(size_cells()) / vec2(max_scale);
-        vec2 rel_pos = vec2(position()) / vec2(max_scale);
+
+        auto pos3 = vec3(position(), 0);
+        auto cells = vec3(size_cells(), 1);
         glm::mat4 view_matrix =
-            glm::translate(vec3(rel_pos, 0)) *
-            glm::scale(vec3(invert<1>(rel_size), 0));
+            glm::scale(vec3(2.f / vec2(cells), 0)) *
+            glm::translate(-pos3);
         return view_matrix;
     }
 
     glm::mat4 model_matrix() const
     {
-        return glm::translate(glm::vec3(-.5, -.5, 0));
+        // return glm::translate(glm::vec3(.5, .5, 0)); // offset to center of cell
+        return glm::mat4{1};
+    }
+
     template <class P>
     void update_uniforms(P& p, bool pos = true)
     {
