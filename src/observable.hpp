@@ -12,7 +12,7 @@ struct subject
     using index = std::size_t;
     using handler = std::function<void(tag)>;
 
-    virtual index hook(handler) = 0;
+    virtual index add(handler) = 0;
     virtual void notify(tag) = 0;
     virtual int flush() = 0;
 };
@@ -24,7 +24,7 @@ struct proxy_appender
 {
     Sub& self;
     template <class F>
-    auto& operator<<(F&& h) { self.hook(h); return *this; }
+    auto& operator<<(F&& h) { self.add(h); return *this; }
 };
 
 template <class Sub>
@@ -34,14 +34,13 @@ proxy_appender(Sub&) -> proxy_appender<Sub>;
 template<class Tag>
 struct eager_observable : public subject<Tag>
 {
-    using arg_type = Tag;
     using index = typename subject<Tag>::index;
     using handler = typename subject<Tag>::handler;
 
     std::vector<handler> observers;
     unsigned count = 0;
 
-    index hook(handler obs) override
+    index add(handler obs) override
     {
         observers.push_back(obs);
         return observers.size() - 1;
@@ -53,22 +52,21 @@ struct eager_observable : public subject<Tag>
         count = 1;
     }
 
-    void operator()() { notify(Tag{}); }
-
     int flush() override { int ret = count; count = 0; return ret; }
+
+    void operator()() { notify(Tag{}); }
 };
 
 template<class Tag>
-struct lazy_observable : subject<Tag>
+struct lazy_observable : public subject<Tag>
 {
-    using arg_type = Tag;
     using index = typename subject<Tag>::index;
     using handler = typename subject<Tag>::handler;
     using lazy_handler = Rxt::lazy_action;
 
     std::vector<lazy_handler> observers;
 
-    index hook(handler obs) override
+    index add(handler obs) override
     {
         observers.emplace_back([obs] { obs(Tag{}); });
         return observers.size() - 1;
@@ -76,28 +74,18 @@ struct lazy_observable : subject<Tag>
 
     void notify(Tag) override { for (auto& obs: observers) { obs(); } }
 
-    void operator()() { notify(Tag{}); }
-
     int flush() override
     {
         int ret = 0;
         for (auto& obs: observers) { ret += obs.flush(); }
         return ret;
     }
+
+    void operator()() { notify(Tag{}); }
 };
 
 template <class Tag>
 using observable = eager_observable<Tag>;
-
-template <class Tag>
-struct subject_ref
-{
-    using self_ptr = subject<Tag>*;
-    self_ptr self{};
-
-    auto& operator=(self_ptr p) { self = p; }
-    void operator()() { if (!self) throw nullptr; self->notify(Tag{}); }
-};
 
 template <class... Ts>
 struct observer_router
@@ -110,7 +98,7 @@ struct observer_router
     template <class Sub>
     void add_subject(Sub& subj)
     {
-        using Arg = typename Sub::arg_type;
+        using Arg = typename Sub::tag;
         std::get<subject<Arg>*>(subjects) = &subj;
     }
 
