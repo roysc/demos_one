@@ -96,6 +96,12 @@ struct _grid_viewport
     glm::mat4 model_matrix() const
     {
         return glm::translate(glm::vec3(-.5, -.5, 0));
+    template <class P>
+    void update_uniforms(P& p, bool pos = true)
+    {
+        set(p->viewport_size, size_cells());
+        if (pos)
+            set(p->viewport_position, position());
     }
 };
 

@@ -22,12 +22,23 @@ using grid_controls = control_port<grid_traits>;
 using grid_selector = mouse_select_tool<grid_traits>;
 using grid_painter = mouse_paint_tool<grid_traits>;
 
+using stroke_tool = mouse_stroke_tool<grid_traits>;
+using multi_tool = swappable_tool<
+    tags::viewport_tag,
+    tags::cursor_motion_tag,
+    tags::debug_tag
+    >;
+
+using glm::fvec2;
+using line_program = Rxt::shader_programs::solid_color_3D<GL_LINES>;
+
 using tag_router = observer_router<
     tags::viewport_tag,
     tags::cursor_motion_tag,
     tags::cursor_selection_tag,
     tags::object_edit_tag
     >;
+// using tag_router = subject_router;
 
 using Rxt::rgba;
 
@@ -53,23 +64,16 @@ struct ui_buffers : grid_program::data
     }
 };
 
-using glm::fvec2;
-using line_program = Rxt::shader_programs::solid_color_3D<GL_LINES>;
 struct line_buffers
     : line_program::data
 {
-    void add_line(fvec2 a, fvec2 b, rgba color)
+    void add_line(ivec a, ivec b, rgba color)
     {
         push(position_vec(a, 0), color);
         push(position_vec(b, 0), color);
         update();
     }
 };
-
-using stroke_tool = mouse_stroke_tool<grid_traits>;
-using multi_tool = swappable_tool<
-    tags::viewport_tag,
-    tags::cursor_motion_tag>;
 
 struct canvas
     : Rxt::sdl::simple_gui
@@ -96,6 +100,7 @@ struct canvas
 
     line_program p_lines;
     line_buffers b_lines{p_lines};
+    line_buffers b_lines_cursor{p_lines};
 
     // interesting stuff
     using grid_map = array2_map<int>;

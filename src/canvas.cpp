@@ -48,6 +48,8 @@ void canvas::_set_controls()
     keys.on_press["1"] = [&] { tool.set_current(&selector); };
     keys.on_press["2"] = [&] { tool.set_current(&painter); };
     keys.on_press["3"] = [&] { tool.set_current(&stroker); };
+
+    keys.on_press["D"] = [&] { tool.dispatch(tags::debug); };
 }
 
 canvas::canvas(grid_viewport vp)
@@ -62,10 +64,7 @@ canvas::canvas(grid_viewport vp)
         tool.dispatch(tags::cursor_motion);
     };
     Pz_observe(controls.on_viewport_change) {
-        set(p_ui->viewport_size, viewport.size_cells());
-        set(p_model->viewport_position, viewport.position());
-        set(p_model->viewport_size, viewport.size_cells());
-
+        viewport.update_uniforms(p_ui, false);
         tool.dispatch(tags::viewport);
     };
 
@@ -83,10 +82,14 @@ canvas::canvas(grid_viewport vp)
     obr.add_subject(selector.on_selection);
     obr.add_subject(painter.on_edit);
 
+    Pz_observe(tool.get_shared(tags::activate)) {
+        // controls.on_viewport_change.notify({});
+        controls.on_motion.notify({});
+    };
+
     auto selector_on = tool.add_tool(&selector, true);
     Pz_observe(selector_on(tags::viewport)) {
-        set(p_model->viewport_position, viewport.position());
-        set(p_model->viewport_size, viewport.size_cells());
+        viewport.update_uniforms(p_model);
     };
     Pz_observe(selector_on(tags::cursor_motion)) {
         selector.update_cursor(b_ui);
@@ -95,6 +98,7 @@ canvas::canvas(grid_viewport vp)
 
     auto size = uvec(320);
     auto paint = [&](auto p, int) { paint_layer[p.x][p.y] = 1; };
+    // auto paint = [&](auto p, int) { paint_layer[p.x][p.y] = palette[ink]; };
     painter.set_method(paint);
     paint_layer.resize(boost::extents[size.x][size.y]);
 
@@ -114,18 +118,31 @@ canvas::canvas(grid_viewport vp)
     auto painter_on = tool.add_tool(&painter);
 
     Pz_observe(stroker.on_edit) {
+        b_lines_cursor.clear();
         stroker.update_model(b_lines);
     };
     auto stroker_on = tool.add_tool(&stroker);
     Pz_observe(stroker_on(tags::viewport)) {
-        auto mvp_matrix = viewport.view_matrix() * viewport.model_matrix();
+        // auto mvp_matrix = viewport.view_matrix() * viewport.model_matrix();
+        auto mvp_matrix = viewport.view_matrix();
         set(p_lines->mvp_matrix, mvp_matrix);
     };
     Pz_observe(stroker_on(tags::cursor_motion)) {
-        stroker.update_cursor(b_lines);
+        b_lines_cursor.clear();
+        stroker.update_cursor(b_lines_cursor);
     };
 
-    controls.on_viewport_change();
+    // Pz_observe(obr.get_subject(tags::debug)) {
+        
+    // };
+
+    Pz_observe(stroker_on(tags::debug)) {
+        if (stroker._current)
+            Rxt_DEBUG(stroker._current->at(0));
+        else Rxt::print("nothing\n");
+    };
+
+    controls.on_viewport_change.notify({});
     glClearColor(0, 0, 0, 1);
 }
 
@@ -157,6 +174,7 @@ void canvas::draw()
     b_model.draw();
     b_ui.draw();
     b_lines.draw();
+    b_lines_cursor.draw();
 
     SDL_GL_SwapWindow(window.get());
 }
