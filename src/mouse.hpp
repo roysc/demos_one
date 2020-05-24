@@ -25,16 +25,13 @@ struct control_port
     struct viewport_type : ViewportBase
     {
         using Super = ViewportBase;
-        // using Super::Super;
         observable<tags::viewport_tag> on_change;
 
         viewport_type(Super const& v) : Super{v} {}
-
         auto& get_subject(tags::viewport_tag) { return on_change; }
         void scale(int exp) override { Super::scale(exp); on_change(); }
         void move(P d) override { Super::move(d); on_change(); }
     };
-    // using viewport_type = viewport<GT>;
 
     viewport_type _viewport;
     P _cursor_position {0};
@@ -49,7 +46,7 @@ struct control_port
     ViewportBase const& viewport() const { return _viewport; }
     ViewportBase& viewport() { return _viewport; }
 
-    P world_cursor_position() const
+    P cursor_position_world() const
     {
         return cursor_position() + viewport().position();
     }
@@ -79,7 +76,7 @@ struct mouse_select_tool
     {
         switch (i) {
         case 0:
-            drag_origin = controls.world_cursor_position();
+            drag_origin = controls.cursor_position_world();
             break;
         }
         on_motion();
@@ -90,7 +87,7 @@ struct mouse_select_tool
         switch (i) {
         case 0:
             if (drag_origin) {
-                auto abspos = controls.world_cursor_position();
+                auto abspos = controls.cursor_position_world();
                 auto [a, b] = Rxt::box(*drag_origin, abspos);
                 selection = {a, b};
                 drag_origin = {};
@@ -146,7 +143,7 @@ struct mouse_paint_tool : mouse_tool
 
     void set_method(paint_method m) {_paint = m;}
 
-    void mouse_down(int i) override { if (_paint) _paint(controls.world_cursor_position(), i); on_edit(); }
+    void mouse_down(int i) override { if (_paint) _paint(controls.cursor_position_world(), i); on_edit(); }
     void mouse_up(int i) override { }
 };
 
@@ -170,20 +167,22 @@ struct mouse_stroke_tool : mouse_tool
 
     void mouse_down(int i) override
     {
+        if (i == 1) {
+            finish();
+            return;
+        }
         // add point
         if (!_current) _current.emplace();
-        _current->push_back(controls.world_cursor_position());
+        _current->push_back(controls.cursor_position_world());
         on_edit();
     }
 
-    void mouse_up(int i) override
-    {
-        if (i == 1) finish();
-    }
+    void mouse_up(int i) override {}
 
     void finish()
     {
         if (!_current) return;
+        // if (_current->empty()) return Rxt::print("ignoring empty stroke\n");
         _strokes.emplace_back(*_current);
         _current.reset();
         on_edit();
@@ -194,7 +193,7 @@ struct mouse_stroke_tool : mouse_tool
     {
         if (!_current) return;
 
-        P a = _current->back(), b = controls.world_cursor_position();
+        P a = _current->back(), b = controls.cursor_position_world();
         buf.add_line(a, b, cursor_color);
     }
 
