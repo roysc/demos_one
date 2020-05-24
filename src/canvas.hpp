@@ -66,7 +66,10 @@ struct line_buffers
     }
 };
 
-using multi_tool = swappable_tool<tags::viewport_tag, tags::cursor_motion_tag>;
+using stroke_tool = mouse_stroke_tool<grid_traits>;
+using multi_tool = swappable_tool<
+    tags::viewport_tag,
+    tags::cursor_motion_tag>;
 
 struct canvas
     : Rxt::sdl::simple_gui
@@ -82,6 +85,7 @@ struct canvas
     grid_viewport& viewport = controls.viewport();
 
     grid_selector selector {controls};
+    stroke_tool stroker {controls};
     grid_painter painter {controls};
     multi_tool tool;
 

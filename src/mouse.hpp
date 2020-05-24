@@ -155,35 +155,56 @@ struct mouse_stroke_tool : mouse_tool
 {
     using P = typename GT::position_type;
     using line = std::pair<P, P>;
-    using stroke = std::vector<line>;
+    using stroke = std::vector<P>;
 
     control_port<GT>& controls;
     std::vector<stroke> _strokes;
+    std::optional<stroke> _current;
+
     const Rxt::rgba cursor_color {Rxt::colors::yellow, 1};
     const Rxt::rgba stroke_color {Rxt::colors::white, 1};
 
     lazy_observable<tags::object_edit_tag> on_edit;
 
-    void mouse_down(int i) override {}
-    void mouse_up(int i) override {}
+    mouse_stroke_tool(control_port<GT>& c) : controls{c} {}
+
+    void mouse_down(int i) override
+    {
+        // add point
+        if (!_current) _current.emplace();
+        _current->push_back(controls.world_cursor_position());
+        on_edit();
+    }
+
+    void mouse_up(int i) override
+    {
+        if (i == 1) finish();
+    }
+
+    void finish()
+    {
+        if (!_current) return;
+        _strokes.emplace_back(*_current);
+        _current.reset();
+        on_edit();
+    }
 
     template <class Buf>
     void update_cursor(Buf& buf) const
     {
-        P a, b;
-        b = controls.cursor_position();
-        if (!_strokes.empty() && !_strokes.at(0).empty()) {
-            a = _strokes[0].back().second;
-            buf.add_line(a, b, cursor_color);
-        }
+        if (!_current) return;
+
+        P a = _current->back(), b = controls.world_cursor_position();
+        buf.add_line(a, b, cursor_color);
     }
 
     template <class Buf>
     void update_model(Buf& buf) const
     {
         for (auto& s:_strokes) {
-            for (auto& [a, b]: s) {
-                buf.add_line(a, b, stroke_color);
+            assert(!s.empty());
+            for (auto it = s.begin(); it+1 != s.end(); ++it) {
+                buf.add_line(*it, *(it+1), stroke_color);
             }
         }
     }

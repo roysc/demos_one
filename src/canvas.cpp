@@ -47,6 +47,7 @@ void canvas::_set_controls()
 
     keys.on_press["1"] = [&] { tool.set_current(&selector); };
     keys.on_press["2"] = [&] { tool.set_current(&painter); };
+    keys.on_press["3"] = [&] { tool.set_current(&stroker); };
 }
 
 canvas::canvas(grid_viewport vp)
@@ -110,11 +111,18 @@ canvas::canvas(grid_viewport vp)
         }
         b_paint.update();
     };
-
     auto painter_on = tool.add_tool(&painter);
-    Pz_observe(painter_on(tags::viewport)) {
+
+    Pz_observe(stroker.on_edit) {
+        stroker.update_model(b_lines);
+    };
+    auto stroker_on = tool.add_tool(&stroker);
+    Pz_observe(stroker_on(tags::viewport)) {
         auto mvp_matrix = viewport.view_matrix() * viewport.model_matrix();
         set(p_lines->mvp_matrix, mvp_matrix);
+    };
+    Pz_observe(stroker_on(tags::cursor_motion)) {
+        stroker.update_cursor(b_lines);
     };
 
     controls.on_viewport_change();
