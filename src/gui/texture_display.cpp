@@ -1,11 +1,9 @@
 #include "texture_display.hpp"
+#include "../util.hpp"
 
 #include <glm/gtx/transform.hpp>
 
 namespace gl = Rxt::gl;
-
-template <unsigned ix, class Vec>
-Vec invert(Vec v) { v[ix] = -v[ix]; return v; }
 
 texture_display::texture_display(uvec size)
     : grid_size{size}

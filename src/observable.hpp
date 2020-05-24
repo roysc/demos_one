@@ -20,15 +20,15 @@ struct subject
 namespace _det
 {
 template <class Sub>
-struct hook_appender
+struct proxy_appender
 {
-    Sub* self;
+    Sub& self;
     template <class F>
-    auto& operator<<(F&& h) { self->hook(h); return *this; }
+    auto& operator<<(F&& h) { self.hook(h); return *this; }
 };
 
 template <class Sub>
-auto hooks(Sub& s) { return hook_appender<Sub>{&s}; }
+proxy_appender(Sub&) -> proxy_appender<Sub>;
 }
 
 template<class Tag>
@@ -97,7 +97,6 @@ struct subject_ref
 
     auto& operator=(self_ptr p) { self = p; }
     void operator()() { if (!self) throw nullptr; self->notify(Tag{}); }
-    // auto hooks() { if (!self) throw nullptr; return self->hooks; }
 };
 
 template <class... Ts>
@@ -122,9 +121,7 @@ struct observer_router
     }
 };
 
-
-// #define Pz_observe(obr_, tag_) (_det::hooks((obr_).get_subject(tag_{}))) << [&](tag_)
-#define Pz_observe(val_) (_det::hooks((val_))) << [&](auto)
+#define Pz_observe(val_) (_det::proxy_appender{(val_)}) << [&](auto)
 #define Pz_notify(obr_, tag_) ((obr_).tag_ref(tag_{})())
 #define Pz_flush(var_, tag_) ((var_).get_subject(tag_{}).flush())
 #define Pz_flush_all(obr_) ((obr_).flush())

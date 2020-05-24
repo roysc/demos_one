@@ -35,7 +35,7 @@ void canvas::_set_controls()
 {
     keys.on_press["C-W"] = [this] { quit = true; };
 
-    auto move = [this] (int dx, int dy) { viewport.move(dx, dy); };
+    auto move = [this] (int dx, int dy) { viewport.move(ivec(dx, dy)); };
     auto scale = [this] (int a) { viewport.scale(a); };
 
     keys.on_scan["Left"]  = std::bind(move, -1, 0);
@@ -45,33 +45,27 @@ void canvas::_set_controls()
     keys.on_press["."] = std::bind(scale, +1);
     keys.on_press[","] = std::bind(scale, -1);
 
-    keys.on_press["C"] = [&] { mouse_tool = &selector; };
-
-    // keys.on_press["Space"] = [&] { _lines.add(selector.cursor_position()); };
-    // keys.on_press["W"] =[&] { _lines.close(); };
+    keys.on_press["1"] = [&] { tool.set_current(&selector); };
+    keys.on_press["2"] = [&] { tool.set_current(&painter); };
 }
 
 canvas::canvas(grid_viewport vp)
     : simple_gui("plaza: canvas", vp.size_pixels())
-    , viewport{vp}
+    , controls{vp}
 {
     _set_controls();
 
-    obr.add_subject(viewport.on_change);
-    obr.add_subject(selector.on_motion);
-    obr.add_subject(selector.on_selection);
+    set(p_ui->viewport_position, ivec{0});
 
-    set(p_ui.u_.viewport_position, ivec{0});
-
-    Pz_observe(viewport.on_change) {
-        set(p_ui.u_.viewport_size, viewport.size_cells());
-        set(p_model.u_.viewport_position, viewport.position());
-        set(p_model.u_.viewport_size, viewport.size_cells());
+    Pz_observe(controls.on_motion) {
+        tool.dispatch(tags::cursor_motion());
     };
-    viewport.on_change();
+    Pz_observe(controls.on_viewport_change) {
+        set(p_ui->viewport_size, viewport.size_cells());
+        set(p_model->viewport_position, viewport.position());
+        set(p_model->viewport_size, viewport.size_cells());
 
-    Pz_observe(selector.on_motion) {
-        selector.update_cursor(b_ui);
+        tool.dispatch(tags::viewport());
     };
 
     Pz_observe(selector.on_selection) {
@@ -83,11 +77,47 @@ canvas::canvas(grid_viewport vp)
             std::cout << "selection=null\n";
     };
 
-    Pz_observe(painter.on_click) {
-        for (auto [a, b]: _lines)
-            b_lines.add_line(a, b, rgba(Rxt::colors::white, 1));
+    obr.add_subject(controls.on_viewport_change);
+    obr.add_subject(controls.on_motion);
+    obr.add_subject(selector.on_selection);
+    obr.add_subject(painter.on_edit);
+
+    auto selector_on = tool.add_tool(&selector, true);
+    Pz_observe(selector_on(tags::viewport())) {
+        set(p_model->viewport_position, viewport.position());
+        set(p_model->viewport_size, viewport.size_cells());
+    };
+    Pz_observe(selector_on(tags::cursor_motion())) {
+        selector.update_cursor(b_ui);
+    };
+    Pz_observe(selector_on(tags::reset())) { b_ui.clear(); b_ui.update(); };
+
+    auto size = uvec(320);
+    auto paint = [&](auto p, int) { paint_layer[p.x][p.y] = 1; };
+    painter.set_method(paint);
+    paint_layer.resize(boost::extents[size.x][size.y]);
+
+    Pz_observe(painter.on_edit) {
+        b_paint.clear();
+        auto shape = paint_layer.shape();
+        for (unsigned y = 0; y < shape[1]; ++y) {
+            for (unsigned x = 0; x < shape[0]; ++x) {
+                auto cell = paint_layer[x][y];
+                if (cell != 0) {
+                    b_paint.push(ivec(x, y), uvec(1), rgba(Rxt::colors::sand, 1));
+                }
+            }
+        }
+        b_paint.update();
     };
 
+    auto painter_on = tool.add_tool(&painter);
+    Pz_observe(painter_on(tags::viewport())) {
+        auto mvp_matrix = viewport.view_matrix() * viewport.model_matrix();
+        set(p_lines->mvp_matrix, mvp_matrix);
+    };
+
+    controls.on_viewport_change();
     glClearColor(0, 0, 0, 1);
 }
 
@@ -101,7 +131,7 @@ void canvas::step(SDL_Event event)
 
     // Per-tick handlers
     if (enable_edge_scroll) {
-        viewport.edge_scroll(selector.cursor_position(), 1);
+        viewport.edge_scroll(controls.cursor_position(), 1);
     }
 
     // auto dirty =
@@ -109,7 +139,10 @@ void canvas::step(SDL_Event event)
     //     Pz_flush(selector, tags::cursor_motion) +
     //     Pz_flush(selector, tags::cursor_selection);
 
-    auto dirty = Pz_flush_all(obr);
+    // auto dirty = Pz_flush_all(obr);
+    auto dirty =
+        obr.flush() +
+        tool.flush();
 
     // Ideally we can track everything from flush()
     if (dirty) draw();
@@ -119,10 +152,14 @@ void canvas::draw()
 {
     glClear(GL_COLOR_BUFFER_BIT);
 
+    // draw_if_dirty(b_model);
+
+    b_paint.draw();
     b_model.draw();
     b_ui.draw();
-
     b_lines.draw();
+
+    // tool.draw();
 
     SDL_GL_SwapWindow(window.get());
 }
@@ -131,11 +168,11 @@ void canvas::handle_mouse_down(SDL_MouseButtonEvent button)
 {
     switch (button.button) {
     case SDL_BUTTON_LEFT: {
-        if (mouse_tool) mouse_tool->mouse_down(0);
+        tool.mouse_down(0);
         break;
     }
     case SDL_BUTTON_RIGHT: {
-        if (mouse_tool) mouse_tool->mouse_down(1);
+        tool.mouse_down(1);
         break;
     }
     }
@@ -145,7 +182,7 @@ void canvas::handle_mouse_up(SDL_MouseButtonEvent button)
 {
     switch (button.button) {
     case SDL_BUTTON_LEFT: {
-        if (mouse_tool) mouse_tool->mouse_up(0);
+        tool.mouse_up(0);
         break;
     }
     }

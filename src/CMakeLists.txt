@@ -20,8 +20,10 @@ target_link_libraries(plaza_gui PUBLIC Rxt::Graphics)
 set(_HEADERS
     map.hpp
     tiles.hpp
-    # modvec.hpp
+    util.hpp
     observable.hpp
+    mouse.hpp
+    tool.hpp
 )
 
 set(_SOURCES

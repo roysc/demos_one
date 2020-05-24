@@ -1,7 +1,8 @@
 #pragma once
-#include "observable.hpp"
-#include "events.hpp"
+#include "util.hpp"
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/transform.hpp>
 #include <glm/glm.hpp>
 #include <type_traits>
 
@@ -13,7 +14,6 @@ struct _grid_viewport
 {
     using P = typename GT::position_type;
     using Size = typename GT::size_type;
-    using subject_tag = tags::viewport;
 
     Size max_scale; //grid_size
     Size scale_factor {1};
@@ -21,13 +21,12 @@ struct _grid_viewport
     const Size size_px {max_scale * scale_factor};
     const float margin_size = .1;
 
-    observable<subject_tag> on_change;
-    auto& get_subject(subject_tag) { return on_change; }
+    _grid_viewport(Size max, Size scale) : max_scale{max}, scale_factor{scale} {}
 
     P position() const {return _position;}
-    void position(P p) {_position = p; on_change(); }
+    void position(P p) {_position = p; }
 
-    void scale(int exp)
+    virtual void scale(int exp)
     {
         // simulate zoom in/out by scaling down/up resp.; correct position to keep centered
         const Size min_scale{1};
@@ -38,13 +37,11 @@ struct _grid_viewport
             if (scale_factor.x < max_scale.x && scale_factor.y < max_scale.y)
                 scale_factor *= 2;
         }
-        on_change();
     }
 
-    void move(int dx, int dy)
+    virtual void move(P d)
     {
-        _position += P{dx, dy};
-        on_change();
+        _position += d;
     }
 
     // size in number of cells
@@ -62,8 +59,6 @@ struct _grid_viewport
         auto offset_pos = to_nds(cursor_position + P(vpsize / 2u));
         P dv {0};
 
-        // std::cout << "edge_scroll? "
-        //           << "nds=" << offset_pos
         for (unsigned i = 0; i < dv.length(); ++i) {
             if (offset_pos[i] < margin_size) {
                 dv[i] = -speed;
@@ -73,7 +68,7 @@ struct _grid_viewport
             }
         }
         if (dv != P{0}) {
-            move(dv.x, dv.y);
+            move(dv);
             return true;
         }
         return false;
@@ -85,6 +80,23 @@ struct _grid_viewport
     }
 
     glm::vec2 to_nds(P p) const { return glm::vec2(p) / glm::vec2(size_cells() / 2u); }
+
+    glm::mat4 view_matrix() const
+    {
+        using glm::vec2;
+        using glm::vec3;
+        vec2 rel_size = vec2(size_cells()) / vec2(max_scale);
+        vec2 rel_pos = vec2(position()) / vec2(max_scale);
+        glm::mat4 view_matrix =
+            glm::translate(vec3(rel_pos, 0)) *
+            glm::scale(vec3(invert<1>(rel_size), 0));
+        return view_matrix;
+    }
+
+    glm::mat4 model_matrix() const
+    {
+        return glm::translate(glm::vec3(-.5, -.5, 0));
+    }
 };
 
 template <class GT>

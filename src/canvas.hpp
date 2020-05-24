@@ -1,9 +1,12 @@
 #pragma once
 
+#include "tool.hpp"
 #include "mouse.hpp"
+#include "map.hpp"
 
 #include <Rxt/graphics/sdl.hpp>
 #include <Rxt/graphics/shader/grid_quad_2D.hpp>
+#include <Rxt/graphics/shader/solid_color_3D.hpp>
 
 struct grid_traits
 {
@@ -14,7 +17,8 @@ struct grid_traits
 using grid_program = Rxt::shader_programs::webcompat::grid_quad_2D;
 using grid_viewport = viewport<grid_traits>;
 
-using ui_traits = mouse_ui<grid_traits>;
+// using ui_traits = mouse_ui<grid_traits>;
+using grid_controls = control_port<grid_traits>;
 using grid_selector = mouse_select_tool<grid_traits>;
 using grid_painter = mouse_paint_tool<grid_traits>;
 
@@ -24,6 +28,8 @@ using tag_router = observer_router<
     tags::cursor_selection,
     tags::object_edit
     >;
+
+using Rxt::rgba;
 
 struct model_buffers : grid_program::data
 {
@@ -47,7 +53,7 @@ struct ui_buffers : grid_program::data
     }
 };
 
-using fvec2 = glm::vec2;
+using glm::fvec2;
 using line_program = Rxt::shader_programs::solid_color_3D<GL_LINES>;
 struct line_buffers
     : line_program::data
@@ -68,22 +74,27 @@ struct canvas
     bool enable_edge_scroll = true;
     bool quit = false;
 
-    using line = std::pair<fvec2, fvec2>;
-    std::vector<line> _lines;
-
     tag_router obr;
 
-    grid_viewport viewport;
-    grid_selector selector {viewport};
-    grid_painter painter {selector};
-    mouse_tool* mouse_tool {&selector};
+    grid_controls controls;
+    grid_viewport& viewport = controls.viewport();
+
+    grid_selector selector {controls};
+    grid_painter painter {controls};
+
+    swappable_tool<tags::viewport, tags::cursor_motion> tool;
 
     grid_program p_ui, p_model;
     ui_buffers b_ui{p_ui};
     model_buffers b_model{p_model};
+    model_buffers b_paint{p_model};
 
     line_program p_lines;
     line_buffers b_lines{p_lines};
+
+    // interesting stuff
+    using grid_map = array2_map<int>;
+    grid_map paint_layer;
 
     canvas(grid_viewport vp);
     void step(SDL_Event);
@@ -92,9 +103,9 @@ struct canvas
     void handle_mouse_motion(SDL_MouseMotionEvent motion)
     {
         auto [x, y] = Rxt::sdl::nds_coords(*window, motion.x, motion.y);
-        auto gridpos = viewport.from_nds(x, y);
+        auto gridpos = controls.viewport().from_nds(x, y);
 
-        selector.mouse_motion(gridpos);
+        controls.cursor_position(gridpos);
     }
 
     void handle_mouse_down(SDL_MouseButtonEvent button);
