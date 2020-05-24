@@ -58,14 +58,14 @@ canvas::canvas(grid_viewport vp)
     set(p_ui->viewport_position, ivec{0});
 
     Pz_observe(controls.on_motion) {
-        tool.dispatch(tags::cursor_motion());
+        tool.dispatch(tags::cursor_motion);
     };
     Pz_observe(controls.on_viewport_change) {
         set(p_ui->viewport_size, viewport.size_cells());
         set(p_model->viewport_position, viewport.position());
         set(p_model->viewport_size, viewport.size_cells());
 
-        tool.dispatch(tags::viewport());
+        tool.dispatch(tags::viewport);
     };
 
     Pz_observe(selector.on_selection) {
@@ -83,14 +83,14 @@ canvas::canvas(grid_viewport vp)
     obr.add_subject(painter.on_edit);
 
     auto selector_on = tool.add_tool(&selector, true);
-    Pz_observe(selector_on(tags::viewport())) {
+    Pz_observe(selector_on(tags::viewport)) {
         set(p_model->viewport_position, viewport.position());
         set(p_model->viewport_size, viewport.size_cells());
     };
-    Pz_observe(selector_on(tags::cursor_motion())) {
+    Pz_observe(selector_on(tags::cursor_motion)) {
         selector.update_cursor(b_ui);
     };
-    Pz_observe(selector_on(tags::reset())) { b_ui.clear(); b_ui.update(); };
+    Pz_observe(selector_on(tags::deactivate)) { b_ui.clear(); b_ui.update(); };
 
     auto size = uvec(320);
     auto paint = [&](auto p, int) { paint_layer[p.x][p.y] = 1; };
@@ -112,7 +112,7 @@ canvas::canvas(grid_viewport vp)
     };
 
     auto painter_on = tool.add_tool(&painter);
-    Pz_observe(painter_on(tags::viewport())) {
+    Pz_observe(painter_on(tags::viewport)) {
         auto mvp_matrix = viewport.view_matrix() * viewport.model_matrix();
         set(p_lines->mvp_matrix, mvp_matrix);
     };
@@ -134,17 +134,8 @@ void canvas::step(SDL_Event event)
         viewport.edge_scroll(controls.cursor_position(), 1);
     }
 
-    // auto dirty =
-    //     Pz_flush(viewport, tags::viewport) +
-    //     Pz_flush(selector, tags::cursor_motion) +
-    //     Pz_flush(selector, tags::cursor_selection);
-
-    // auto dirty = Pz_flush_all(obr);
-    auto dirty =
-        obr.flush() +
-        tool.flush();
-
-    // Ideally we can track everything from flush()
+    // Ideally we can track everything from flush() calls
+    auto dirty = obr.flush() + tool.flush();
     if (dirty) draw();
 }
 
@@ -158,8 +149,6 @@ void canvas::draw()
     b_model.draw();
     b_ui.draw();
     b_lines.draw();
-
-    // tool.draw();
 
     SDL_GL_SwapWindow(window.get());
 }

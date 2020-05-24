@@ -26,11 +26,11 @@ struct control_port
     {
         using Super = ViewportBase;
         // using Super::Super;
-        observable<tags::viewport> on_change;
+        observable<tags::viewport_tag> on_change;
 
         viewport_type(Super const& v) : Super{v} {}
 
-        auto& get_subject(tags::viewport) { return on_change; }
+        auto& get_subject(tags::viewport_tag) { return on_change; }
         void scale(int exp) override { Super::scale(exp); on_change(); }
         void move(P d) override { Super::move(d); on_change(); }
     };
@@ -38,8 +38,8 @@ struct control_port
 
     viewport_type _viewport;
     P _cursor_position {0};
-    lazy_observable<tags::cursor_motion> on_motion;
-    observable<tags::viewport>& on_viewport_change = _viewport.on_change;
+    lazy_observable<tags::cursor_motion_tag> on_motion;
+    observable<tags::viewport_tag>& on_viewport_change = _viewport.on_change;
 
     control_port(ViewportBase v) : _viewport{v} {}
 
@@ -62,23 +62,16 @@ struct mouse_select_tool
     : public mouse_tool
 {
     using P = typename GT::position_type;
-    using cursor_motion_tag = tags::cursor_motion;
-    using cursor_selection_tag = tags::cursor_selection;
 
     using region = std::tuple<P, P>;
 
-    // using MouseUi = mouse_ui<GT>;
-    // using MouseUi::MouseUi;
-    // using MouseUi::cursor_position;
-    // using MouseUi::viewport;
     control_port<GT>& controls;
-
     std::optional<P> drag_origin;
     std::optional<region> selection;
     Rxt::rgba color = {1, 0, 1, 0.3};
 
-    lazy_observable<cursor_motion_tag> on_motion;
-    lazy_observable<cursor_selection_tag> on_selection;
+    lazy_observable<tags::cursor_motion_tag> on_motion;
+    lazy_observable<tags::cursor_selection_tag> on_selection;
 
     mouse_select_tool(control_port<GT>& c) : controls{c} {}
 
@@ -146,7 +139,7 @@ struct mouse_paint_tool : mouse_tool
     control_port<GT>& controls;
     paint_method _paint;
 
-    lazy_observable<tags::object_edit> on_edit;
+    lazy_observable<tags::object_edit_tag> on_edit;
 
     mouse_paint_tool(control_port<GT>& u, paint_method m = {})
         : controls{u}, _paint{m} {}
@@ -169,7 +162,7 @@ struct mouse_stroke_tool : mouse_tool
     const Rxt::rgba cursor_color {Rxt::colors::yellow, 1};
     const Rxt::rgba stroke_color {Rxt::colors::white, 1};
 
-    lazy_observable<tags::object_edit> on_edit;
+    lazy_observable<tags::object_edit_tag> on_edit;
 
     void mouse_down(int i) override {}
     void mouse_up(int i) override {}

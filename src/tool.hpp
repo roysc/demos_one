@@ -25,7 +25,7 @@ template <class... Tags>
 struct swappable_tool : mouse_tool
 {
     using index = std::size_t;
-    using subject_tuple = std::tuple<eager_observable<tags::reset>,
+    using subject_tuple = std::tuple<eager_observable<tags::deactivate_tag>,
                                      eager_observable<Tags>...>;
 
     std::vector<mouse_tool*> tools;
@@ -44,7 +44,7 @@ struct swappable_tool : mouse_tool
     void set_current(index i)
     {
         if (current_tool == i) return;
-        get_subject(tags::reset(), current_tool)();
+        get_subject(tags::deactivate, current_tool)();
         current_tool = i;
     }
 

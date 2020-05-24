@@ -23,10 +23,10 @@ using grid_selector = mouse_select_tool<grid_traits>;
 using grid_painter = mouse_paint_tool<grid_traits>;
 
 using tag_router = observer_router<
-    tags::viewport,
-    tags::cursor_motion,
-    tags::cursor_selection,
-    tags::object_edit
+    tags::viewport_tag,
+    tags::cursor_motion_tag,
+    tags::cursor_selection_tag,
+    tags::object_edit_tag
     >;
 
 using Rxt::rgba;
@@ -66,6 +66,8 @@ struct line_buffers
     }
 };
 
+using multi_tool = swappable_tool<tags::viewport_tag, tags::cursor_motion_tag>;
+
 struct canvas
     : Rxt::sdl::simple_gui
     , Rxt::sdl::input_handler<canvas>
@@ -81,8 +83,7 @@ struct canvas
 
     grid_selector selector {controls};
     grid_painter painter {controls};
-
-    swappable_tool<tags::viewport, tags::cursor_motion> tool;
+    multi_tool tool;
 
     grid_program p_ui, p_model;
     ui_buffers b_ui{p_ui};
