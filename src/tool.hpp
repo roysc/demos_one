@@ -5,25 +5,6 @@
 
 #include <tuple>
 
-namespace _det
-{
-template <class Rout>
-struct proxy_multi_appender
-{
-    Rout& router;
-    typename Rout::index const index;
-
-    template <class Tag>
-    auto& operator()(Tag t)
-    {
-        return router.get_subject(t, index);
-    }
-};
-
-template<class Rout>
-proxy_multi_appender(Rout&...) -> proxy_multi_appender<Rout>;
-}
-
 template <class ExtraTags>
 struct swappable_tool : mouse_tool
 {
@@ -60,19 +41,8 @@ struct swappable_tool : mouse_tool
 
     void set_current(mouse_tool* p) { set_current(_pindex.at(p)); }
 
-    void deactivate(index i) { get_subject(tags::deactivate, i).notify({}); }
-    void activate(index i) { get_subject(tags::activate, i).notify({}); }
-
-    router_type& get_router(index ix)
-    {
-        return routers.at(ix);
-    }
-
-    template <class Tag>
-    auto& get_subject(Tag t, index ix)
-    {
-        return get_router(ix).get_subject(t);
-    }
+    void deactivate(index i) { get_router(i).get_subject(tags::deactivate).dispatch({}); }
+    void activate(index i) { get_router(i).get_subject(tags::activate).dispatch({}); }
 
     template <class Tag>
     subject<Tag>& get_shared(Tag t)
@@ -80,14 +50,22 @@ struct swappable_tool : mouse_tool
         return always.get_subject(t);
     }
 
+    template <class Tag>
+    auto& on(Tag t) { return get_shared(t); }
+
     template <class S>
     auto add_shared_subjects(S& sub)
     {
         sub.add_to_router(always);
     }
 
+    router_type& get_router(index ix)
+    {
+        return routers.at(ix);
+    }
+
     template <class S>
-    auto add_tool(mouse_tool* toolptr, S* sub = nullptr, bool also_set = false)
+    void add_tool(mouse_tool* toolptr, S* sub = nullptr, bool also_set = false)
     {
         auto ix = tools.size();
         tools.push_back(toolptr);
@@ -98,14 +76,23 @@ struct swappable_tool : mouse_tool
 
         if (also_set)
             current_tool = ix;
-        return _det::proxy_multi_appender{*this, ix};
     }
 
     template <class Tag>
     void dispatch(Tag t)
     {
-        get_shared(t).notify(t);
-        get_subject(t, current_tool).notify(t);
+        get_shared(t).dispatch(t);
+        get_router(current_tool).get_subject(t).dispatch(t);
+    }
+
+    int flush()
+    {
+        int sum = 0;
+        sum += always.flush();
+        for (auto& rout: routers) {
+            sum += rout.flush();
+        }
+        return sum;
     }
 
     void mouse_down(int i) override
@@ -121,4 +108,3 @@ struct swappable_tool : mouse_tool
         if (current()) current()->mouse_up(i);
     }
 };
-
