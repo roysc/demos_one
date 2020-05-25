@@ -89,6 +89,7 @@ struct mouse_select_tool
         for (auto [a, b]: Rxt::to_range(selection)) {
             buf.add_selection(a, b);
         }
+        buf.update();
     }
 };
 
@@ -148,7 +149,10 @@ struct mouse_stroke_tool : mouse_tool
     {
         if (!_current) return;
         // if (_current->empty()) return Rxt::print("ignoring empty stroke\n");
+
         _strokes.emplace_back(*_current);
+        for (auto& p: _strokes.back()) Rxt_DEBUG(p);
+
         _current.reset();
         on_edit();
     }
@@ -156,20 +160,30 @@ struct mouse_stroke_tool : mouse_tool
     template <class Buf>
     void update_cursor(Buf& buf) const
     {
+        buf.clear();
         if (!_current) return;
 
         P a = _current->back(), b = controls.cursor_position_world();
         buf.add_line(a, b, cursor_color);
+        buf.update();
     }
 
     template <class Buf>
     void update_model(Buf& buf) const
     {
+        auto add_lines = [&](auto& s, auto color) {
+            for (auto it = s.begin(); it+1 != s.end(); ++it) {
+                buf.add_line(*it, *(it+1), color);
+            }
+        };
+
+        buf.clear();
+        if (_current)
+            add_lines(*_current, cursor_color);
         for (auto& s:_strokes) {
             assert(!s.empty());
-            for (auto it = s.begin(); it+1 != s.end(); ++it) {
-                buf.add_line(*it, *(it+1), stroke_color);
-            }
+            add_lines(s, stroke_color);
         }
+        buf.update();
     }
 };

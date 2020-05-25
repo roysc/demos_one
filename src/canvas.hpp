@@ -24,11 +24,12 @@ using stroke_tool = mouse_stroke_tool<grid_traits>;
 using tool_common_tags = Rxt::type_tuple<
     tags::debug_tag,
     tags::viewport_tag,
-    tags::cursor_motion_tag
+    tags::cursor_motion_tag,
+    tags::object_edit_tag
     >;
 using tool_other_tags = Rxt::type_tuple<
-    tags::cursor_selection_tag,
-    tags::object_edit_tag
+    tags::cursor_selection_tag
+    // tags::object_edit_tag
     >;
 
 using main_router = router_for_t<Rxt::tuple_concat_t<tool_common_tags, tool_other_tags>>;
@@ -75,7 +76,6 @@ struct line_buffers
     {
         push(position_vec(a, 0), color);
         push(position_vec(b, 0), color);
-        update();
     }
 };
 
@@ -99,12 +99,12 @@ struct canvas
     main_tool tool;
     tool_observable tool_hooks;
 
-    grid_program p_ui, p_model;
+    grid_program p_ui, p_quad;
     line_program p_lines;
 
     ui_buffers b_ui{p_ui};
-    model_buffers b_model{p_model};
-    model_buffers b_paint{p_model};
+    model_buffers b_model{p_quad};
+    model_buffers b_paint{p_quad};
     line_buffers b_lines{p_lines};
     line_buffers b_lines_cursor{p_lines};
 
