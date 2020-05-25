@@ -16,30 +16,32 @@ struct grid_traits
 
 using grid_program = Rxt::shader_programs::webcompat::grid_quad_2D;
 using grid_viewport = viewport<grid_traits>;
-
-// using ui_traits = mouse_ui<grid_traits>;
 using grid_controls = control_port<grid_traits>;
 using grid_selector = mouse_select_tool<grid_traits>;
 using grid_painter = mouse_paint_tool<grid_traits>;
-
 using stroke_tool = mouse_stroke_tool<grid_traits>;
-using multi_tool = swappable_tool<
+
+using tool_common_tags = Rxt::type_tuple<
+    tags::debug_tag,
     tags::viewport_tag,
-    tags::cursor_motion_tag,
-    tags::debug_tag
+    tags::cursor_motion_tag
+    >;
+using tool_other_tags = Rxt::type_tuple<
+    tags::cursor_selection_tag,
+    tags::object_edit_tag
+    >;
+
+using main_router = router_for_t<Rxt::tuple_concat_t<tool_common_tags, tool_other_tags>>;
+
+using multi_tool = swappable_tool<tool_common_tags>;
+// The hook list implementation routed to by the swappable_tool
+using multi_tool_observable = Rxt::tuple_apply_t<
+    multi_observable,
+    Rxt::tuple_map_t<eager_observable, multi_tool::observable_tags>
     >;
 
 using glm::fvec2;
 using line_program = Rxt::shader_programs::solid_color_3D<GL_LINES>;
-
-using tag_router = observer_router<
-    tags::viewport_tag,
-    tags::cursor_motion_tag,
-    tags::cursor_selection_tag,
-    tags::object_edit_tag
-    >;
-// using tag_router = subject_router;
-
 using Rxt::rgba;
 
 struct model_buffers : grid_program::data
@@ -83,7 +85,7 @@ struct canvas
     bool enable_edge_scroll = true;
     bool quit = false;
 
-    tag_router obr;
+    main_router router;
 
     grid_controls controls;
     grid_viewport& viewport = controls.viewport();
@@ -91,7 +93,9 @@ struct canvas
     grid_selector selector {controls};
     stroke_tool stroker {controls};
     grid_painter painter {controls};
+
     multi_tool tool;
+    std::array<multi_tool_observable, 4> tool_hooks{};
 
     grid_program p_ui, p_model;
     ui_buffers b_ui{p_ui};

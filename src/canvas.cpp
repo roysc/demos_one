@@ -50,6 +50,11 @@ void canvas::_set_controls()
     keys.on_press["3"] = [&] { tool.set_current(&stroker); };
 
     keys.on_press["D"] = [&] { tool.dispatch(tags::debug); };
+
+    auto paint = [&](auto p, int) { paint_layer[p.x][p.y] = 1; };
+    painter.set_method(paint);
+    auto size = uvec(320);
+    paint_layer.resize(boost::extents[size.x][size.y]);
 }
 
 canvas::canvas(grid_viewport vp)
@@ -58,7 +63,16 @@ canvas::canvas(grid_viewport vp)
 {
     _set_controls();
 
-    set(p_ui->viewport_position, ivec{0});
+    router.add_subject(controls.on_viewport_change);
+    router.add_subject(controls.on_motion);
+    router.add_subject(selector.on_selection);
+    router.add_subject(painter.on_edit);
+
+    // auto selector_on = tool.add_tool(&selector, &tool_hooks.at(1));
+    tool.add_shared_subjects(tool_hooks.at(0));
+    auto selector_on = tool.add_tool(&selector, &tool_hooks.at(1));
+    auto painter_on = tool.add_tool(&painter, &tool_hooks.at(2));
+    auto stroker_on = tool.add_tool(&stroker, &tool_hooks.at(3));
 
     Pz_observe(controls.on_motion) {
         tool.dispatch(tags::cursor_motion);
@@ -77,30 +91,15 @@ canvas::canvas(grid_viewport vp)
             std::cout << "selection=null\n";
     };
 
-    obr.add_subject(controls.on_viewport_change);
-    obr.add_subject(controls.on_motion);
-    obr.add_subject(selector.on_selection);
-    obr.add_subject(painter.on_edit);
-
     Pz_observe(tool.get_shared(tags::activate)) {
-        // controls.on_viewport_change.notify({});
+        controls.on_viewport_change.notify({});
         controls.on_motion.notify({});
     };
 
-    auto selector_on = tool.add_tool(&selector, true);
-    Pz_observe(selector_on(tags::viewport)) {
-        viewport.update_uniforms(p_model);
-    };
-    Pz_observe(selector_on(tags::cursor_motion)) {
-        selector.update_cursor(b_ui);
-    };
+    // tool.add_subject(tags::viewport, i, tool_hooks[1].get(tags::viewport));
+    Pz_observe(selector_on(tags::viewport)) { viewport.update_uniforms(p_model); };
+    Pz_observe(selector_on(tags::cursor_motion)) { selector.update_cursor(b_ui); };
     Pz_observe(selector_on(tags::deactivate)) { b_ui.clear(); b_ui.update(); };
-
-    auto size = uvec(320);
-    auto paint = [&](auto p, int) { paint_layer[p.x][p.y] = 1; };
-    // auto paint = [&](auto p, int) { paint_layer[p.x][p.y] = palette[ink]; };
-    painter.set_method(paint);
-    paint_layer.resize(boost::extents[size.x][size.y]);
 
     Pz_observe(painter.on_edit) {
         b_paint.clear();
@@ -115,13 +114,12 @@ canvas::canvas(grid_viewport vp)
         }
         b_paint.update();
     };
-    auto painter_on = tool.add_tool(&painter);
 
     Pz_observe(stroker.on_edit) {
         b_lines_cursor.clear();
         stroker.update_model(b_lines);
     };
-    auto stroker_on = tool.add_tool(&stroker);
+
     Pz_observe(stroker_on(tags::viewport)) {
         // auto mvp_matrix = viewport.view_matrix() * viewport.model_matrix();
         auto mvp_matrix = viewport.view_matrix();
@@ -131,16 +129,13 @@ canvas::canvas(grid_viewport vp)
         b_lines_cursor.clear();
         stroker.update_cursor(b_lines_cursor);
     };
-
-    // Pz_observe(obr.get_subject(tags::debug)) {
-        
-    // };
-
     Pz_observe(stroker_on(tags::debug)) {
         if (stroker._current)
             Rxt_DEBUG(stroker._current->at(0));
         else Rxt::print("nothing\n");
     };
+
+    set(p_ui->viewport_position, ivec{0});
 
     controls.on_viewport_change.notify({});
     glClearColor(0, 0, 0, 1);
@@ -160,7 +155,9 @@ void canvas::step(SDL_Event event)
     }
 
     // Ideally we can track everything from flush() calls
-    auto dirty = obr.flush() + tool.flush();
+    auto dirty = router.flush();
+    for (auto& hook: tool_hooks) dirty += hook.flush();
+
     if (dirty) draw();
 }
 

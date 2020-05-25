@@ -1,6 +1,8 @@
 #pragma once
 
 #include <Rxt/util.hpp>
+#include <Rxt/meta.hpp>
+
 #include <functional>
 #include <vector>
 #include <tuple>
@@ -14,6 +16,7 @@ struct subject
 
     virtual index add(handler) = 0;
     virtual void notify(tag) = 0;
+    // virtual void notify(tag = tag{}) = 0;
     virtual int flush() = 0;
 };
 
@@ -30,6 +33,8 @@ struct proxy_appender
 template <class Sub>
 proxy_appender(Sub&) -> proxy_appender<Sub>;
 }
+
+#define Pz_observe(val_) (_det::proxy_appender{(val_)}) << [&](auto)
 
 template<class Tag>
 struct eager_observable : public subject<Tag>
@@ -93,23 +98,50 @@ struct observer_router
     std::tuple<subject<Ts>*...> subjects;
 
     template <class Tag>
-    auto& get_subject(Tag t) { return *std::get<subject<Tag>*>(subjects); }
+    auto& _get() { return std::get<subject<Tag>*>(subjects); }
 
-    template <class Sub>
-    void add_subject(Sub& subj)
-    {
-        using Arg = typename Sub::tag;
-        std::get<subject<Arg>*>(subjects) = &subj;
-    }
+    template <class Tag>
+    auto& get_subject(Tag t = Tag{}) { return *_get<Tag>(); }
+
+    template <class Tag>
+    void add_subject(subject<Tag>& sub) { _get<Tag>() = &sub; }
+
+    // void notify() { (get_subject<Ts>()->notify(Ts{}), ...); }
 
     int flush()
     {
         auto safe_flush = [](auto* p) { return p ? p->flush() : 0; };
-        return (safe_flush(std::get<subject<Ts>*>(subjects)) + ...);
+        return (safe_flush(_get<Ts>()) + ...);
     }
 };
 
-#define Pz_observe(val_) (_det::proxy_appender{(val_)}) << [&](auto)
-#define Pz_notify(obr_, tag_) ((obr_).tag_ref(tag_{})())
-#define Pz_flush(var_, tag_) ((var_).get_subject(tag_{}).flush())
-#define Pz_flush_all(obr_) ((obr_).flush())
+// namespace _det
+// {
+template <class... Ts>
+using observable_tags = Rxt::type_tuple<typename Ts::tag...>;
+
+template <class TT>
+using observable_tags_for_t = Rxt::tuple_apply_t<observable_tags, TT>;
+
+template <class TT>
+using router_for_t = Rxt::tuple_apply_t<observer_router, TT>;
+// }
+
+template <class... Obs>
+struct multi_observable
+{
+    using observables_tuple = Rxt::type_tuple<Obs...>;
+    using tags_tuple = observable_tags<Obs...>;
+    std::tuple<Obs...> _data;
+
+    template <class Tag>
+    auto& _get() { return std::get<Rxt::tuple_index_of_v<Tag, tags_tuple>>(_data); }
+
+    template <class R>
+    void add_to_router(R& rout)
+    {
+        (rout.template add_subject<typename Obs::tag>(_get<typename Obs::tag>()), ...);
+    }
+
+    int flush() { return (std::get<Obs>(_data).flush() + ...); }
+};

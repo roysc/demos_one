@@ -1,6 +1,9 @@
 #pragma once
 #include "mouse.hpp"
 #include "observable.hpp"
+#include <Rxt/meta.hpp>
+
+#include <tuple>
 
 namespace _det
 {
@@ -21,19 +24,22 @@ template<class Rout>
 proxy_multi_appender(Rout&...) -> proxy_multi_appender<Rout>;
 }
 
-template <class... Tags>
+template <class ExtraTags>
 struct swappable_tool : mouse_tool
 {
     using index = std::size_t;
-    using subject_tuple = std::tuple<
-        eager_observable<tags::activate_tag>,
-        eager_observable<tags::deactivate_tag>,
-        eager_observable<Tags>...>;
+
+    using builtin_tags = Rxt::type_tuple<
+        tags::activate_tag,
+        tags::deactivate_tag
+        >;
+    using observable_tags = Rxt::tuple_concat_t<ExtraTags, builtin_tags>;
+    using router_type = router_for_t<observable_tags>;
+
+    std::vector<router_type> routers;
+    router_type always;
 
     std::vector<mouse_tool*> tools;
-    std::vector<subject_tuple> subjects;
-    subject_tuple shared;
-
     index current_tool = -1;
     std::map<mouse_tool*, index> _pindex;
 
@@ -52,40 +58,44 @@ struct swappable_tool : mouse_tool
         activate(current_tool);
     }
 
-    void deactivate(index i) { get_subject(tags::deactivate, i)(); }
-    void activate(index i) { get_subject(tags::activate, i)(); }
-
     void set_current(mouse_tool* p) { set_current(_pindex.at(p)); }
 
-    subject_tuple& get_subjects(index ix)
-    {
-        return subjects.at(ix);
-    }
+    void deactivate(index i) { get_subject(tags::deactivate, i).notify({}); }
+    void activate(index i) { get_subject(tags::activate, i).notify({}); }
 
-    template <class Tag>
-    auto& _get(subject_tuple& tup)
+    router_type& get_router(index ix)
     {
-        return std::get<eager_observable<Tag>>(tup);
+        return routers.at(ix);
     }
 
     template <class Tag>
     auto& get_subject(Tag t, index ix)
     {
-        return _get<Tag>(subjects.at(ix));
+        return get_router(ix).get_subject(t);
     }
 
     template <class Tag>
-    auto& get_shared(Tag)
+    subject<Tag>& get_shared(Tag t)
     {
-        return _get<Tag>(shared);
+        return always.get_subject(t);
     }
 
-    auto add_tool(mouse_tool* t, bool also_set = false)
+    template <class S>
+    auto add_shared_subjects(S& sub)
+    {
+        sub.add_to_router(always);
+    }
+
+    template <class S>
+    auto add_tool(mouse_tool* toolptr, S* sub = nullptr, bool also_set = false)
     {
         auto ix = tools.size();
-        tools.push_back(t);
-        _pindex[t] = ix;
-        subjects.emplace_back();
+        tools.push_back(toolptr);
+        _pindex[toolptr] = ix;
+
+        auto& rout = routers.emplace_back();
+        if (sub) sub->add_to_router(rout);
+
         if (also_set)
             current_tool = ix;
         return _det::proxy_multi_appender{*this, ix};
@@ -94,18 +104,8 @@ struct swappable_tool : mouse_tool
     template <class Tag>
     void dispatch(Tag t)
     {
-        _get<Tag>(shared).notify(t);
+        get_shared(t).notify(t);
         get_subject(t, current_tool).notify(t);
-    }
-
-    int flush()
-    {
-        int sum = 0;
-        sum += (_get<Tags>(shared).flush() + ...);
-        for (auto& sub: subjects) {
-            sum += (std::get<eager_observable<Tags>>(sub).flush() + ...);
-        }
-        return sum;
     }
 
     void mouse_down(int i) override
@@ -121,3 +121,4 @@ struct swappable_tool : mouse_tool
         if (current()) current()->mouse_up(i);
     }
 };
+
