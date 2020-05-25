@@ -76,6 +76,7 @@ struct swappable_tool : mouse_tool
 
         if (also_set)
             current_tool = ix;
+        return rout;
     }
 
     template <class Tag>

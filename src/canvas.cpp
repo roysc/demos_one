@@ -18,15 +18,13 @@ int main(int argc, char** argv)
         seed = std::stoi(argv[1]);
     }
 
-    try {
-        auto loop = sdl::make_looper(
-            new canvas(grid_viewport{uvec(80), uvec(8)}),
-            step_state
-        );
-        loop();
-    } catch (std::exception& e) {
-        std::cout << "caught exception: " << e.what() << '\n';
-    }
+    // try {
+    auto loop = sdl::make_looper(
+        new canvas(grid_viewport{uvec(80), uvec(8)}),
+        step_state
+    );
+    loop();
+    // } catch (std::exception& e) { Rxt::print("caught: {}\n", e.what()); }
 
     return 0;
 }
@@ -68,21 +66,30 @@ canvas::canvas(grid_viewport vp)
     router.add_subject(selector.on_selection);
     router.add_subject(painter.on_edit);
 
-    // auto selector_on = tool.add_tool(&selector, &tool_hooks.at(1));
-    tool.add_shared_subjects(tool_hooks.at(0));
-    auto selector_on = tool.add_tool(&selector, &tool_hooks.at(1));
-    auto painter_on = tool.add_tool(&painter, &tool_hooks.at(2));
-    auto stroker_on = tool.add_tool(&stroker, &tool_hooks.at(3));
+    tool.add_shared_subjects(tool_hooks);
+    tool.add_tool(&selector, &selector.subject());
+    tool.add_tool(&painter, &painter.subject(), true);
+    tool.add_tool(&stroker, &stroker.subject());
 
-    Pz_observe(controls.on_motion) {
-        tool.dispatch(tags::cursor_motion);
+    Pz_observe(tool.on(tags::activate)) {
+        controls.on_viewport_change.dispatch({});
+        controls.on_motion.dispatch({});
     };
+    Pz_observe(tool.on(tags::viewport)) {
+        viewport.update_uniforms(p_model);
+        set(p_lines->mvp_matrix, viewport.view_matrix());
+    };
+
+    Pz_observe(controls.on_motion) { tool.dispatch(tags::cursor_motion); };
     Pz_observe(controls.on_viewport_change) {
         viewport.update_uniforms(p_ui, false);
         tool.dispatch(tags::viewport);
     };
-
+    //
+    Pz_observe(selector.on(tags::cursor_motion)) { selector.update_cursor(b_ui); };
+    Pz_observe(selector.on(tags::deactivate)) { b_ui.clear(); b_ui.update(); };
     Pz_observe(selector.on_selection) {
+        b_ui.clear(); b_ui.update();
         selector.update_selection(b_model);
         if (selector.selection) {
             auto [a, b] = *selector.selection;
@@ -90,17 +97,7 @@ canvas::canvas(grid_viewport vp)
         } else
             std::cout << "selection=null\n";
     };
-
-    Pz_observe(tool.get_shared(tags::activate)) {
-        controls.on_viewport_change.notify({});
-        controls.on_motion.notify({});
-    };
-
-    // tool.add_subject(tags::viewport, i, tool_hooks[1].get(tags::viewport));
-    Pz_observe(selector_on(tags::viewport)) { viewport.update_uniforms(p_model); };
-    Pz_observe(selector_on(tags::cursor_motion)) { selector.update_cursor(b_ui); };
-    Pz_observe(selector_on(tags::deactivate)) { b_ui.clear(); b_ui.update(); };
-
+    //
     Pz_observe(painter.on_edit) {
         b_paint.clear();
         auto shape = paint_layer.shape();
@@ -114,22 +111,19 @@ canvas::canvas(grid_viewport vp)
         }
         b_paint.update();
     };
-
+    //
+    // Pz_observe(stroker.on(tags::viewport)) {
+    //     set(p_lines->mvp_matrix, viewport.view_matrix());
+    // };
+    Pz_observe(stroker.on(tags::cursor_motion)) {
+        b_lines_cursor.clear();
+        stroker.update_cursor(b_lines_cursor);
+    };
     Pz_observe(stroker.on_edit) {
         b_lines_cursor.clear();
         stroker.update_model(b_lines);
     };
-
-    Pz_observe(stroker_on(tags::viewport)) {
-        // auto mvp_matrix = viewport.view_matrix() * viewport.model_matrix();
-        auto mvp_matrix = viewport.view_matrix();
-        set(p_lines->mvp_matrix, mvp_matrix);
-    };
-    Pz_observe(stroker_on(tags::cursor_motion)) {
-        b_lines_cursor.clear();
-        stroker.update_cursor(b_lines_cursor);
-    };
-    Pz_observe(stroker_on(tags::debug)) {
+    Pz_observe(stroker.on(tags::debug)) {
         if (stroker._current)
             Rxt_DEBUG(stroker._current->at(0));
         else Rxt::print("nothing\n");
@@ -137,7 +131,7 @@ canvas::canvas(grid_viewport vp)
 
     set(p_ui->viewport_position, ivec{0});
 
-    controls.on_viewport_change.notify({});
+    controls.on_viewport_change.dispatch({});
     glClearColor(0, 0, 0, 1);
 }
 
@@ -156,7 +150,8 @@ void canvas::step(SDL_Event event)
 
     // Ideally we can track everything from flush() calls
     auto dirty = router.flush();
-    for (auto& hook: tool_hooks) dirty += hook.flush();
+    dirty += tool.flush();
+    Rxt_DEBUG(dirty);
 
     if (dirty) draw();
 }

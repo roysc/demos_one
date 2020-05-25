@@ -19,6 +19,7 @@ struct subject
     virtual int flush() = 0;
 
     virtual ~subject() {}
+    void operator()() { dispatch(); }
 };
 
 namespace _det
@@ -59,8 +60,6 @@ struct eager_observable : public subject<Tag>
     }
 
     int flush() override { int ret = count; count = 0; return ret; }
-
-    void operator()() { dispatch(Tag{}); }
 };
 
 template<class Tag>
@@ -86,8 +85,6 @@ struct lazy_observable : public subject<Tag>
         for (auto& obs: observers) { ret += obs.flush(); }
         return ret;
     }
-
-    void operator()() { dispatch(Tag{}); }
 };
 
 template <class Tag>
@@ -105,7 +102,7 @@ struct observer_router
     auto& get_subject(Tag t = Tag{}) { return *_get<Tag>(); }
 
     template <class Tag>
-    void add_subject(subject<Tag>& sub) { _get<Tag>() = &sub; }
+    void set_subject(subject<Tag>& sub) { _get<Tag>() = &sub; }
 
     // void dispatch() { (get_subject<Ts>()->dispatch(Ts{}), ...); }
 
@@ -141,7 +138,7 @@ struct multi_observable
     template <class R>
     void add_to_router(R& rout)
     {
-        (rout.template add_subject<typename Obs::tag>(get<typename Obs::tag>()), ...);
+        (rout.template set_subject<typename Obs::tag>(get<typename Obs::tag>()), ...);
     }
 
     int flush() { return (std::get<Obs>(_data).flush() + ...); }

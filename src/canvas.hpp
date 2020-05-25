@@ -32,13 +32,15 @@ using tool_other_tags = Rxt::type_tuple<
     >;
 
 using main_router = router_for_t<Rxt::tuple_concat_t<tool_common_tags, tool_other_tags>>;
+using main_tool = swappable_tool<tool_common_tags>;
 
-using multi_tool = swappable_tool<tool_common_tags>;
 // The hook list implementation routed to by the swappable_tool
-using multi_tool_observable = Rxt::tuple_apply_t<
+using tool_observable = Rxt::tuple_apply_t<
     multi_observable,
-    Rxt::tuple_map_t<eager_observable, multi_tool::observable_tags>
-    >;
+    Rxt::tuple_map_t<eager_observable, main_tool::observable_tags>>;
+
+template <class Tool>
+using tool_proxy = observable_proxy<Tool, tool_observable>;
 
 using glm::fvec2;
 using line_program = Rxt::shader_programs::solid_color_3D<GL_LINES>;
@@ -90,19 +92,19 @@ struct canvas
     grid_controls controls;
     grid_viewport& viewport = controls.viewport();
 
-    grid_selector selector {controls};
-    stroke_tool stroker {controls};
-    grid_painter painter {controls};
+    tool_proxy<grid_selector> selector {controls};
+    tool_proxy<stroke_tool> stroker {controls};
+    tool_proxy<grid_painter> painter {controls};
 
-    multi_tool tool;
-    std::array<multi_tool_observable, 4> tool_hooks{};
+    main_tool tool;
+    tool_observable tool_hooks;
 
     grid_program p_ui, p_model;
+    line_program p_lines;
+
     ui_buffers b_ui{p_ui};
     model_buffers b_model{p_model};
     model_buffers b_paint{p_model};
-
-    line_program p_lines;
     line_buffers b_lines{p_lines};
     line_buffers b_lines_cursor{p_lines};
 
