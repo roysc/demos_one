@@ -15,9 +15,10 @@ struct subject
     using handler = std::function<void(tag)>;
 
     virtual index add(handler) = 0;
-    virtual void notify(tag) = 0;
-    // virtual void notify(tag = tag{}) = 0;
+    virtual void dispatch(tag = {}) = 0;
     virtual int flush() = 0;
+
+    virtual ~subject() {}
 };
 
 namespace _det
@@ -51,7 +52,7 @@ struct eager_observable : public subject<Tag>
         return observers.size() - 1;
     }
 
-    void notify(Tag t) override
+    void dispatch(Tag t) override
     {
         for (auto& obs: observers) { obs(t); }
         count = 1;
@@ -59,7 +60,7 @@ struct eager_observable : public subject<Tag>
 
     int flush() override { int ret = count; count = 0; return ret; }
 
-    void operator()() { notify(Tag{}); }
+    void operator()() { dispatch(Tag{}); }
 };
 
 template<class Tag>
@@ -77,7 +78,7 @@ struct lazy_observable : public subject<Tag>
         return observers.size() - 1;
     }
 
-    void notify(Tag) override { for (auto& obs: observers) { obs(); } }
+    void dispatch(Tag) override { for (auto& obs: observers) { obs(); } }
 
     int flush() override
     {
@@ -86,7 +87,7 @@ struct lazy_observable : public subject<Tag>
         return ret;
     }
 
-    void operator()() { notify(Tag{}); }
+    void operator()() { dispatch(Tag{}); }
 };
 
 template <class Tag>
@@ -106,7 +107,7 @@ struct observer_router
     template <class Tag>
     void add_subject(subject<Tag>& sub) { _get<Tag>() = &sub; }
 
-    // void notify() { (get_subject<Ts>()->notify(Ts{}), ...); }
+    // void dispatch() { (get_subject<Ts>()->dispatch(Ts{}), ...); }
 
     int flush()
     {
@@ -135,13 +136,32 @@ struct multi_observable
     std::tuple<Obs...> _data;
 
     template <class Tag>
-    auto& _get() { return std::get<Rxt::tuple_index_of_v<Tag, tags_tuple>>(_data); }
+    auto& get(Tag = {}) { return std::get<Rxt::tuple_index_of_v<Tag, tags_tuple>>(_data); }
 
     template <class R>
     void add_to_router(R& rout)
     {
-        (rout.template add_subject<typename Obs::tag>(_get<typename Obs::tag>()), ...);
+        (rout.template add_subject<typename Obs::tag>(get<typename Obs::tag>()), ...);
     }
 
     int flush() { return (std::get<Obs>(_data).flush() + ...); }
+};
+
+template <class T, class Obs>
+struct observable_proxy : T
+{
+    using proxy_type = T;
+    using observable_type = Obs;
+
+    observable_type _subject;
+
+    using proxy_type::proxy_type;
+
+    template <class Tag>
+    auto& on(Tag t)
+    {
+        return _subject.get(t);
+    }
+
+    observable_type& subject() { return _subject; }
 };
