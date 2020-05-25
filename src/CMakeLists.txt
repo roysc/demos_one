@@ -24,6 +24,8 @@ set(_HEADERS
     observable.hpp
     mouse.hpp
     tool.hpp
+    viewport.hpp
+    control_port.hpp
 )
 
 set(_SOURCES
