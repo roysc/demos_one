@@ -34,7 +34,7 @@ struct swappable_tool : mouse_tool
     void set_current(index i)
     {
         if (current_tool == i) return;
-        deactivate(current_tool);
+        if (current()) deactivate(current_tool);
         current_tool = i;
         activate(current_tool);
     }
@@ -64,19 +64,17 @@ struct swappable_tool : mouse_tool
         return routers.at(ix);
     }
 
-    template <class S>
-    void add_tool(mouse_tool* toolptr, S* sub = nullptr, bool also_set = false)
+    template <class T>
+    auto add_tool(T& tool, bool also_set = false)
     {
+        auto* toolptr = &tool;
         auto ix = tools.size();
         tools.push_back(toolptr);
         _pindex[toolptr] = ix;
 
         auto& rout = routers.emplace_back();
-        if (sub) sub->add_to_router(rout);
-
-        if (also_set)
-            current_tool = ix;
-        return rout;
+        tool.subject().add_to_router(rout);
+        return ix;
     }
 
     template <class Tag>
@@ -99,13 +97,13 @@ struct swappable_tool : mouse_tool
     void mouse_down(int i) override
     {
         // if constexpr (_debug)
-        Rxt::print("mouse_down({})\n", i);
+        // Rxt::print("mouse_down({})\n", i);
         if (current()) current()->mouse_down(i);
     }
 
     void mouse_up(int i) override
     {
-        Rxt::print("mouse_up({})\n", i);
+        // Rxt::print("mouse_up({})\n", i);
         if (current()) current()->mouse_up(i);
     }
 };

@@ -49,10 +49,10 @@ void canvas::_set_controls()
 
     keys.on_press["D"] = [&] { tool.dispatch(tags::debug); };
 
-    auto paint = [&](auto p, int) { paint_layer[p.x][p.y] = 1; };
+    auto paint = [&](auto p, int) { paint_layer.put(p, 1); };
     painter.set_method(paint);
-    auto size = uvec(320);
-    paint_layer.resize(boost::extents[size.x][size.y]);
+    // painter.set_method(std::bind(&dense_map<int>::put, paint_layer));
+    paint_layer.resize(uvec(320));
 }
 
 canvas::canvas(grid_viewport vp)
@@ -67,10 +67,14 @@ canvas::canvas(grid_viewport vp)
     router.set_subject(painter.on_edit);
 
     tool.add_shared_subjects(tool_hooks);
-    tool.add_tool(&selector, &selector.subject());
-    tool.add_tool(&painter, &painter.subject(), true);
-    tool.add_tool(&stroker, &stroker.subject())
-        .set_subject(stroker.on_edit);
+
+    tool.set_current(
+        tool.add_tool(selector)
+    );
+    tool.add_tool(painter);
+    tool.get_router(
+        tool.add_tool(stroker)
+    ).set_subject(stroker.on_edit);
 
     Pz_observe(tool.on(tags::activate)) {
         controls.on_viewport_change.dispatch({});
@@ -92,30 +96,18 @@ canvas::canvas(grid_viewport vp)
     Pz_observe(selector.on_selection) {
         b_ui.clear(); b_ui.update();
         selector.update_selection(b_model);
-        // if (selector.selection) {
-        //     auto [a, b] = *selector.selection;
-        //     std::cout << "selection=(" << a << ", " << b << ")\n";
-        // } else
-        //     std::cout << "selection=null\n";
     };
     //
     Pz_observe(painter.on_edit) {
         b_paint.clear();
-        auto shape = paint_layer.shape();
-        for (unsigned y = 0; y < shape[1]; ++y) {
-            for (unsigned x = 0; x < shape[0]; ++x) {
-                auto cell = paint_layer[x][y];
-                if (cell != 0) {
-                    b_paint.push(ivec(x, y), uvec(1), rgba(Rxt::colors::sand, 1));
-                }
-            }
-        }
+        // Rxt_BLOCK(paint_layer.for_each) {
+        paint_layer.for_each([&] (auto pos, auto& cell) {
+            if (!cell) return;
+            b_paint.push(pos, uvec(1), rgba(Rxt::colors::sand, 1));
+        });
         b_paint.update();
     };
     //
-    // Pz_observe(stroker.on(tags::viewport)) {
-    //     set(p_lines->mvp_matrix, viewport.view_matrix());
-    // };
     Pz_observe(stroker.on(tags::cursor_motion)) {
         stroker.update_cursor(b_lines_cursor);
     };
