@@ -94,14 +94,14 @@ struct swappable_tool : mouse_tool
         return sum;
     }
 
-    void mouse_down(int i) override
+    void mouse_down(mouse_button i) override
     {
         // if constexpr (_debug)
         // Rxt::print("mouse_down({})\n", i);
         if (current()) current()->mouse_down(i);
     }
 
-    void mouse_up(int i) override
+    void mouse_up(mouse_button i) override
     {
         // Rxt::print("mouse_up({})\n", i);
         if (current()) current()->mouse_up(i);

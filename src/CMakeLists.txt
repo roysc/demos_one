@@ -23,6 +23,7 @@ set(_HEADERS
     util.hpp
     observable.hpp
     mouse.hpp
+    mouse_core.hpp
     tool.hpp
     viewport.hpp
     control_port.hpp

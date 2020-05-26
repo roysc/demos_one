@@ -1,5 +1,4 @@
 #pragma once
-#include "util.hpp"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/transform.hpp>

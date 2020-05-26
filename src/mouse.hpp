@@ -1,21 +1,17 @@
 #pragma once
 
+#include "mouse_core.hpp"
 #include "viewport.hpp"
 #include "control_port.hpp"
 #include "observable.hpp"
 #include "events.hpp"
+#include "util.hpp"
 
 #include <Rxt/graphics/color.hpp>
 #include <Rxt/range.hpp>
 #include <Rxt/util.hpp>
 
 #include <optional>
-
-struct mouse_tool
-{
-    virtual void mouse_down(int) = 0;
-    virtual void mouse_up(int) = 0;
-};
 
 // This is designed to function as both a basic cursor observable state
 // And a mouse tool used by vpointer.
@@ -37,20 +33,21 @@ struct mouse_select_tool
 
     mouse_select_tool(control_port<GT>& c) : controls{c} {}
 
-    void mouse_down(int i) override
+    void mouse_down(mouse_button i) override
     {
         switch (i) {
-        case 0:
+        case mouse_button::left:
             drag_origin = controls.cursor_position_world();
             break;
+        default: {}
         }
         on_motion();
     }
 
-    void mouse_up(int i) override
+    void mouse_up(mouse_button i) override
     {
         switch (i) {
-        case 0:
+        case mouse_button::left:
             if (drag_origin) {
                 auto abspos = controls.cursor_position_world();
                 auto [a, b] = Rxt::box(*drag_origin, abspos);
@@ -60,7 +57,7 @@ struct mouse_select_tool
                 on_selection();
             }
             break;
-        case 1:
+        case mouse_button::right:
             if (drag_origin) {
                 drag_origin.reset();
                 on_motion();
@@ -69,6 +66,7 @@ struct mouse_select_tool
                 on_selection();
             }
             break;
+        default: {}
         }
     }
 
@@ -109,8 +107,8 @@ struct mouse_paint_tool : mouse_tool
 
     void set_method(paint_method m) {_paint = m;}
 
-    void mouse_down(int i) override { if (_paint) _paint(controls.cursor_position_world(), i); on_edit(); }
-    void mouse_up(int i) override { }
+    void mouse_down(mouse_button i) override { if (_paint) _paint(controls.cursor_position_world(), i); on_edit(); }
+    void mouse_up(mouse_button i) override { }
 };
 
 template <class GT>
@@ -131,7 +129,7 @@ struct mouse_stroke_tool : mouse_tool
 
     mouse_stroke_tool(control_port<GT>& c) : controls{c} {}
 
-    void mouse_down(int i) override
+    void mouse_down(mouse_button i) override
     {
         if (i == 1) {
             finish();
@@ -143,7 +141,7 @@ struct mouse_stroke_tool : mouse_tool
         on_edit();
     }
 
-    void mouse_up(int i) override {}
+    void mouse_up(mouse_button i) override {}
 
     void finish()
     {

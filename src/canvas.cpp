@@ -1,4 +1,6 @@
 #include "canvas.hpp"
+#include "util.hpp"
+
 #include <Rxt/range.hpp>
 #include <iostream>
 
@@ -100,7 +102,6 @@ canvas::canvas(grid_viewport vp)
     //
     Pz_observe(painter.on_edit) {
         b_paint.clear();
-        // Rxt_BLOCK(paint_layer.for_each) {
         paint_layer.for_each([&] (auto pos, auto& cell) {
             if (!cell) return;
             b_paint.push(pos, uvec(1), rgba(Rxt::colors::sand, 1));
@@ -151,8 +152,6 @@ void canvas::draw()
 {
     glClear(GL_COLOR_BUFFER_BIT);
 
-    // draw_if_dirty(b_model);
-
     b_model.draw();
     b_paint.draw();
     b_lines.draw();
@@ -165,24 +164,10 @@ void canvas::draw()
 
 void canvas::handle_mouse_down(SDL_MouseButtonEvent button)
 {
-    switch (button.button) {
-    case SDL_BUTTON_LEFT: {
-        tool.mouse_down(0);
-        break;
-    }
-    case SDL_BUTTON_RIGHT: {
-        tool.mouse_down(1);
-        break;
-    }
-    }
+    tool.mouse_down(mouse_button_from_sdl(button));
 }
 
 void canvas::handle_mouse_up(SDL_MouseButtonEvent button)
 {
-    switch (button.button) {
-    case SDL_BUTTON_LEFT: {
-        tool.mouse_up(0);
-        break;
-    }
-    }
+    tool.mouse_up(mouse_button_from_sdl(button));
 }
