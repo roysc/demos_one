@@ -1,8 +1,9 @@
 #pragma once
+
 #include "mouse.hpp"
 #include "observable.hpp"
-#include <Rxt/meta.hpp>
 
+#include <Rxt/meta.hpp>
 #include <tuple>
 
 template <class ExtraTags>
@@ -15,7 +16,7 @@ struct swappable_tool : mouse_tool
         tags::deactivate_tag
         >;
     using observable_tags = Rxt::tuple_concat_t<ExtraTags, builtin_tags>;
-    using router_type = router_for_t<observable_tags>;
+    using router_type = Rxt::tuple_apply_t<observer_router, observable_tags>;
 
     std::vector<router_type> routers;
     router_type always;

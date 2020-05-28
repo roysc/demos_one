@@ -55,7 +55,7 @@ struct eager_observable : public subject<Tag>
 
     void dispatch(Tag t) override
     {
-        for (auto& obs: observers) { obs(t); }
+        for (auto& obs: observers) obs(t);
         count = 1;
     }
 
@@ -77,12 +77,16 @@ struct lazy_observable : public subject<Tag>
         return observers.size() - 1;
     }
 
-    void dispatch(Tag) override { for (auto& obs: observers) { obs(); } }
+    void dispatch(Tag) override
+    {
+        for (auto& obs: observers) obs();
+    }
 
     int flush() override
     {
         int ret = 0;
-        for (auto& obs: observers) { ret += obs.flush(); }
+        for (auto& obs: observers)
+            ret += obs.flush();
         return ret;
     }
 };
@@ -113,23 +117,10 @@ struct observer_router
     }
 };
 
-// namespace _det
-// {
-template <class... Ts>
-using observable_tags = Rxt::type_tuple<typename Ts::tag...>;
-
-template <class TT>
-using observable_tags_for_t = Rxt::tuple_apply_t<observable_tags, TT>;
-
-template <class TT>
-using router_for_t = Rxt::tuple_apply_t<observer_router, TT>;
-// }
-
 template <class... Obs>
 struct multi_observable
 {
-    using observables_tuple = Rxt::type_tuple<Obs...>;
-    using tags_tuple = observable_tags<Obs...>;
+    using tags_tuple = Rxt::type_tuple<typename Obs::tag...>;
     std::tuple<Obs...> _data;
 
     template <class Tag>

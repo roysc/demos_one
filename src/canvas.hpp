@@ -32,12 +32,12 @@ using tool_other_tags = Rxt::type_tuple<
     // tags::object_edit_tag
     >;
 
-using main_router = router_for_t<Rxt::tuple_concat_t<tool_common_tags, tool_other_tags>>;
+using main_router = Rxt::tuple_apply_t<observer_router,
+    Rxt::tuple_concat_t<tool_common_tags, tool_other_tags>>;
 using main_tool = swappable_tool<tool_common_tags>;
 
 // The hook list implementation routed to by the swappable_tool
-using tool_observable = Rxt::tuple_apply_t<
-    multi_observable,
+using tool_observable = Rxt::tuple_apply_t<multi_observable,
     Rxt::tuple_map_t<eager_observable, main_tool::observable_tags>>;
 
 template <class Tool>

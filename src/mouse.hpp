@@ -30,6 +30,7 @@ struct mouse_select_tool
 
     lazy_observable<tags::cursor_motion_tag> on_motion;
     lazy_observable<tags::cursor_selection_tag> on_selection;
+    // lazy_observable<> on_motion, on_selection;
 
     mouse_select_tool(control_port<GT>& c) : controls{c} {}
 
@@ -107,7 +108,13 @@ struct mouse_paint_tool : mouse_tool
 
     void set_method(paint_method m) {_paint = m;}
 
-    void mouse_down(mouse_button i) override { if (_paint) _paint(controls.cursor_position_world(), i); on_edit(); }
+    void mouse_down(mouse_button i) override
+    {
+        if (_paint)
+            _paint(controls.cursor_position_world(), i);
+        on_edit();
+    }
+
     void mouse_up(mouse_button i) override { }
 };
 
@@ -131,12 +138,13 @@ struct mouse_stroke_tool : mouse_tool
 
     void mouse_down(mouse_button i) override
     {
-        if (i == 1) {
+        if (i == mouse_button::right) {
             finish();
             return;
         }
         // add point
-        if (!_current) _current.emplace();
+        if (!_current)
+            _current.emplace();
         _current->push_back(controls.cursor_position_world());
         on_edit();
     }
@@ -146,7 +154,8 @@ struct mouse_stroke_tool : mouse_tool
     void finish()
     {
         if (!_current) return;
-        // if (_current->empty()) return Rxt::print("ignoring empty stroke\n");
+        if (_current->empty())
+            return Rxt::print("ignoring empty stroke\n");
 
         _strokes.emplace_back(*_current);
         for (auto& p: _strokes.back()) Rxt_DEBUG(p);
