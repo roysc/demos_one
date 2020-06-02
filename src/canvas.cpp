@@ -20,18 +20,25 @@ int main(int argc, char** argv)
         seed = std::stoi(argv[1]);
     }
 
-    // try {
     auto loop = sdl::make_looper(
         new canvas(grid_viewport{uvec(80), uvec(8)}),
         step_state
     );
     loop();
-    // } catch (std::exception& e) { Rxt::print("caught: {}\n", e.what()); }
 
     return 0;
 }
 
-void canvas::_set_controls()
+canvas::canvas(grid_viewport vp)
+    : simple_gui("plaza: canvas", vp.size_pixels())
+    , controls{vp}
+{
+    _init_controls();
+    _init_tool();
+    glClearColor(0, 0, 0, 1);
+}
+
+void canvas::_init_controls()
 {
     keys.on_press["C-W"] = [this] { quit = true; };
 
@@ -57,19 +64,16 @@ void canvas::_set_controls()
     paint_layer.resize(uvec(320));
 }
 
-canvas::canvas(grid_viewport vp)
-    : simple_gui("plaza: canvas", vp.size_pixels())
-    , controls{vp}
+void canvas::_init_tool()
 {
-    _set_controls();
-
-    router.set_subject(controls.on_viewport_change);
-    router.set_subject(controls.on_motion);
-    router.set_subject(selector.on_selection);
-    router.set_subject(painter.on_edit);
+    Pz_observe(controls.on_motion) { tool.dispatch(tags::cursor_motion); };
+    Pz_observe(controls.on_viewport_change) {
+        viewport.update_uniforms(p_ui, false);
+        tool.dispatch(tags::viewport);
+    };
+    // router.route(tags::viewport, controls.on_viewport_change);
 
     tool.add_shared_subjects(tool_hooks);
-
     tool.set_current(
         tool.add_tool(selector)
     );
@@ -87,19 +91,13 @@ canvas::canvas(grid_viewport vp)
         set(p_lines->mvp_matrix, viewport.view_matrix());
     };
 
-    Pz_observe(controls.on_motion) { tool.dispatch(tags::cursor_motion); };
-    Pz_observe(controls.on_viewport_change) {
-        viewport.update_uniforms(p_ui, false);
-        tool.dispatch(tags::viewport);
-    };
-    //
     Pz_observe(selector.on(tags::cursor_motion)) { selector.update_cursor(b_ui); };
     Pz_observe(selector.on(tags::deactivate)) { b_ui.clear(); b_ui.update(); };
     Pz_observe(selector.on_selection) {
         b_ui.clear(); b_ui.update();
         selector.update_selection(b_model);
     };
-    //
+
     Pz_observe(painter.on_edit) {
         b_paint.clear();
         paint_layer.for_each([&] (auto pos, auto& cell) {
@@ -108,7 +106,7 @@ canvas::canvas(grid_viewport vp)
         });
         b_paint.update();
     };
-    //
+
     Pz_observe(stroker.on(tags::cursor_motion)) {
         stroker.update_cursor(b_lines_cursor);
     };
@@ -119,13 +117,16 @@ canvas::canvas(grid_viewport vp)
     Pz_observe(stroker.on(tags::debug)) {
         if (stroker._current)
             Rxt_DEBUG(stroker._current->at(0));
-        else Rxt::print("nothing\n");
+        else print("nothing\n");
     };
 
     set(p_ui->viewport_position, ivec{0});
+    controls.on_viewport_change.dispatch({}); // set initial viewport
 
-    controls.on_viewport_change.dispatch({});
-    glClearColor(0, 0, 0, 1);
+    router.set_subject(controls.on_viewport_change);
+    router.set_subject(controls.on_motion);
+    router.set_subject(selector.on_selection);
+    router.set_subject(painter.on_edit);
 }
 
 void canvas::step(SDL_Event event)
