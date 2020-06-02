@@ -21,22 +21,19 @@ using grid_selector = mouse_select_tool<grid_traits>;
 using grid_painter = mouse_paint_tool<grid_traits>;
 using stroke_tool = mouse_stroke_tool<grid_traits>;
 
-using tool_common_tags = Rxt::type_tuple<
+using tool_tags = Rxt::type_tuple<
     tags::debug_tag,
     tags::viewport_tag,
     tags::cursor_motion_tag,
-    tags::object_edit_tag
-    >;
-using tool_other_tags = Rxt::type_tuple<
+    tags::object_edit_tag,
     tags::cursor_selection_tag
-    // tags::object_edit_tag
     >;
 
-using main_router = Rxt::tuple_apply_t<observer_router,
-    Rxt::tuple_concat_t<tool_common_tags, tool_other_tags>>;
-using main_tool = swappable_tool<tool_common_tags>;
+using main_router = Rxt::tuple_apply_t<observer_router, tool_tags>;
+using main_tool = Rxt::tuple_apply_t<swappable_tool, tool_tags>;
 
 // The hook list implementation routed to by the swappable_tool
+// uses eager_observable<Tag> for the tool's exposed tags
 using tool_observable = Rxt::tuple_apply_t<multi_observable,
     Rxt::tuple_map_t<eager_observable, main_tool::observable_tags>>;
 

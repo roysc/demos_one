@@ -1,16 +1,29 @@
 #pragma once
 
+namespace _tag
+{
+struct _dbg {};
+struct _on {};
+struct _off {};
+
+struct view {};
+struct move {};
+struct select {};
+struct click {};
+struct edit {};
+}
+
 namespace tags
 {
-struct debug_tag {};
-struct activate_tag {};
-struct deactivate_tag {};
+using debug_tag = _tag::_dbg;
+using activate_tag = _tag::_on;
+using deactivate_tag = _tag::_off;
 
-struct viewport_tag {};
-struct cursor_motion_tag {};
-struct cursor_selection_tag {};
-struct mouse_click_tag {};
-struct object_edit_tag {};
+using viewport_tag = _tag::view;
+using cursor_motion_tag = _tag::move;
+using cursor_selection_tag = _tag::select;
+using mouse_click_tag = _tag::click;
+using object_edit_tag = _tag::edit;
 
 // convenience
 constexpr debug_tag debug;

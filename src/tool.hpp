@@ -6,16 +6,18 @@
 #include <Rxt/meta.hpp>
 #include <tuple>
 
-template <class ExtraTags>
+// template <class ExtraTags>
+template <class... Tags>
 struct swappable_tool : mouse_tool
 {
     using index = std::size_t;
 
+    using TTags = Rxt::type_tuple<Tags...>;
     using builtin_tags = Rxt::type_tuple<
         tags::activate_tag,
         tags::deactivate_tag
         >;
-    using observable_tags = Rxt::tuple_concat_t<ExtraTags, builtin_tags>;
+    using observable_tags = Rxt::tuple_concat_t<TTags, builtin_tags>;
     using router_type = Rxt::tuple_apply_t<observer_router, observable_tags>;
 
     std::vector<router_type> routers;

@@ -4,6 +4,8 @@
 #include "observable.hpp"
 #include "events.hpp"
 
+// Basically a viewport and a cursor
+// With resp. observables
 template <class GT>
 struct control_port
 {
