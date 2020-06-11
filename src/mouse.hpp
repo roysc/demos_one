@@ -75,10 +75,10 @@ struct mouse_select_tool
     void update_cursor(UIbuf& buf) const
     {
         if (drag_origin) {
-            auto [a, b] = Rxt::box(controls.cursor_position(), *drag_origin - controls.viewport().position());
+            auto [a, b] = Rxt::box(controls.cursor().position(), *drag_origin - controls.viewport().position());
             buf.set_cursor(a, b-a+1, color);
         } else {
-            buf.set_cursor(controls.cursor_position(), uvec{1}, color);
+            buf.set_cursor(controls.cursor().position(), uvec{1}, color);
         }
     }
 

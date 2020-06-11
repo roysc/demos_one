@@ -8,14 +8,17 @@
 #include <Rxt/graphics/shader/grid_quad_2D.hpp>
 #include <Rxt/graphics/shader/solid_color_3D.hpp>
 
+using grid_program = Rxt::shader_programs::webcompat::grid_quad_2D;
+
 struct grid_traits
 {
     using position_type = ivec;
     using size_type = uvec;
 };
 
-using grid_program = Rxt::shader_programs::webcompat::grid_quad_2D;
-using grid_viewport = viewport<grid_traits>;
+using cursor_type = observable_cursor<grid_traits::position_type>;
+using viewport_type = observable_viewport<grid_traits>;
+
 using grid_controls = control_port<grid_traits>;
 using grid_selector = mouse_select_tool<grid_traits>;
 using grid_painter = mouse_paint_tool<grid_traits>;
@@ -84,21 +87,20 @@ struct canvas
     bool enable_edge_scroll = true;
     bool quit = false;
 
-    main_router router;
-
-    grid_controls controls;
-    grid_viewport& viewport = controls.viewport();
+    // grid_viewport& viewport = controls.viewport();
+    viewport_type viewport;
+    cursor_type cursor;
+    grid_controls controls{cursor, viewport};
 
     tool_proxy<grid_selector> selector {controls};
     tool_proxy<stroke_tool> stroker {controls};
     tool_proxy<grid_painter> painter {controls};
-
-    main_tool tool;
     tool_observable tool_hooks;
+    main_tool tool;
+    main_router router;
 
     grid_program p_ui, p_quad;
     line_program p_lines;
-
     ui_buffers b_ui{p_ui};
     model_buffers b_model{p_quad};
     model_buffers b_paint{p_quad};
@@ -109,7 +111,16 @@ struct canvas
     using grid_map = dense_map<int>;
     grid_map paint_layer;
 
-    canvas(grid_viewport vp);
+    template <class V>
+    canvas(V vp)
+        : simple_gui("plaza: canvas", vp.size_pixels())
+        , viewport(vp)
+    {
+        _init_controls();
+        _init_observers();
+        glClearColor(0, 0, 0, 1);
+    }
+
     void step(SDL_Event);
     void draw();
 
@@ -118,7 +129,7 @@ struct canvas
         auto [x, y] = Rxt::sdl::nds_coords(*window, motion.x, motion.y);
         auto gridpos = controls.viewport().from_nds(x, y);
 
-        controls.cursor_position(gridpos);
+        cursor.position(gridpos);
     }
 
     void handle_mouse_down(SDL_MouseButtonEvent button);
@@ -127,5 +138,6 @@ struct canvas
     void handle_key_down(SDL_Keysym k) { keys.press(k); }
     bool should_quit() const { return quit; }
 
-    void _set_controls();
+    void _init_controls();
+    void _init_observers();
 };

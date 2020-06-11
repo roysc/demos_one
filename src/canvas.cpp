@@ -21,21 +21,12 @@ int main(int argc, char** argv)
     }
 
     auto loop = sdl::make_looper(
-        new canvas(grid_viewport{uvec(80), uvec(8)}),
+        new canvas(viewport_type{uvec(80), uvec(8)}),
         step_state
     );
     loop();
 
     return 0;
-}
-
-canvas::canvas(grid_viewport vp)
-    : simple_gui("plaza: canvas", vp.size_pixels())
-    , controls{vp}
-{
-    _init_controls();
-    _init_tool();
-    glClearColor(0, 0, 0, 1);
 }
 
 void canvas::_init_controls()
@@ -64,10 +55,10 @@ void canvas::_init_controls()
     paint_layer.resize(uvec(320));
 }
 
-void canvas::_init_tool()
+void canvas::_init_observers()
 {
-    Pz_observe(controls.on_motion) { tool.dispatch(tags::cursor_motion); };
-    Pz_observe(controls.on_viewport_change) {
+    Pz_observe(cursor.on_change) { tool.dispatch(tags::cursor_motion); };
+    Pz_observe(viewport.on_change) {
         viewport.update_uniforms(p_ui, false);
         tool.dispatch(tags::viewport);
     };
@@ -83,8 +74,8 @@ void canvas::_init_tool()
     ).set_subject(stroker.on_edit);
 
     Pz_observe(tool.on(tags::activate)) {
-        controls.on_viewport_change.dispatch({});
-        controls.on_motion.dispatch({});
+        viewport.on_change.dispatch({});
+        cursor.on_change.dispatch({});
     };
     Pz_observe(tool.on(tags::viewport)) {
         viewport.update_uniforms(p_quad);
@@ -121,10 +112,10 @@ void canvas::_init_tool()
     };
 
     set(p_ui->viewport_position, ivec{0});
-    controls.on_viewport_change.dispatch({}); // set initial viewport
+    viewport.on_change.dispatch({}); // set initial viewport
 
-    router.set_subject(controls.on_viewport_change);
-    router.set_subject(controls.on_motion);
+    router.set_subject(cursor.on_change);
+    router.set_subject(viewport.on_change);
     router.set_subject(selector.on_selection);
     router.set_subject(painter.on_edit);
 }
@@ -139,7 +130,7 @@ void canvas::step(SDL_Event event)
 
     // Per-tick handlers
     if (enable_edge_scroll) {
-        viewport.edge_scroll(controls.cursor_position(), 1);
+        viewport.edge_scroll(cursor.position(), 1);
     }
 
     // Ideally we can track everything from flush() calls

@@ -11,8 +11,11 @@ using uvec = glm::uvec2;
 template <class GT>
 struct _grid_viewport
 {
-    using P = typename GT::position_type;
-    using Size = typename GT::size_type;
+    using position_type = typename GT::position_type;
+    using size_type = typename GT::size_type;
+
+    using P = position_type;
+    using Size = size_type;
 
     Size max_scale; //grid_size
     Size scale_factor {1};

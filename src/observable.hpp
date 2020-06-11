@@ -94,6 +94,7 @@ struct lazy_observable : public subject<Tag>
 template <class Tag>
 using observable = eager_observable<Tag>;
 
+// Bundles references to multiple observables (as "subjects")
 template <class... Ts>
 struct observer_router
 {
@@ -117,6 +118,7 @@ struct observer_router
     }
 };
 
+// Bundles observable objects
 template <class... Obs>
 struct multi_observable
 {
@@ -135,6 +137,7 @@ struct multi_observable
     int flush() { return (std::get<Obs>(_data).flush() + ...); }
 };
 
+// Subclass bundling an observable
 template <class T, class Obs>
 struct observable_proxy : T
 {
@@ -146,10 +149,7 @@ struct observable_proxy : T
     using proxy_type::proxy_type;
 
     template <class Tag>
-    auto& on(Tag t)
-    {
-        return _subject.get(t);
-    }
+    auto& on(Tag t) { return _subject.get(t); }
 
     observable_type& subject() { return _subject; }
 };
