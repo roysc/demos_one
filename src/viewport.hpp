@@ -23,7 +23,7 @@ struct _grid_viewport
     const Size size_px {max_scale * scale_factor};
     const float margin_size = .1;
 
-    _grid_viewport(Size max, Size scale) : max_scale{max}, scale_factor{scale} {}
+    _grid_viewport(Size max, Size scale = Size(1)) : max_scale{max}, scale_factor{scale} {}
 
     P position() const {return _position;}
     void position(P p) {_position = p; }

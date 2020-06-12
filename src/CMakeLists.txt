@@ -9,14 +9,6 @@ if(EMSCRIPTEN)
     add_link_options(-fno-diagnostics-color)
 endif()
 
-add_library(plaza_gui
-    viewport.hpp
-    gui/texture_display.hpp
-    gui/interface_display.hpp
-    gui/texture_display.cpp
-)
-target_link_libraries(plaza_gui PUBLIC Rxt::Graphics)
-
 set(_HEADERS
     map.hpp
     tiles.hpp
@@ -26,27 +18,34 @@ set(_HEADERS
     mouse_core.hpp
     tool.hpp
     viewport.hpp
-    control_port.hpp
+    ui.hpp
+
+    gui/interface_display.hpp
+    gui/texture_display.hpp
 )
 
 set(_SOURCES
     map.cpp
+
+    gui/texture_display.cpp
 )
+
+add_library(plaza ${_HEADERS} ${_SOURCES})
+target_link_libraries(plaza PUBLIC Rxt::Graphics)
+target_include_directories(plaza PUBLIC ${PROJECT_SOURCE_DIR}/external)
 
 add_executable(map_editor ${_HEADERS} ${_SOURCES}
     gui/map_editor.hpp
     gui/map_editor.cpp
 )
-target_link_libraries(map_editor PUBLIC plaza_gui)
+target_link_libraries(map_editor PUBLIC plaza)
 Rxt_emscripten_use_boost(map_editor)
-
-target_include_directories(map_editor PRIVATE ${PROJECT_SOURCE_DIR}/src)
-target_include_directories(map_editor PRIVATE ${PROJECT_SOURCE_DIR}/external)
 
 add_executable(canvas ${_HEADERS}
     canvas.hpp canvas.cpp
 )
-target_link_libraries(canvas PUBLIC plaza_gui)
+target_link_libraries(canvas PUBLIC plaza)
+
 
 function(_configure_emscripten _TARGET)
     set_target_properties(${_TARGET} PROPERTIES SUFFIX ".html")

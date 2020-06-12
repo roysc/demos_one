@@ -13,7 +13,7 @@ struct observable_viewport : public viewport<GT>
 
     using Super::Super;
     observable_viewport(Super const& v) : Super{v} {}
-    auto& get_subject(tags::viewport_tag) { return on_change; }
+    // auto& get_subject(tags::viewport_tag) { return on_change; }
 
     void scale(int exp) override { Super::scale(exp); on_change(); }
     void move(P d) override { Super::move(d); on_change(); }

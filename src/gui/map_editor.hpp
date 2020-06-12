@@ -1,7 +1,7 @@
 #pragma once
 
-#include "map.hpp"
-#include "tiles.hpp"
+#include "../map.hpp"
+#include "../tiles.hpp"
 
 #include "texture_display.hpp"
 #include "interface_display.hpp"
