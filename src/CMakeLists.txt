@@ -46,6 +46,8 @@ add_executable(canvas ${_HEADERS}
 )
 target_link_libraries(canvas PUBLIC plaza)
 
+add_executable(dirt ${_HEADERS} dirt.cpp)
+target_link_libraries(dirt PUBLIC plaza)
 
 function(_configure_emscripten _TARGET)
     set_target_properties(${_TARGET} PROPERTIES SUFFIX ".html")

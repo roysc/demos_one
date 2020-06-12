@@ -1,15 +1,13 @@
-#pragma once
+#include "ui.hpp"
 
 #include <Rxt/graphics/shader/colored_triangle_3D.hpp>
 // #include <Rxt/graphics/shader/solid_color_3D.hpp>
 
-// #include <Rxt/geometry/shapes.hpp>
-
 #include <Rxt/graphics/sdl.hpp>
 #include <Rxt/graphics/gl.hpp>
 #include <Rxt/graphics/camera.hpp>
-// #include <Rxt/time.hpp>
-// #include <Rxt/util.hpp>
+#include <Rxt/time.hpp>
+#include <Rxt/util.hpp>
 
 #include <glm/glm.hpp>
 
@@ -25,59 +23,81 @@ using triangle_program = Rxt::shader_programs::colored_triangle_3D;
 using std::chrono::steady_clock;
 using time_point = steady_clock::time_point;
 
+using ivec2 = glm::ivec2;
+using fvec2 = glm::vec2;
+using fvec3 = glm::vec3;
 
-struct float_traits {
-    using position_type = glm::fvec2;
-    using size_type = glm::fvec2;
+struct ui_traits // for viewport
+{
+    using position_type = fvec2;
+    using size_type = fvec2;
 };
 
-using float_controls = control_port<Ftr>;
+using cursor_type = observable_cursor<fvec2>;
+using viewport_type = observable_viewport<ui_traits>;
 
 struct dirt_app : public sdl::simple_gui
-                    , public sdl::input_handler<dirt_app>
+                , public sdl::input_handler<dirt_app, true>
 {
-    gl::program_loader loader;
-    Rxt::focused_camera camera {camera_start()};
+    Rxt::focused_camera camera {fvec3(1)};
     sdl::key_dispatcher keys;
+    bool quit = false;
 
-    triangle_program triangle_prog {loader};
+    triangle_program triangle_prog;
     triangle_program::data b_triangles {triangle_prog};
 
-    line_program line_prog {loader};
-    line_program::data b_lines {line_prog};
+    cursor_type cursor;
+    viewport_type viewport;
 
-    mesh_data geom;
-    mesh_colors colors;
-    ux_data ux;
-    std::vector<std::pair<glm::vec3, glm::vec3>> dbg_segments;
-
-    glm::vec2 cursor_position;
     time_point last_render_time;
     sdl::metronome metronome {Rxt::duration_fps<30>(1), [this] { return !should_quit(); }};
 
-    dirt_app();
-
-    void init_controls();
-    void set_cursor(float x, float y)
+    dirt_app(ivec v)
+        : simple_gui("plaza: dirt", v)
+        , viewport{v}
     {
-        cursor_position = {x, y};
-        update_cursor();
-    }
-
-    object_index insert_mesh(object_mesh mesh, Rxt::rgb color)
-    {
-        auto index = geom.insert(mesh);
-        colors.emplace(index, color);
-        return index;
+        init_controls();
     }
 
     void step(SDL_Event);
-    void draw();
+    void draw() {}
 
-    void handle(SDL_Event);
-    void h_mouse_motion(SDL_MouseMotionEvent);
-    void h_mouse_down(SDL_MouseButtonEvent);
-    void h_mouse_up(SDL_MouseButtonEvent);
+    void handle_should_quit() { quit = true; }
+    void handle_key_down(SDL_Keysym k) { keys.press(k); }
+    bool should_quit() const { return quit; }
 
-    static glm::vec3 camera_start() { return glm::vec3 {1}; }
+    void init_controls();
 };
+
+extern "C" void step_state(void* c)
+{
+    sdl::step<dirt_app>(c);
+}
+
+int main(int argc, char** argv)
+{
+    int seed = 42;
+    if (argc > 1) {
+        seed = std::stoi(argv[1]);
+    }
+
+    auto loop = sdl::make_looper(new dirt_app(ivec2(800)), step_state);
+    loop();
+    return 0;
+}
+
+void dirt_app::init_controls()
+{
+
+}
+
+void dirt_app::step(SDL_Event event)
+{
+    do {
+        handle_input(event);
+    } while (SDL_PollEvent(&event));
+    keys.scan();
+
+    bool dirty = false;
+    if (dirty) draw();
+}

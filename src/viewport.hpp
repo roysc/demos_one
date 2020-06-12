@@ -112,6 +112,7 @@ struct _grid_viewport
 };
 
 template <class GT>
-using viewport = std::conditional_t<std::is_same_v<typename GT::position_type, ivec>,
-                                    _grid_viewport<GT>,
-                                    void>;
+using viewport = std::conditional_t<
+    true,
+    // std::is_same_v<typename GT::position_type, ivec>,
+    _grid_viewport<GT>, void>;
