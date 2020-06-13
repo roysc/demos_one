@@ -1,5 +1,5 @@
 #include "controls.hpp"
-#include "observable.hpp"
+#include "reactive.hpp"
 
 #include "atrium/geometry.hpp"
 #include "atrium/rendering.hpp"
@@ -43,48 +43,6 @@ struct ui_traits
 {
     using position_type = fvec2;
     using size_type = uvec2;
-};
-
-template<class... Ts>
-struct hooks
-{
-    using handler = std::function<void(Ts...)>;
-    using index = std::size_t;
-
-    std::vector<handler> observers;
-    unsigned count = 0;
-
-    index add(handler obs)
-    {
-        observers.push_back(obs);
-        return observers.size() - 1;
-    }
-
-    void dispatch(Ts... t)
-    {
-        for (auto& obs: observers)
-            obs(t...);
-        count = 1;
-    }
-
-    int flush()
-    {
-        int ret = count;
-        count = 0;
-        return ret;
-    }
-
-    void operator()(Ts... t) { dispatch(t...); }
-};
-
-template <template <class...> class Reactive, class... T>
-struct hooked
-    : Reactive<hooked<Reactive, T...>, T...>
-{
-    using base_type = Reactive<hooked, T...>;
-    using base_type::base_type;
-
-    hooks<> on_update;
 };
 
 using viewport_type = hooked<reactive_viewport, ui_traits>;

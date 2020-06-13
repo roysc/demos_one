@@ -3,6 +3,7 @@
 #include "tool.hpp"
 #include "mouse.hpp"
 #include "map.hpp"
+#include "observable.hpp"
 
 #include <Rxt/graphics/sdl.hpp>
 #include <Rxt/graphics/shader/grid_quad_2D.hpp>
@@ -16,19 +17,18 @@ struct grid_traits
     using size_type = uvec;
 };
 
-struct viewport_type : reactive_viewport<viewport_type, ui_traits>
+struct viewport_type : reactive_viewport<viewport_type, grid_traits>
 {
     observable<tags::viewport_tag> on_update;
 };
 
 struct cursor_type
-    : reactive_cursor<cursor_type, ui_traits>
+    : reactive_cursor<cursor_type, grid_traits>
 {
     observable<tags::cursor_motion_tag> on_update;
 };
 
-using grid_controls = control_port<cursor_type, viewport_type>;
-
+using grid_controls = control_port<grid_traits>;
 using grid_selector = mouse_select_tool<grid_traits>;
 using grid_painter = mouse_paint_tool<grid_traits>;
 using stroke_tool = mouse_stroke_tool<grid_traits>;
@@ -135,7 +135,7 @@ struct canvas
     void handle_mouse_motion(SDL_MouseMotionEvent motion)
     {
         auto [x, y] = Rxt::sdl::nds_coords(*window, motion.x, motion.y);
-        auto gridpos = controls.viewport().from_nds(x, y);
+        auto gridpos = viewport.from_nds(x, y);
 
         cursor.position(gridpos);
     }

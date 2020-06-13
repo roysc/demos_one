@@ -8,8 +8,8 @@
 using ivec = glm::ivec2;
 using uvec = glm::uvec2;
 
-template <class Der, class ST>
-struct reactive_viewport
+template <class ST>
+struct basic_viewport
 {
     using traits_type = ST;
     using position_type = typename ST::position_type;
@@ -24,7 +24,7 @@ struct reactive_viewport
     const Size size_px {max_scale * scale_factor};
     const float margin_size = .1;
 
-    reactive_viewport(Size max, Size scale = Size(1))
+    basic_viewport(Size max, Size scale = Size(1))
         : max_scale{max}, scale_factor{scale}
     {
         auto gt_zero = [](auto p) {
@@ -35,10 +35,7 @@ struct reactive_viewport
         assert(gt_zero(max));
     }
 
-    P position() const {return _position;}
-    void position(P p) {_position = p; }
-
-    void _update() { static_cast<Der&>(*this).on_update(); }
+    P position() const { return _position; }
 
     void scale(int exp)
     {
@@ -46,18 +43,16 @@ struct reactive_viewport
         const Size min_scale{1};
         if (exp > 0) {
             if (scale_factor.x > min_scale.x && scale_factor.y > min_scale.y)
-                scale_factor /= 2;
+                set_scale(scale_factor / 2);
         } else {
             if (scale_factor.x < max_scale.x && scale_factor.y < max_scale.y)
-                scale_factor *= 2;
+                set_scale(scale_factor * 2);
         }
-        _update();
     }
 
     void move(P d)
     {
         _position += d;
-        _update();
     }
 
     // size in number of cells

@@ -14,15 +14,15 @@
 
 // This is designed to function as both a basic cursor observable state
 // And a mouse tool used by vpointer.
-template <class GT>
+template <class ST>
 struct mouse_select_tool
     : public mouse_tool
 {
-    using P = typename GT::position_type;
+    using P = typename ST::position_type;
 
     using region = std::tuple<P, P>;
 
-    control_port<GT>& controls;
+    control_port<ST>& controls;
     std::optional<P> drag_origin;
     std::optional<region> selection;
     Rxt::rgba color = {1, 0, 1, 0.3};
@@ -31,7 +31,7 @@ struct mouse_select_tool
     lazy_observable<tags::cursor_selection_tag> on_selection;
     // lazy_observable<> on_motion, on_selection;
 
-    mouse_select_tool(control_port<GT>& c) : controls{c} {}
+    mouse_select_tool(control_port<ST>& c) : controls{c} {}
 
     void mouse_down(mouse_button i) override
     {
@@ -91,18 +91,18 @@ struct mouse_select_tool
     }
 };
 
-template <class GT>
+template <class ST>
 struct mouse_paint_tool : mouse_tool
 {
-    using P = typename GT::position_type;
+    using P = typename ST::position_type;
     using paint_method = std::function<void(P, int)>;
 
-    control_port<GT>& controls;
+    control_port<ST>& controls;
     paint_method _paint;
 
     lazy_observable<tags::object_edit_tag> on_edit;
 
-    mouse_paint_tool(control_port<GT>& u, paint_method m = {})
+    mouse_paint_tool(control_port<ST>& u, paint_method m = {})
         : controls{u}, _paint{m} {}
 
     void set_method(paint_method m) {_paint = m;}
@@ -117,14 +117,14 @@ struct mouse_paint_tool : mouse_tool
     void mouse_up(mouse_button i) override { }
 };
 
-template <class GT>
+template <class ST>
 struct mouse_stroke_tool : mouse_tool
 {
-    using P = typename GT::position_type;
+    using P = typename ST::position_type;
     using line = std::pair<P, P>;
     using stroke = std::vector<P>;
 
-    control_port<GT>& controls;
+    control_port<ST>& controls;
     std::vector<stroke> _strokes;
     std::optional<stroke> _current;
 
@@ -133,7 +133,7 @@ struct mouse_stroke_tool : mouse_tool
 
     lazy_observable<tags::object_edit_tag> on_edit;
 
-    mouse_stroke_tool(control_port<GT>& c) : controls{c} {}
+    mouse_stroke_tool(control_port<ST>& c) : controls{c} {}
 
     void mouse_down(mouse_button i) override
     {
