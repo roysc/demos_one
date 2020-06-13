@@ -18,7 +18,7 @@ set(_HEADERS
     mouse_core.hpp
     tool.hpp
     viewport.hpp
-    ui.hpp
+    controls.hpp
 
     gui/interface_display.hpp
     gui/texture_display.hpp

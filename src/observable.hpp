@@ -8,8 +8,10 @@
 #include <tuple>
 
 template <class Tag>
+// template <class... Ts>
 struct subject
 {
+    // using arg_types = Rxt::type_tuple<Ts...>;
     using tag = Tag;
     using index = std::size_t;
     using handler = std::function<void(tag)>;
@@ -36,7 +38,8 @@ template <class Sub>
 proxy_appender(Sub&) -> proxy_appender<Sub>;
 }
 
-#define Pz_observe(val_) (_det::proxy_appender{(val_)}) << [&](auto)
+#define Pz_observe_tag(val_) (_det::proxy_appender{(val_)}) << [&](auto)
+#define Pz_observe(val_, ...) (_det::proxy_appender{(val_)}) << [&](__VA_ARGS__)
 
 template<class Tag>
 struct eager_observable : public subject<Tag>

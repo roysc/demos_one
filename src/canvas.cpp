@@ -51,14 +51,15 @@ void canvas::_init_controls()
 
     auto paint = [&](auto p, int) { paint_layer.put(p, 1); };
     painter.set_method(paint);
-    // painter.set_method(std::bind(&dense_map<int>::put, paint_layer));
     paint_layer.resize(uvec(320));
 }
 
+#define _observe Pz_observe_tag
+
 void canvas::_init_observers()
 {
-    Pz_observe(cursor.on_change) { tool.dispatch(tags::cursor_motion); };
-    Pz_observe(viewport.on_change) {
+    _observe(cursor.on_change) { tool.dispatch(tags::cursor_motion); };
+    _observe(viewport.on_change) {
         viewport.update_uniforms(p_ui, false);
         tool.dispatch(tags::viewport);
     };
@@ -73,23 +74,23 @@ void canvas::_init_observers()
         tool.add_tool(stroker)
     ).set_subject(stroker.on_edit);
 
-    Pz_observe(tool.on(tags::activate)) {
+    _observe(tool.on(tags::activate)) {
         viewport.on_change.dispatch({});
         cursor.on_change.dispatch({});
     };
-    Pz_observe(tool.on(tags::viewport)) {
+    _observe(tool.on(tags::viewport)) {
         viewport.update_uniforms(p_quad);
         set(p_lines->mvp_matrix, viewport.view_matrix());
     };
 
-    Pz_observe(selector.on(tags::cursor_motion)) { selector.update_cursor(b_ui); };
-    Pz_observe(selector.on(tags::deactivate)) { b_ui.clear(); b_ui.update(); };
-    Pz_observe(selector.on_selection) {
+    _observe(selector.on(tags::cursor_motion)) { selector.update_cursor(b_ui); };
+    _observe(selector.on(tags::deactivate)) { b_ui.clear(); b_ui.update(); };
+    _observe(selector.on_selection) {
         b_ui.clear(); b_ui.update();
         selector.update_selection(b_model);
     };
 
-    Pz_observe(painter.on_edit) {
+    _observe(painter.on_edit) {
         b_paint.clear();
         paint_layer.for_each([&] (auto pos, auto& cell) {
             if (!cell) return;
@@ -98,14 +99,14 @@ void canvas::_init_observers()
         b_paint.update();
     };
 
-    Pz_observe(stroker.on(tags::cursor_motion)) {
+    _observe(stroker.on(tags::cursor_motion)) {
         stroker.update_cursor(b_lines_cursor);
     };
-    Pz_observe(stroker.on_edit) {
+    _observe(stroker.on_edit) {
         stroker.update_cursor(b_lines_cursor);
         stroker.update_model(b_lines);
     };
-    Pz_observe(stroker.on(tags::debug)) {
+    _observe(stroker.on(tags::debug)) {
         if (stroker._current)
             Rxt_DEBUG(stroker._current->at(0));
         else print("nothing\n");

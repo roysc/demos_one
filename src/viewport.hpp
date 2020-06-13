@@ -8,11 +8,12 @@
 using ivec = glm::ivec2;
 using uvec = glm::uvec2;
 
-template <class GT>
-struct _grid_viewport
+template <class Der, class ST>
+struct reactive_viewport
 {
-    using position_type = typename GT::position_type;
-    using size_type = typename GT::size_type;
+    using traits_type = ST;
+    using position_type = typename ST::position_type;
+    using size_type = typename ST::size_type;
 
     using P = position_type;
     using Size = size_type;
@@ -23,12 +24,23 @@ struct _grid_viewport
     const Size size_px {max_scale * scale_factor};
     const float margin_size = .1;
 
-    _grid_viewport(Size max, Size scale = Size(1)) : max_scale{max}, scale_factor{scale} {}
+    reactive_viewport(Size max, Size scale = Size(1))
+        : max_scale{max}, scale_factor{scale}
+    {
+        auto gt_zero = [](auto p) {
+            Size zero{0};
+            return (p[0] > zero[0] && p[1] > zero[1]);
+        };
+        assert(gt_zero(scale));
+        assert(gt_zero(max));
+    }
 
     P position() const {return _position;}
     void position(P p) {_position = p; }
 
-    virtual void scale(int exp)
+    void _update() { static_cast<Der&>(*this).on_update(); }
+
+    void scale(int exp)
     {
         // simulate zoom in/out by scaling down/up resp.; correct position to keep centered
         const Size min_scale{1};
@@ -39,11 +51,13 @@ struct _grid_viewport
             if (scale_factor.x < max_scale.x && scale_factor.y < max_scale.y)
                 scale_factor *= 2;
         }
+        _update();
     }
 
-    virtual void move(P d)
+    void move(P d)
     {
         _position += d;
+        _update();
     }
 
     // size in number of cells
@@ -110,9 +124,3 @@ struct _grid_viewport
             set(p->viewport_position, position());
     }
 };
-
-template <class GT>
-using viewport = std::conditional_t<
-    true,
-    // std::is_same_v<typename GT::position_type, ivec>,
-    _grid_viewport<GT>, void>;

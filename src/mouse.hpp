@@ -1,8 +1,7 @@
 #pragma once
 
 #include "mouse_core.hpp"
-#include "viewport.hpp"
-#include "ui.hpp"
+#include "controls.hpp"
 #include "observable.hpp"
 #include "events.hpp"
 #include "util.hpp"
@@ -75,10 +74,10 @@ struct mouse_select_tool
     void update_cursor(UIbuf& buf) const
     {
         if (drag_origin) {
-            auto [a, b] = Rxt::box(controls.cursor().position(), *drag_origin - controls.viewport().position());
+            auto [a, b] = Rxt::box(controls.cursor_position(), controls.from_world(*drag_origin));
             buf.set_cursor(a, b-a+1, color);
         } else {
-            buf.set_cursor(controls.cursor().position(), uvec{1}, color);
+            buf.set_cursor(controls.cursor_position(), uvec{1}, color);
         }
     }
 

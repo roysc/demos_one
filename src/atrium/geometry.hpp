@@ -30,6 +30,8 @@ using Ray = CGAL::Ray_3<Kernel>;
 using Mesh = CGAL::Surface_mesh<Point>;
 }
 
+inline _g3d::Point to_point(glm::vec3 v) { return {v.x, v.y, v.z}; }
+
 using object_mesh = _g3d::Mesh;
 using triangle_mesh = _g3d::Mesh;
 

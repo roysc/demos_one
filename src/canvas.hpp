@@ -16,10 +16,19 @@ struct grid_traits
     using size_type = uvec;
 };
 
-using cursor_type = observable_cursor<grid_traits::position_type>;
-using viewport_type = observable_viewport<grid_traits>;
+struct viewport_type : reactive_viewport<viewport_type, ui_traits>
+{
+    observable<tags::viewport_tag> on_update;
+};
 
-using grid_controls = control_port<grid_traits>;
+struct cursor_type
+    : reactive_cursor<cursor_type, ui_traits>
+{
+    observable<tags::cursor_motion_tag> on_update;
+};
+
+using grid_controls = control_port<cursor_type, viewport_type>;
+
 using grid_selector = mouse_select_tool<grid_traits>;
 using grid_painter = mouse_paint_tool<grid_traits>;
 using stroke_tool = mouse_stroke_tool<grid_traits>;
@@ -87,7 +96,6 @@ struct canvas
     bool enable_edge_scroll = true;
     bool quit = false;
 
-    // grid_viewport& viewport = controls.viewport();
     viewport_type viewport;
     cursor_type cursor;
     grid_controls controls{cursor, viewport};
@@ -116,8 +124,8 @@ struct canvas
         : simple_gui("plaza: canvas", vp.size_pixels())
         , viewport(vp)
     {
-        _init_controls();
         _init_observers();
+        _init_controls();
         glClearColor(0, 0, 0, 1);
     }
 
