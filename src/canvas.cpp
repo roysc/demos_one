@@ -58,7 +58,9 @@ void canvas::_init_controls()
 
 void canvas::_init_observers()
 {
-    _observe(cursor.on_change) { tool.dispatch(tags::cursor_motion); };
+    _observe(cursor.on_change) {
+        tool.dispatch(tags::cursor_motion);
+    };
     _observe(viewport.on_change) {
         viewport.update_uniforms(p_ui, false);
         tool.dispatch(tags::viewport);
@@ -83,8 +85,12 @@ void canvas::_init_observers()
         set(p_lines->mvp_matrix, viewport.view_matrix());
     };
 
-    _observe(selector.on(tags::cursor_motion)) { selector.update_cursor(b_ui); };
-    _observe(selector.on(tags::deactivate)) { b_ui.clear(); b_ui.update(); };
+    _observe(selector.on(tags::cursor_motion)) {
+        selector.update_cursor(b_ui);
+    };
+    _observe(selector.on(tags::deactivate)) {
+        b_ui.clear(); b_ui.update();
+    };
     _observe(selector.on_selection) {
         b_ui.clear(); b_ui.update();
         selector.update_selection(b_model);

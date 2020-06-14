@@ -4,6 +4,7 @@
 #include "mouse.hpp"
 #include "map.hpp"
 #include "observable.hpp"
+#include "viewport_old.hpp"
 
 #include <Rxt/graphics/sdl.hpp>
 #include <Rxt/graphics/shader/grid_quad_2D.hpp>
@@ -15,17 +16,6 @@ struct grid_traits
 {
     using position_type = ivec;
     using size_type = uvec;
-};
-
-struct viewport_type : reactive_viewport<viewport_type, grid_traits>
-{
-    observable<tags::viewport_tag> on_update;
-};
-
-struct cursor_type
-    : reactive_cursor<cursor_type, grid_traits>
-{
-    observable<tags::cursor_motion_tag> on_update;
 };
 
 using grid_controls = control_port<grid_traits>;

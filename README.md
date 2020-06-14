@@ -8,6 +8,7 @@ Building
 Dependencies:
 - Boost (multi_array)
 - {fmt}
+- tcb/span
 
 CMake:
 

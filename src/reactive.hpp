@@ -41,5 +41,13 @@ struct hooked
 {
     using base_type = Reactive<hooked, T...>;
     using base_type::base_type;
+
     hooks<> on_update;
+
+    // auto& operator=(hooked h)
+    // {
+    //     this->base_type::operator=(h);
+    //     on_update();
+    //     return *this;
+    // }
 };

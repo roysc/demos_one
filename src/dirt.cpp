@@ -19,12 +19,13 @@
 #include <Rxt/util.hpp>
 #include <Rxt/io.hpp>
 
+#include <tcb/span.hpp>
 #include <glm/glm.hpp>
 #include <chrono>
 
-using atrium::mesh_data;
-using atrium::object_mesh;
-using atrium::ux_data;
+using std::chrono::steady_clock;
+using time_point = steady_clock::time_point;
+using tcb::span;
 
 using Rxt::print;
 namespace gl = Rxt::gl;
@@ -32,8 +33,9 @@ namespace sdl = Rxt::sdl;
 using triangle_program = Rxt::shader_programs::colored_triangle_3D;
 using line_program = Rxt::shader_programs::solid_color_3D<GL_LINES>;
 
-using std::chrono::steady_clock;
-using time_point = steady_clock::time_point;
+using atrium::mesh_data;
+using atrium::object_mesh;
+using atrium::ux_data;
 
 using uvec2 = glm::uvec2;
 using fvec2 = glm::vec2;
@@ -45,7 +47,7 @@ struct ui_traits
     using size_type = uvec2;
 };
 
-using viewport_type = hooked<reactive_viewport, ui_traits>;
+// using viewport_type = hooked<reactive_viewport, ui_traits>;
 using cursor_type = hooked<reactive_cursor, ui_traits>;
 using camera_type = hooked<Rxt::reactive_focus_cam>;
 
@@ -54,11 +56,11 @@ auto default_camera() { return camera_type{fvec3(1)}; }
 struct dirt_app : public sdl::simple_gui
                 , public sdl::input_handler<dirt_app, true>
 {
-    camera_type camera = default_camera();
     bool quit = false;
     sdl::key_dispatcher keys;
-    time_point last_render_time;
     sdl::metronome metronome {Rxt::duration_fps<30>(1), [this] { return !should_quit(); }};
+    // time_point last_draw_time;
+    bool draw_needed = true;
 
     triangle_program triangle_prog;
     triangle_program::data b_triangles {triangle_prog};
@@ -66,14 +68,15 @@ struct dirt_app : public sdl::simple_gui
     line_program::data b_lines {line_prog};
 
     cursor_type cursor;
-    viewport_type viewport;
+    // viewport_type viewport;
+    camera_type camera = default_camera();
 
     mesh_data geom;
     atrium::mesh_colors colors;
     atrium::ux_data ux;
-    hooks<> ux_hooks;
+    hooks<> ux_update;
 
-    dirt_app(uvec2 v);
+    dirt_app(uvec2);
 
     void step(SDL_Event);
     void draw();
@@ -111,9 +114,8 @@ int main(int argc, char* argv[])
     return 0;
 }
 
-dirt_app::dirt_app(uvec2 v)
-    : simple_gui("plaza: dirt", v)
-    , viewport{v}
+dirt_app::dirt_app(uvec2 size)
+    : simple_gui("plaza: dirt", size)
 {
     _init_observers();
     _init_controls();
@@ -123,6 +125,10 @@ dirt_app::dirt_app(uvec2 v)
     insert_mesh(mesh, Rxt::colors::red);
 
     geom.index_triangles();
+
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+    glEnable(GL_CULL_FACE);
 }
 
 template <Rxt::axis3 Axis>
@@ -176,8 +182,22 @@ void dirt_app::_init_controls()
     keys.on_press["R"] = reset;
 }
 
+// template <class T>
+// auto setter(T& ref, T val)
+// {
+//     return [&, val] { ref = val; };
+// }
+
 void dirt_app::_init_observers()
 {
+    // updates.add(camera.on_update);
+    // updates.add(cursor.on_update);
+    // updates.add(ux_update);
+    // router.add(model_update);
+
+    // auto flag_dirty = setter(draw_needed, true);
+    // camera.on_update.add(flag_dirty);
+
     Pz_observe(camera.on_update) {
         auto m = camera.model_matrix();
         auto v = camera.view_matrix();
@@ -199,11 +219,11 @@ void dirt_app::_init_observers()
         }
         if (ux.highlight != newhl) {
             ux.highlight = newhl;
-            ux_hooks();
+            ux_update();
         }
     };
 
-    Pz_observe(ux_hooks) {
+    Pz_observe(ux_update) {
         using namespace Rxt::colors;
         Rxt::rgb const axis_colors[3] {red, green, blue};
 
@@ -226,6 +246,13 @@ void dirt_app::_init_observers()
     };
 }
 
+int flush_all(span<hooks<>*> r)
+{
+    int ret = 0;
+    for (auto h: r) ret += h->flush();
+    return ret;
+}
+
 void dirt_app::step(SDL_Event event)
 {
     do {
@@ -233,7 +260,12 @@ void dirt_app::step(SDL_Event event)
     } while (SDL_PollEvent(&event));
     keys.scan();
 
-    bool dirty = false;
+    hooks<>* updates[] = {
+        &cursor.on_update,
+        &camera.on_update,
+        &ux_update
+    };
+    auto dirty = flush_all(updates);
     if (dirty) draw();
 }
 
