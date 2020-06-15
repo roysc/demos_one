@@ -60,7 +60,7 @@ struct dirt_app : public sdl::simple_gui
     sdl::key_dispatcher keys;
     sdl::metronome metronome {Rxt::duration_fps<30>(1), [this] { return !should_quit(); }};
     // time_point last_draw_time;
-    bool draw_needed = true;
+    // bool draw_needed = true;
 
     triangle_program triangle_prog;
     triangle_program::data b_triangles {triangle_prog};
@@ -74,7 +74,7 @@ struct dirt_app : public sdl::simple_gui
     mesh_data geom;
     atrium::mesh_colors colors;
     atrium::ux_data ux;
-    hooks<> ux_update;
+    hooks<> ux_update, model_update;
 
     dirt_app(uvec2);
 
@@ -120,15 +120,17 @@ dirt_app::dirt_app(uvec2 size)
     _init_observers();
     _init_controls();
 
-    object_mesh mesh;
-    // Rxt::make_cuboid(mesh, _g3d::Point{-.5, -.5, -.5}, {.5, .5, .5});
-    insert_mesh(mesh, Rxt::colors::red);
-
-    geom.index_triangles();
-
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
     glEnable(GL_CULL_FACE);
+
+    object_mesh mesh;
+    Rxt::make_cuboid(mesh, atrium::_g3d::Point{-.5, -.5, -.5}, {.5, .5, .5});
+    insert_mesh(mesh, Rxt::colors::red);
+    geom.index_triangles();
+
+    model_update();
+    camera.on_update();
 }
 
 template <Rxt::axis3 Axis>
@@ -160,21 +162,9 @@ void dirt_app::_init_controls()
         }
     };
 
-    // auto make_ray = [this] {
-    //     auto [src, dir] = Rxt::cast_ray(cursor.position(), camera);
-    //     auto tgt = src + 10.f * dir;
-    //     dbg_segments.emplace_back(src, tgt);
-    //     print("add seg({}, {})\n", src, tgt);
-    //     update_ux();
-    // };
-    // keys.on_press["C"] = make_ray;
-
     auto reset = [this] {
         camera = default_camera();
         camera.on_update();
-        // dbg_segments.clear();
-        // update_ux();
-        // update_camera();
     };
 
     keys.on_press["I"] = show_info;
@@ -182,22 +172,8 @@ void dirt_app::_init_controls()
     keys.on_press["R"] = reset;
 }
 
-// template <class T>
-// auto setter(T& ref, T val)
-// {
-//     return [&, val] { ref = val; };
-// }
-
 void dirt_app::_init_observers()
 {
-    // updates.add(camera.on_update);
-    // updates.add(cursor.on_update);
-    // updates.add(ux_update);
-    // router.add(model_update);
-
-    // auto flag_dirty = setter(draw_needed, true);
-    // camera.on_update.add(flag_dirty);
-
     Pz_observe(camera.on_update) {
         auto m = camera.model_matrix();
         auto v = camera.view_matrix();
@@ -238,8 +214,7 @@ void dirt_app::_init_observers()
         b_lines.update();
     };
 
-    // Pz_observe(model_hooks)
-    {
+    Pz_observe(model_update) {
         b_triangles.clear();
         render_triangles(geom, colors, b_triangles);
         b_triangles.update();
@@ -263,7 +238,8 @@ void dirt_app::step(SDL_Event event)
     hooks<>* updates[] = {
         &cursor.on_update,
         &camera.on_update,
-        &ux_update
+        &ux_update,
+        &model_update
     };
     auto dirty = flush_all(updates);
     if (dirty) draw();

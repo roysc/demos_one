@@ -39,7 +39,7 @@ struct reactive_viewport : basic_viewport<ST>, reactive_base<Der>
     void set_scale(Size s) { this->scale_factor = s; this->_update(); }
 };
 
-// stupid wrapper fixme
+// controls position context
 template <class ST>
 struct control_port
 {
