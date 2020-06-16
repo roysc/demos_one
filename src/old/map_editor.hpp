@@ -37,7 +37,7 @@ struct pen_tool
 
 struct map_editor
     : Rxt::sdl::simple_gui
-    , Rxt::sdl::input_handler<map_editor>
+    , Rxt::sdl::input_handler<map_editor, true>
 {
     using tick_duration = Rxt::duration_fps<30>;
     using tool_state = std::variant<std::monostate, selection_tool, pen_tool>;
@@ -85,10 +85,10 @@ struct map_editor
     void _update_tool();
     void _update_viewport();
 
-    void handle_should_quit() { _quit = true; }
-    void handle_key_down(SDL_Keysym k) { keys.press(k); }
-    void handle_mouse_motion(SDL_MouseMotionEvent);
-    void handle_mouse_down(SDL_MouseButtonEvent);
-    void handle_mouse_up(SDL_MouseButtonEvent);
-    void handle_edge_scroll();
+    void on_quit() { _quit = true; }
+    void on_key_down(SDL_Keysym k) { keys.press(k); }
+    void on_mouse_motion(SDL_MouseMotionEvent);
+    void on_mouse_down(SDL_MouseButtonEvent);
+    void on_mouse_up(SDL_MouseButtonEvent);
+    void on_edge_scroll();
 };

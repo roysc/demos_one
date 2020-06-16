@@ -240,14 +240,14 @@ void map_editor::_update_cursor()
     set_dirty();
 }
 
-void map_editor::handle_mouse_motion(SDL_MouseMotionEvent motion)
+void map_editor::on_mouse_motion(SDL_MouseMotionEvent motion)
 {
     auto [x, y] = sdl::nds_coords(*window, motion.x, motion.y);
     cursor_position = nds_to_grid(glm::vec2(x, y), glm::vec2(viewport.size_cells() / 2u));
     send(update_cursor);
 }
 
-void map_editor::handle_mouse_down(SDL_MouseButtonEvent button)
+void map_editor::on_mouse_down(SDL_MouseButtonEvent button)
 {
     auto left_visitor = Rxt::overloaded {
         [this] (selection_tool& select) {
@@ -287,7 +287,7 @@ void map_editor::handle_mouse_down(SDL_MouseButtonEvent button)
     }
 }
 
-void map_editor::handle_mouse_up(SDL_MouseButtonEvent button)
+void map_editor::on_mouse_up(SDL_MouseButtonEvent button)
 {
     switch (button.button) {
     case SDL_BUTTON_LEFT: {
