@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../reactive.hpp"
 #include "geometry.hpp"
 
 #include <optional>
@@ -14,7 +15,7 @@ namespace _ux
 struct ux_data
 {
     using highlight_data = std::optional<object_face_key>;
-    highlight_data highlight;
+    adapt_reactive<highlight_data> highlight;
 };
 
 template <class Query>

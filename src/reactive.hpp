@@ -1,8 +1,11 @@
 #pragma once
 
+#include "observable.hpp"
 #include <functional>
 #include <vector>
 
+namespace //obs
+{
 template<class... Ts>
 struct hooks
 {
@@ -35,19 +38,33 @@ struct hooks
     void operator()(Ts... t) { dispatch(t...); }
 };
 
-template <template <class...> class Reactive, class... T>
-struct hooked
-    : Reactive<hooked<Reactive, T...>, T...>
+template <class Reactive>
+struct adapt_reactive : Reactive
 {
-    using base_type = Reactive<hooked, T...>;
+    using base_type = Reactive;
     using base_type::base_type;
 
     hooks<> on_update;
 
-    // auto& operator=(hooked h)
-    // {
-    //     this->base_type::operator=(h);
-    //     on_update();
-    //     return *this;
-    // }
+    auto& operator=(base_type a)
+    {
+        this->base_type::operator=(a);
+        on_update();
+        return *this;
+    }
 };
+
+template <template <class...> class Reactive, class... T>
+struct adapt_reactive_crt
+    : adapt_reactive<Reactive<adapt_reactive_crt<Reactive, T...>, T...>>
+{};
+
+template <class Rh>
+int flush_all(Rh& r)
+// int flush_all(range_of<hooks<>&> auto r)
+{
+    int ret = 0;
+    for (auto& h: r) ret += h->flush();
+    return ret;
+}
+}
