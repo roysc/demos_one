@@ -1,10 +1,11 @@
-#include "map.hpp"
+// #include "map.hpp"
 
 #include "OpenSimplexNoise.hh"
 #include <Rxt/math.hpp>
 
 image_data create_map(glm::uvec2 size, int seed)
 {
+    auto scale = 0xFF;
     using glm::vec2;
 
     int width = size.x, height = size.y;
@@ -23,7 +24,7 @@ image_data create_map(glm::uvec2 size, int seed)
             for (int i = 0; i < 8; ++i) {
                 sample += (1.f / (i+1)) * get_noise(c, 1 << i);
             }
-            image[x][y] = Vec4u8(sample * 0xFF / 2);
+            image[x][y] = Vec4u8(sample * scale / 2);
         }
     }
     // image[0][0] = Vec4u8(0xFF, 0, 0, 0xFF); // red origin

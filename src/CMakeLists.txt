@@ -19,15 +19,10 @@ set(_HEADERS
     tool.hpp
     viewport.hpp
     controls.hpp
-
-    gui/interface_display.hpp
-    gui/texture_display.hpp
+    noise.hpp
 )
 
 set(_SOURCES
-    map.cpp
-
-    gui/texture_display.cpp
 )
 
 add_library(plaza ${_HEADERS} ${_SOURCES})
@@ -35,6 +30,9 @@ target_link_libraries(plaza PUBLIC Rxt::Graphics)
 target_include_directories(plaza PUBLIC ${PROJECT_SOURCE_DIR}/external)
 
 add_executable(map_editor ${_HEADERS} ${_SOURCES}
+    gui/texture_display.cpp
+    gui/interface_display.hpp
+    gui/texture_display.hpp
     gui/map_editor.hpp
     gui/map_editor.cpp
 )
