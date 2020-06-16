@@ -41,23 +41,29 @@ struct hooks
 template <class Reactive>
 struct adapt_reactive : Reactive
 {
-    using base_type = Reactive;
-    using base_type::base_type;
+    using reactive_base = Reactive;
+    using reactive_base::reactive_base;
 
     hooks<> on_update;
 
-    auto& operator=(base_type a)
+    auto& emplace(reactive_base that)
     {
-        this->base_type::operator=(a);
+        this->reactive_base::operator=(that);
         on_update();
         return *this;
     }
+
+    reactive_base& operator*() { return *this; }
 };
 
 template <template <class...> class Reactive, class... T>
 struct adapt_reactive_crt
     : adapt_reactive<Reactive<adapt_reactive_crt<Reactive, T...>, T...>>
-{};
+{
+    using super_type =
+        adapt_reactive<Reactive<adapt_reactive_crt<Reactive, T...>, T...>>;
+    // using super_type::super_type;
+};
 
 template <class Rh>
 int flush_all(Rh& r)

@@ -92,5 +92,17 @@ struct mesh_data
         }
         triangle_tree.build(&triangulations);
     }
+
+    template <class Query>
+    auto face_query(Query query) const
+    {
+        std::optional<object_face_key> ret;
+
+        if (auto opt = this->triangle_tree.first_intersected_primitive(query)) {
+            auto [index, fd] = *opt;
+            ret.emplace(index, this->face_comaps.at(index).at(fd));
+        }
+        return ret;
+    }
 };
 }

@@ -51,8 +51,8 @@ void render_ux(ux_data const& ux,
                mesh_data const& geom,
                LineBufs& lines)
 {
-    if (ux.highlight) {
-        auto [oi, fd] = *ux.highlight;
+    if (ux) {
+        auto [oi, fd] = *ux;
         auto& mesh = geom.meshes.at(oi);
         auto points = get(CGAL::vertex_point, mesh);
         for (auto h: halfedges_around_face(halfedge(fd, mesh), mesh)) {

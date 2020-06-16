@@ -34,12 +34,6 @@ namespace sdl = Rxt::sdl;
 using triangle_program = Rxt::shader_programs::colored_triangle_3D;
 using line_program = Rxt::shader_programs::solid_color_3D<GL_LINES>;
 
-using atrium::mesh_data;
-using atrium::mesh_colors;
-using atrium::object_mesh;
-using atrium::ux_data;
-// using ux_data = adapt_reactive<atrium::ux_data>;
-
 using uvec2 = glm::uvec2;
 using fvec2 = glm::vec2;
 using fvec3 = glm::vec3;
@@ -53,6 +47,13 @@ struct ui_traits
 using cursor_type = adapt_reactive_crt<reactive_cursor, ui_traits>;
 using camera_type = adapt_reactive_crt<Rxt::reactive_focus_cam>;
 
+using atrium::mesh_data;
+using atrium::mesh_colors;
+using atrium::object_mesh;
+// using atrium::ux_data;
+// using ux_data = adapt_reactive<atrium::highlight_data>;
+using ux_data = adapt_reactive<atrium::ux_data>;
+
 //wip
 // using agent_registry = std::vector<int>;
 using terrain_map = dense_map<int>;
@@ -60,7 +61,7 @@ using terrain_map = dense_map<int>;
 struct dirt_app : public sdl::simple_gui
                 , public sdl::input_handler<dirt_app, true>
 {
-    fvec3 const start_camera{1};
+    fvec3 const start_camera_at{1};
 
     bool quit = false;
     sdl::key_dispatcher keys;
@@ -74,7 +75,7 @@ struct dirt_app : public sdl::simple_gui
     line_program::data b_lines {line_prog};
 
     cursor_type cursor;
-    camera_type camera{start_camera};
+    camera_type camera{start_camera_at};
 
     mesh_data geom;
     mesh_colors colors;
@@ -155,15 +156,14 @@ void dirt_app::_init_controls()
         print("cursor={} camera={}\n", cursor.position(), camera.position());
     };
     auto show_hl = [this] {
-        if (ux.highlight) {
-            print("cursor({}) => {}\n", cursor.position(), ux.highlight->second);
+        if (ux) {
+            print("cursor({}) => {}\n", cursor.position(), ux->second);
         } else {
             print("cursor({})\n", cursor.position());
         }
     };
     auto reset_camera = [this] {
-        camera.position(start_camera);
-        camera.on_update();
+        camera.emplace(start_camera_at);
     };
 
     keys.on_scan["Right"] = std::bind(&_orbit_camera<Ax::z>, this, +speed);
@@ -195,13 +195,13 @@ void dirt_app::_init_observers()
         using atrium::to_point;
         auto [source, dir] = Rxt::cast_ray(cursor.position(), camera);
 
-        auto newhl = face_query(geom, atrium::_g3d::Ray{to_point(source), to_point(source + dir)});
-        if (ux.highlight != newhl) {
-            ux.highlight = newhl;
+        auto newhl = geom.face_query(atrium::_g3d::Ray{to_point(source), to_point(source + dir)});
+        if (ux != newhl) {
+            ux.emplace(newhl);
         }
     };
 
-    Pz_observe(ux.highlight.on_update) {
+    Pz_observe(ux.on_update) {
         using namespace Rxt::colors;
         Rxt::rgb const axis_colors[3] {red, green, blue};
 
@@ -233,7 +233,7 @@ void dirt_app::step(SDL_Event event)
     auto updates = {
         &cursor.on_update,
         &camera.on_update,
-        &ux.highlight.on_update,
+        &ux.on_update,
         &model_update
     };
     auto dirty = flush_all(updates);
