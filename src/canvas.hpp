@@ -1,7 +1,7 @@
 #pragma once
 
 #include "tool.hpp"
-#include "mouse.hpp"
+#include "mouse_tools.hpp"
 #include "map.hpp"
 #include "observable.hpp"
 #include "viewport_old.hpp"

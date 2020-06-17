@@ -14,7 +14,7 @@ set(_HEADERS
     tiles.hpp
     util.hpp
     observable.hpp
-    mouse.hpp
+    mouse_tools.hpp
     mouse_core.hpp
     tool.hpp
     viewport.hpp

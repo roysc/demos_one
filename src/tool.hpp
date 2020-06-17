@@ -1,6 +1,6 @@
 #pragma once
 
-#include "mouse.hpp"
+#include "mouse_tools.hpp"
 #include "observable.hpp"
 
 #include <Rxt/meta.hpp>

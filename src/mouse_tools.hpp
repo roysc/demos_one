@@ -2,9 +2,9 @@
 
 #include "mouse_core.hpp"
 #include "controls.hpp"
-#include "observable.hpp"
 #include "events.hpp"
 #include "util.hpp"
+#include "reactive.hpp"
 
 #include <Rxt/graphics/color.hpp>
 #include <Rxt/range.hpp>
@@ -12,8 +12,9 @@
 
 #include <optional>
 
-// This is designed to function as both a basic cursor observable state
-// And a mouse tool used by vpointer.
+// All tools are reactive CRTP
+
+// Select a box
 template <class ST>
 struct mouse_select_tool
     : public mouse_tool
@@ -27,9 +28,9 @@ struct mouse_select_tool
     std::optional<region> selection;
     Rxt::rgba color = {1, 0, 1, 0.3};
 
-    lazy_observable<tags::cursor_motion_tag> on_motion;
-    lazy_observable<tags::cursor_selection_tag> on_selection;
-    // lazy_observable<> on_motion, on_selection;
+    // lazy_observable<tags::cursor_motion_tag> on_motion;
+    // lazy_observable<tags::cursor_selection_tag> on_selection;
+    hooks<> on_motion, on_selection;
 
     mouse_select_tool(control_port<ST>& c) : controls{c} {}
 
@@ -100,7 +101,8 @@ struct mouse_paint_tool : mouse_tool
     control_port<ST>& controls;
     paint_method _paint;
 
-    lazy_observable<tags::object_edit_tag> on_edit;
+    hooks<> on_edit;
+    // lazy_observable<tags::object_edit_tag> on_edit;
 
     mouse_paint_tool(control_port<ST>& u, paint_method m = {})
         : controls{u}, _paint{m} {}
@@ -131,7 +133,8 @@ struct mouse_stroke_tool : mouse_tool
     const Rxt::rgba cursor_color {Rxt::colors::yellow, 1};
     const Rxt::rgba stroke_color {Rxt::colors::white, 1};
 
-    lazy_observable<tags::object_edit_tag> on_edit;
+    // lazy_observable<tags::object_edit_tag> on_edit;
+    hooks<> on_edit;
 
     mouse_stroke_tool(control_port<ST>& c) : controls{c} {}
 
