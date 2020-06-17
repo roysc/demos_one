@@ -52,7 +52,7 @@ using cursor_type = adapt_reactive_crt<reactive_cursor, ui_traits>;
 using camera_type = adapt_reactive_crt<Rxt::reactive_focus_cam>;
 
 auto _orbit = [](auto cam, auto axis, float d) {
-    auto basis = Rxt::basis3<glm::vec3>(axis);
+    auto basis = Rxt::basis3<fvec3>(axis);
     cam->orbit(glm::angleAxis(d, basis));
 };
 auto _drag = [](auto cam, fvec3 dir) { cam->translate(dir); };
@@ -79,8 +79,6 @@ struct mouse_hooks : sdl::input_handler<mouse_hooks>
 
 struct dirt_app : public sdl::simple_gui
 {
-    fvec3 const start_camera_at{1};
-
     bool quit = false;
     sdl::key_dispatcher keys;
     mouse_hooks mouse;
@@ -93,8 +91,9 @@ struct dirt_app : public sdl::simple_gui
     line_program line_prog;
     line_program::data b_lines {line_prog};
 
-    cursor_type cursor;
+    fvec3 const start_camera_at{1};
     camera_type camera{start_camera_at};
+    cursor_type cursor;
 
     mesh_data geom;
     mesh_colors colors;
@@ -191,8 +190,8 @@ void dirt_app::_init_observers()
         b_lines.clear();
         for (unsigned i = 0; i < 3; ++i) {
             auto c = axis_colors[i];
-            b_lines.push(Rxt::zero3<glm::vec3>, c);
-            b_lines.push(Rxt::basis3<glm::vec3>(i), c);
+            b_lines.push(Rxt::zero3<fvec3>, c);
+            b_lines.push(Rxt::basis3<fvec3>(i), c);
         }
 
         render_ux(ux, geom, b_lines);
@@ -263,7 +262,12 @@ void dirt_app::_init_controls()
         auto [x, y] = sdl::nds_coords(*window, motion.x, motion.y);
         cursor.position({x, y});
     };
-    Pz_observe(mouse.on_mouse_wheel, auto wheel) { camera.forward(speed); };
+    Pz_observe(mouse.on_mouse_wheel, SDL_MouseWheelEvent wheel) {
+        if (wheel.y != 0)
+            camera.forward(wheel.y);
+        if (wheel.x != 0)
+            camera.orbit(glm::angleAxis(speed, Rxt::basis3<fvec3>(Ax::z)));
+    };
 }
 
 void dirt_app::step(SDL_Event event)
