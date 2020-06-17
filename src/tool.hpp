@@ -6,7 +6,7 @@
 #include <Rxt/meta.hpp>
 #include <tuple>
 
-// template <class ExtraTags>
+// fixme sucks
 template <class... Tags>
 struct swappable_tool : mouse_tool
 {

@@ -76,7 +76,7 @@ struct dirt_app : public sdl::simple_gui
     line_program line_prog;
     line_program::data b_lines {line_prog};
 
-    fvec3 const start_camera_at{1};
+    fvec3 const start_camera_at{8};
     camera_type camera{start_camera_at};
     cursor_type cursor;
 
