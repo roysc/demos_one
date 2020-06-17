@@ -4,6 +4,8 @@
 #include "observable.hpp"
 #include "events.hpp"
 
+#include <Rxt/graphics/camera.hpp>
+
 template <class ST>
 struct basic_cursor
 {
@@ -37,6 +39,20 @@ struct reactive_viewport : basic_viewport<ST>, reactive_base<Der>
 
     void position(P p) { this->_position = p; this->_update(); }
     void set_scale(Size s) { this->scale_factor = s; this->_update(); }
+};
+
+template <class Der>
+struct reactive_focus_cam : Rxt::focus_cam
+{
+    using super_type = Rxt::focus_cam;
+    using super_type::super_type;
+    using super_type::position;
+
+    void position(position_type pos) override
+    {
+        super_type::position(pos);
+        static_cast<Der&>(*this).on_update();
+    }
 };
 
 // controls position context
