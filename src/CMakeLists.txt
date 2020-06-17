@@ -39,12 +39,10 @@ add_executable(map_editor ${_HEADERS} ${_SOURCES}
 target_link_libraries(map_editor PUBLIC plaza)
 Rxt_emscripten_use_boost(map_editor)
 
-add_executable(canvas ${_HEADERS}
-    canvas.hpp canvas.cpp
-)
+add_executable(canvas ${_HEADERS} canvas.hpp canvas.cpp)
 target_link_libraries(canvas PUBLIC plaza)
 
-add_executable(dirt ${_HEADERS} dirt.cpp)
+add_executable(dirt ${_HEADERS} dirt.cpp dirt.hpp)
 target_link_libraries(dirt PUBLIC plaza)
 
 function(_configure_emscripten _TARGET)
