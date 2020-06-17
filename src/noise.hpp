@@ -3,7 +3,11 @@
 #include "OpenSimplexNoise.hh"
 #include <Rxt/math.hpp>
 
-image_data create_map(glm::uvec2 size, int seed)
+using Vec4u8 = glm::tvec4<unsigned char, glm::highp>;
+using image_data = boost::multi_array<Vec4u8, 2>;
+
+template <class Put>
+void fill_noise(glm::uvec2 size, int seed, Put&& put)
 {
     auto scale = 0xFF;
     using glm::vec2;
@@ -16,7 +20,6 @@ image_data create_map(glm::uvec2 size, int seed)
         return Rxt::sample_clifford_torus(c.x, c.y, r, noise_4D);
     };
 
-    image_data image(boost::extents[width][height]);
     for (int x = 0; x < width; ++x) {
         for (int y = 0; y < height; ++y) {
             vec2 c = vec2(x, y) / vec2(size);
@@ -24,9 +27,9 @@ image_data create_map(glm::uvec2 size, int seed)
             for (int i = 0; i < 8; ++i) {
                 sample += (1.f / (i+1)) * get_noise(c, 1 << i);
             }
-            image[x][y] = Vec4u8(sample * scale / 2);
+            // out[x][y] = Vec4u8(sample * scale / 2);
+            // out.put({x, y}, sample);
+            put(x, y, sample);
         }
     }
-    // image[0][0] = Vec4u8(0xFF, 0, 0, 0xFF); // red origin
-    return image;
 }

@@ -20,6 +20,7 @@
 
 namespace atrium
 {
+inline
 namespace _g3d
 {
 using Kernel = CGAL::Simple_cartesian<float>;
@@ -31,6 +32,7 @@ using Mesh = CGAL::Surface_mesh<Point>;
 }
 
 inline _g3d::Point to_point(glm::vec3 v) { return {v.x, v.y, v.z}; }
+inline _g3d::Point to_point(glm::vec2 v) { return {v.x, v.y, 0}; }
 
 using object_mesh = _g3d::Mesh;
 using triangle_mesh = _g3d::Mesh;

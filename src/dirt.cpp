@@ -1,5 +1,8 @@
+#include "_debug.hpp"
 #include "controls.hpp"
 #include "reactive.hpp"
+#include "map.hpp"
+#include "noise.hpp"
 
 #include "atrium/geometry.hpp"
 #include "atrium/rendering.hpp"
@@ -44,27 +47,43 @@ struct ui_traits
     using size_type = uvec2;
 };
 
+using namespace Rxt::frp;
 using cursor_type = adapt_reactive_crt<reactive_cursor, ui_traits>;
 using camera_type = adapt_reactive_crt<Rxt::reactive_focus_cam>;
+
+auto _orbit = [](auto cam, auto axis, float d) {
+    auto basis = Rxt::basis3<glm::vec3>(axis);
+    cam->orbit(glm::angleAxis(d, basis));
+};
+auto _drag = [](auto cam, fvec3 dir) { cam->translate(dir); };
 
 using atrium::mesh_data;
 using atrium::mesh_colors;
 using atrium::object_mesh;
-// using atrium::ux_data;
-// using ux_data = adapt_reactive<atrium::highlight_data>;
 using ux_data = adapt_reactive<atrium::ux_data>;
 
 //wip
 // using agent_registry = std::vector<int>;
-using terrain_map = dense_map<int>;
+using int8 = unsigned char;
+using terrain_value = int8;
+using terrain_map = dense_map<terrain_value>;
+
+struct mouse_hooks : sdl::input_handler<mouse_hooks>
+{
+    hooks<> on_quit;
+    hooks<SDL_Keysym> on_key_down;
+    hooks<SDL_MouseButtonEvent> on_mouse_down, on_mouse_up;
+    hooks<SDL_MouseMotionEvent> on_mouse_motion;
+    hooks<SDL_MouseWheelEvent> on_mouse_wheel;
+};
 
 struct dirt_app : public sdl::simple_gui
-                , public sdl::input_handler<dirt_app, true>
 {
     fvec3 const start_camera_at{1};
 
     bool quit = false;
     sdl::key_dispatcher keys;
+    mouse_hooks mouse;
     sdl::metronome metronome {Rxt::duration_fps<30>(1), [this] { return !should_quit(); }};
     // time_point last_draw_time;
     // bool draw_needed = true;
@@ -82,16 +101,13 @@ struct dirt_app : public sdl::simple_gui
     ux_data ux;
     hooks<> model_update;
 
-    terrain_map terrain;
+    adapt_reactive<terrain_map> terrain;
 
     dirt_app(uvec2);
 
     void step(SDL_Event);
     void draw();
 
-    void handle_mouse_motion(SDL_MouseMotionEvent);
-    void handle_should_quit() { quit = true; }
-    void handle_key_down(SDL_Keysym k) { keys.press(k); }
     bool should_quit() const { return quit; }
 
     void _init_controls();
@@ -132,50 +148,17 @@ dirt_app::dirt_app(uvec2 size)
     glDepthFunc(GL_LESS);
     glEnable(GL_CULL_FACE);
 
-    object_mesh mesh;
-    Rxt::make_cuboid(mesh, atrium::_g3d::Point{-.5, -.5, -.5}, {.5, .5, .5});
-    insert_mesh(mesh, Rxt::colors::red);
-    geom.index_triangles();
+    // object_mesh mesh;
+    // Rxt::make_cuboid(mesh, atrium::_g3d::Point{-.5, -.5, -.5}, {.5, .5, .5});
+    // insert_mesh(mesh, Rxt::colors::red);
 
-    model_update();
+    uvec2 map_size(8);
+    terrain_map tm(map_size);
+    auto scale = 0xFF;
+    fill_noise(map_size, 42, [&](int x, int y, auto a) { tm.put({x, y}, a * scale / 2); });
+    terrain.emplace(tm);
+
     camera.on_update();
-}
-
-template <Rxt::axis3 Axis>
-void _orbit_camera(dirt_app* ctx, float d)
-{
-    ctx->camera.orbit(glm::angleAxis(d, Rxt::basis3<glm::vec3>(Axis)));
-}
-
-void dirt_app::_init_controls()
-{
-    using Ax = Rxt::axis3;
-    float speed = 0.04;
-
-    auto show_info = [this] {
-        print("cursor={} camera={}\n", cursor.position(), camera.position());
-    };
-    auto show_hl = [this] {
-        if (ux) {
-            print("cursor({}) => {}\n", cursor.position(), ux->second);
-        } else {
-            print("cursor({})\n", cursor.position());
-        }
-    };
-    auto reset_camera = [this] {
-        camera.emplace(start_camera_at);
-    };
-
-    keys.on_scan["Right"] = std::bind(&_orbit_camera<Ax::z>, this, +speed);
-    keys.on_scan["Left"] = std::bind(&_orbit_camera<Ax::z>, this, -speed);
-    keys.on_scan["Up"] = std::bind(&_orbit_camera<Ax::y>, this, +speed);
-    keys.on_scan["Down"] = std::bind(&_orbit_camera<Ax::y>, this, -speed);
-    keys.on_scan[","] = [=, this] { camera.forward(+speed); };
-    keys.on_scan["."] = [=, this] { camera.forward(-speed); };
-    keys.on_press["C-W"] = [this] { quit = true; };
-    keys.on_press["I"] = show_info;
-    keys.on_press["D"] = show_hl;
-    keys.on_press["R"] = reset_camera;
 }
 
 void dirt_app::_init_observers()
@@ -221,12 +204,72 @@ void dirt_app::_init_observers()
         render_triangles(geom, colors, b_triangles);
         b_triangles.update();
     };
+
+    Pz_observe(terrain.on_update) {
+        object_mesh mesh;
+        terrain.for_each([&](auto pos, auto& cell) {
+            // add cell surface to mesh;
+            auto x = pos.x, y = pos.y;
+            const auto max_elev = std::numeric_limits<terrain_value>::max();
+            auto elev = float(cell)/max_elev;
+            atrium::Point corners[4] = {
+                {x, y, elev},
+                {x+1 , y, elev},
+                {x+1, y+1, elev},
+                {x, y+1, elev}
+            };
+            CGAL::make_quad(corners[0], corners[1], corners[2], corners[3], mesh);
+        });
+        insert_mesh(mesh, Rxt::colors::green);
+
+        geom.index_triangles();
+        model_update();
+    };
+}
+
+void dirt_app::_init_controls()
+{
+    float speed = 0.04;
+
+    auto show_info = [this] {
+        print("cursor={} camera={}\n", cursor.position(), camera.position());
+    };
+    auto show_hl = [this] {
+        if (ux) {
+            print("cursor({}) => {}\n", cursor.position(), ux->second);
+        } else {
+            print("cursor({})\n", cursor.position());
+        }
+    };
+    auto reset_camera = [this] {
+        camera.emplace(start_camera_at);
+    };
+
+    using Ax = Rxt::axis3;
+    keys.on_scan["Right"] = std::bind(_orbit, &camera, Ax::z, +speed);
+    keys.on_scan["Left"] = std::bind(_orbit, &camera, Ax::z, -speed);
+    keys.on_scan["Up"] = std::bind(_orbit, &camera, Ax::y, +speed);
+    keys.on_scan["Down"] = std::bind(_orbit, &camera, Ax::y, -speed);
+    keys.on_scan[","] = [=, this] { camera.forward(+speed); };
+    keys.on_scan["."] = [=, this] { camera.forward(-speed); };
+    keys.on_press["C-W"] = [this] { quit = true; };
+    keys.on_press["I"] = show_info;
+    keys.on_press["D"] = show_hl;
+    keys.on_press["R"] = reset_camera;
+
+    Pz_observe(mouse.on_quit) { quit = true; };
+    Pz_observe(mouse.on_key_down, SDL_Keysym k) { keys.press(k); };
+    Pz_observe(mouse.on_mouse_motion, SDL_MouseMotionEvent motion) {
+        auto [x, y] = sdl::nds_coords(*window, motion.x, motion.y);
+        cursor.position({x, y});
+    };
+    Pz_observe(mouse.on_mouse_wheel, auto wheel) { camera.forward(speed); };
 }
 
 void dirt_app::step(SDL_Event event)
 {
     do {
-        handle_input(event);
+        mouse.handle_input(event);
     } while (SDL_PollEvent(&event));
     keys.scan();
 
@@ -252,10 +295,4 @@ void dirt_app::draw()
     b_lines.draw();
 
     SDL_GL_SwapWindow(window.get());
-}
-
-void dirt_app::handle_mouse_motion(SDL_MouseMotionEvent motion)
-{
-    auto [x, y] = sdl::nds_coords(*window, motion.x, motion.y);
-    cursor.position({x, y});
 }

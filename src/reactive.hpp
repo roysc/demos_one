@@ -4,7 +4,7 @@
 #include <functional>
 #include <vector>
 
-namespace //obs
+namespace Rxt::frp
 {
 template<class... Ts>
 struct hooks
@@ -59,11 +59,10 @@ struct adapt_reactive : Reactive
 template <template <class...> class Reactive, class... T>
 struct adapt_reactive_crt
     : adapt_reactive<Reactive<adapt_reactive_crt<Reactive, T...>, T...>>
-{
-    using super_type =
-        adapt_reactive<Reactive<adapt_reactive_crt<Reactive, T...>, T...>>;
-    // using super_type::super_type;
-};
+{};
+
+// null case
+struct no_hook { void on_update() {} };
 
 template <class Rh>
 int flush_all(Rh& r)
