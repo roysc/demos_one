@@ -135,7 +135,7 @@ void canvas::step(SDL_Event event)
     auto updates = {
         &cursor.on_update,
         &viewport.on_update,
-        // &router->on_update
+        &router.on_update,
     };
     auto dirty = Rxt::flush_all(updates);
 

@@ -2,6 +2,8 @@
 
 #include <functional>
 #include <vector>
+#include <map>
+#include <optional>
 
 namespace Rxt
 {
@@ -83,7 +85,6 @@ struct adapt_reactive_crt
     using super_type::super_type;
 };
 
-// null case
 struct no_hook { void on_update() {} };
 
 template <class Rh>
@@ -94,5 +95,63 @@ int flush_all(Rh& r)
     for (auto& h: r) ret += h->flush();
     return ret;
 }
+
+
+// Router hooks dispatch to active item
+// Attaches per-item enable/disable hooks, which dispatch back to router
+template <class T, class H>
+struct hook_router
+{
+    struct switch_hooks { hooks<> on_enable, on_disable; };
+    struct hook_type : H, switch_hooks {};
+    using map_type = std::map<T, hook_type>;
+
+    hook_type _dispatch;
+    map_type _map;
+    std::optional<T> _switch;
+    hooks<> on_update;
+
+    hook_router()
+    {
+        for (auto m: H::members()) {
+            auto mem = std::mem_fn(m);
+            auto hook = [mem, this] {
+                if (!_switch) return;
+                auto it = _map.find(*_switch);
+                if (it != end(_map))
+                    mem(it->second)();
+                on_update();
+            };
+            mem(_dispatch).add(hook);
+        }
+        PZ_observe(_dispatch.on_enable) { on_update(); };
+        PZ_observe(_dispatch.on_disable) { on_update(); };
+    }
+
+    hook_type* operator->() { return &_dispatch; }
+    auto& operator[](T k) { return _map[k]; }
+
+    void insert(T k)
+    {
+        hook_type hook;
+        PZ_observe(hook.on_enable) { _dispatch.on_enable(); };
+        PZ_observe(hook.on_disable) { _dispatch.on_disable(); };
+        _map.emplace(k, hook);
+    }
+
+    void disable()
+    {
+        if (_switch)
+            _map[*_switch].on_disable();
+    }
+
+    void enable(T k)
+    {
+        disable();
+        _switch = k;
+        _map[*_switch].on_enable();
+    }
+};
+
 }
 }

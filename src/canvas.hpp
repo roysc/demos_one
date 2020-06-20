@@ -9,10 +9,9 @@
 #include <Rxt/graphics/shader/grid_quad_2D.hpp>
 #include <Rxt/graphics/shader/solid_color_3D.hpp>
 
-#include <optional>
+#include <array>
 
 using Rxt::hooks;
-
 using grid_program = Rxt::shader_programs::webcompat::grid_quad_2D;
 
 struct grid_traits
@@ -37,63 +36,15 @@ struct tool_hooks
     hooks<> on_select;
     hooks<> on_debug;
 
-    using hook_member = hooks<> tool_hooks::*;
-    static constexpr std::array<hook_member, 5> _members = {
-        (&tool_hooks::on_viewport_update),
-        (&tool_hooks::on_cursor_update),
-        (&tool_hooks::on_edit),
-        (&tool_hooks::on_select),
-        (&tool_hooks::on_debug)
-    };
-};
-
-struct switch_hooks
-{
-    hooks<> on_enable;
-    hooks<> on_disable;
-
-    using hook_member = hooks<> switch_hooks::*;
-    static constexpr std::array<hook_member, 2> _members = {
-        (&switch_hooks::on_enable),
-        (&switch_hooks::on_disable)
-    };
-};
-
-template <class T, class H>
-struct hook_router
-{
-    struct hook_type : H, switch_hooks {};
-    using map_type = std::map<T, hook_type>;
-
-    hook_type _dispatch;
-    map_type _map;
-    std::optional<T> _switch;
-
-    hook_router()
+    static constexpr auto members()
     {
-        for (auto m: tool_hooks::_members) {
-            auto mem = std::mem_fn(m);
-            auto hook = [mem, this] {
-                if (!_switch) return;
-                auto it = _map.find(*_switch);
-                if (it != end(_map))
-                    mem(it->second)();
-            };
-            mem(_dispatch).add(hook);
-        }
-    }
-
-    hook_type* operator->() { return &_dispatch; }
-    auto& operator[](T k) { return _map[k]; }
-
-    void insert(T k) {_map.emplace(k, hook_type{}); }
-
-    void enable(T k)
-    {
-        if (_switch)
-            _map[*_switch].on_disable();
-        _switch = k;
-        _map[*_switch].on_enable();
+        return std::array{
+            (&tool_hooks::on_viewport_update),
+            (&tool_hooks::on_cursor_update),
+            (&tool_hooks::on_edit),
+            (&tool_hooks::on_select),
+            (&tool_hooks::on_debug)
+        };
     }
 };
 
@@ -131,7 +82,6 @@ struct line_buffers
     }
 };
 
-
 struct canvas
     : Rxt::sdl::simple_gui
     , Rxt::sdl::input_handler<canvas>
@@ -148,7 +98,7 @@ struct canvas
     stroke_tool stroker {controls};
     grid_painter painter {controls};
     mouse_tool* tool {};
-    hook_router<mouse_tool*, tool_hooks> router;
+    Rxt::hook_router<mouse_tool*, tool_hooks> router;
 
     grid_program p_ui, p_quad;
     line_program p_lines;
