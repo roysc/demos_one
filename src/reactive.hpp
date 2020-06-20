@@ -1,6 +1,5 @@
 #pragma once
 
-#include "observable.hpp"
 #include <functional>
 #include <vector>
 
@@ -39,6 +38,23 @@ struct hooks
 
     void operator()(Ts... t) { dispatch(t...); }
 };
+
+namespace _det
+{
+template <class T>
+struct proxy_adder
+{
+    T& self;
+    template <class F>
+    auto& operator<<(F&& h) { self.add(h); return *this; }
+};
+
+template <class T>
+proxy_adder(T&) -> proxy_adder<T>;
+}
+
+#define PZ_observe(val_, ...) (::Rxt::frp::_det::proxy_adder{(val_)}) << [&](__VA_ARGS__)
+
 
 template <class Reactive, class Hook=hooks<>>
 struct adapt_reactive : Reactive

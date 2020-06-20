@@ -13,17 +13,14 @@ set(_HEADERS
     map.hpp
     tiles.hpp
     util.hpp
-    observable.hpp
     mouse_tools.hpp
     mouse_core.hpp
-    tool.hpp
     viewport.hpp
     controls.hpp
     noise.hpp
 )
 
-set(_SOURCES
-)
+set(_SOURCES)
 
 add_library(plaza ${_HEADERS} ${_SOURCES})
 target_link_libraries(plaza PUBLIC Rxt::Graphics)

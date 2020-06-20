@@ -29,44 +29,43 @@ int main(int argc, char** argv)
     return 0;
 }
 
-#define PZ_observe Pz_observe
-
 void canvas::_init_observers()
 {
-    th.insert(&selector);
-    th.insert(&stroker);
-    th.insert(&painter);
+    router.insert(&selector);
+    router.insert(&stroker);
+    router.insert(&painter);
 
     PZ_observe(cursor.on_update) {
-        th.on_cursor_update();
+        router->on_cursor_update();
     };
     PZ_observe(viewport.on_update) {
         viewport.update_uniforms(p_ui, false);
-        th.on_viewport_update();
+        router->on_viewport_update();
     };
-    PZ_observe(th.on_viewport_update) {
+    PZ_observe(router->on_viewport_update) {
         viewport.update_uniforms(p_quad);
         set(p_lines->mvp_matrix, viewport.view_matrix());
     };
 
-    PZ_observe(th.on_enable) {
+    PZ_observe(router->on_enable) {
         viewport.on_update();
         cursor.on_update();
     };
 
-    PZ_observe(th[&selector].on_cursor_update) {
-        selector.update_cursor(b_ui);
-    };
-    PZ_observe(th[&selector].on_disable) {
-        b_ui.clear(); b_ui.update();
-    };
-    // PZ_observe(th[&selector].on_select) {
     PZ_observe(selector.on_selection) {
         b_ui.clear(); b_ui.update();
         selector.update_selection(b_model);
     };
+    PZ_observe(selector.on_motion) {
+        cursor.on_update();
+    };
+    PZ_observe(router[&selector].on_cursor_update) {
+        selector.update_cursor(b_ui);
+    };
+    PZ_observe(router[&selector].on_disable) {
+        b_ui.clear(); b_ui.update();
+    };
 
-    // PZ_observe(th[&painter].on_edit) {
     PZ_observe(painter.on_edit) {
         b_paint.clear();
         paint_layer.for_each([&] (auto pos, auto& cell) {
@@ -80,10 +79,10 @@ void canvas::_init_observers()
         stroker.update_cursor(b_lines_cursor);
         stroker.update_model(b_lines);
     };
-    PZ_observe(th[&stroker].on_cursor_update) {
+    PZ_observe(router[&stroker].on_cursor_update) {
         stroker.update_cursor(b_lines_cursor);
     };
-    PZ_observe(th[&stroker].on_debug) {
+    PZ_observe(router[&stroker].on_debug) {
         if (stroker._current)
             Rxt_DEBUG(stroker._current->at(0));
         else print("nothing\n");
@@ -91,11 +90,6 @@ void canvas::_init_observers()
 
     set(p_ui->viewport_position, ivec{0});
     viewport.on_update(); // set initial viewport
-
-    // router.set_subject(cursor.on_update);
-    // router.set_subject(viewport.on_update);
-    // router.set_subject(selector.on_selection);
-    // router.set_subject(painter.on_edit);
 }
 
 void canvas::_init_controls()
@@ -112,13 +106,13 @@ void canvas::_init_controls()
     keys.on_press["."] = std::bind(scale, +1);
     keys.on_press[","] = std::bind(scale, -1);
 
-    auto set_tool = [this] (auto t) { tool = t; th.enable(t); };
+    auto set_tool = [this] (auto t) { tool = t; router.enable(t); };
     keys.on_press["1"] = std::bind(set_tool, &selector);
     keys.on_press["2"] = std::bind(set_tool, &painter);
     keys.on_press["3"] = std::bind(set_tool, &stroker);
     set_tool(&selector);
 
-    keys.on_press["D"] = [&] { th.on_debug(); };
+    keys.on_press["D"] = [&] { router->on_debug(); };
 
     auto paint = [this](auto p, int) { paint_layer.put(p, 1); };
     painter.set_method(paint);
@@ -138,14 +132,10 @@ void canvas::step(SDL_Event event)
         viewport.edge_scroll(cursor.position(), 1);
     }
 
-    // Ideally we can track everything from flush() calls
-    // auto dirty = router.flush();
-    // dirty += tool.flush();
-
     auto updates = {
         &cursor.on_update,
         &viewport.on_update,
-        // &th.on_update
+        // &router->on_update
     };
     auto dirty = Rxt::flush_all(updates);
 

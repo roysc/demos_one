@@ -1,11 +1,9 @@
 #pragma once
 
-#include "tool.hpp"
-#include "mouse_tools.hpp"
 #include "map.hpp"
-#include "observable.hpp"
-#include "viewport_old.hpp"
+#include "mouse_tools.hpp"
 #include "controls.hpp"
+#include "reactive.hpp"
 
 #include <Rxt/graphics/sdl.hpp>
 #include <Rxt/graphics/shader/grid_quad_2D.hpp>
@@ -61,19 +59,17 @@ struct switch_hooks
     };
 };
 
-template <class A, class B>
-struct extend_all : A, B {};
-
 template <class T, class H>
-struct multi_hooks : extend_all<H, switch_hooks>
+struct hook_router
 {
-    using hook_type = extend_all<H, switch_hooks>;
+    struct hook_type : H, switch_hooks {};
     using map_type = std::map<T, hook_type>;
 
+    hook_type _dispatch;
     map_type _map;
     std::optional<T> _switch;
 
-    multi_hooks()
+    hook_router()
     {
         for (auto m: tool_hooks::_members) {
             auto mem = std::mem_fn(m);
@@ -83,11 +79,13 @@ struct multi_hooks : extend_all<H, switch_hooks>
                 if (it != end(_map))
                     mem(it->second)();
             };
-            mem(*this).add(hook);
+            mem(_dispatch).add(hook);
         }
     }
 
+    hook_type* operator->() { return &_dispatch; }
     auto& operator[](T k) { return _map[k]; }
+
     void insert(T k) {_map.emplace(k, hook_type{}); }
 
     void enable(T k)
@@ -109,9 +107,7 @@ struct model_buffers : grid_program::data
 
     void add_selection(ivec a, ivec b)
     {
-        clear();
         push(a, b-a+1, select_color);
-        update();
     }
 };
 
@@ -152,7 +148,7 @@ struct canvas
     stroke_tool stroker {controls};
     grid_painter painter {controls};
     mouse_tool* tool {};
-    multi_hooks<mouse_tool*, tool_hooks> th;
+    hook_router<mouse_tool*, tool_hooks> router;
 
     grid_program p_ui, p_quad;
     line_program p_lines;

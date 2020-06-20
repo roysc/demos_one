@@ -1,12 +1,12 @@
 #pragma once
 
 #include "viewport.hpp"
-#include "observable.hpp"
+#include "reactive.hpp"
 #include "events.hpp"
 
 #include <Rxt/graphics/camera.hpp>
 
-// spatial_traits ST
+// ST = spatial_traits
 
 template <class Der>
 struct reactive_base

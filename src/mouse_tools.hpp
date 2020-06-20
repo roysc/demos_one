@@ -12,8 +12,6 @@
 
 #include <optional>
 
-// All tools are reactive CRTP
-
 // Select a box
 template <class ST>
 struct mouse_select_tool
@@ -29,9 +27,6 @@ struct mouse_select_tool
     Rxt::rgba color = {1, 0, 1, 0.3};
 
     Rxt::hooks<> on_motion, on_selection;
-
-    // struct tag { struct mov {}; struct sel {}; };
-    // Rxt::variant_hooks<tag::mov, tag::sel> on_update; // in ctrp impl
 
     mouse_select_tool(cursor_port<ST>& c) : controls{c} {}
 
@@ -86,6 +81,7 @@ struct mouse_select_tool
     template <class Objbuf>
     void update_selection(Objbuf& buf) const
     {
+        buf.clear();
         for (auto [a, b]: Rxt::to_range(selection)) {
             buf.add_selection(a, b);
         }
@@ -103,7 +99,6 @@ struct mouse_paint_tool : mouse_tool
     paint_method _paint;
 
     Rxt::hooks<> on_edit;
-    // lazy_observable<tags::object_edit_tag> on_edit;
 
     mouse_paint_tool(cursor_port<ST>& u, paint_method m = {})
         : controls{u}, _paint{m} {}
@@ -134,7 +129,6 @@ struct mouse_stroke_tool : mouse_tool
     const Rxt::rgba cursor_color {Rxt::colors::yellow, 1};
     const Rxt::rgba stroke_color {Rxt::colors::white, 1};
 
-    // lazy_observable<tags::object_edit_tag> on_edit;
     Rxt::hooks<> on_edit;
 
     mouse_stroke_tool(cursor_port<ST>& c) : controls{c} {}
@@ -145,7 +139,6 @@ struct mouse_stroke_tool : mouse_tool
             finish();
             return;
         }
-        // add point
         if (!_current)
             _current.emplace();
         _current->push_back(controls.cursor_position_world());

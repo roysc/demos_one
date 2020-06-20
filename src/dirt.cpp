@@ -57,7 +57,7 @@ dirt_app::dirt_app(uvec2 size)
 
 void dirt_app::_init_observers()
 {
-    Pz_observe(camera.on_update) {
+    PZ_observe(camera.on_update) {
         auto m = camera.model_matrix();
         auto v = camera.view_matrix();
         set(triangle_prog->model_matrix, m);
@@ -68,7 +68,7 @@ void dirt_app::_init_observers()
         set(line_prog->mvp_matrix, camera.projection_matrix() * v * m);
     };
 
-    Pz_observe(cursor.on_update) {
+    PZ_observe(cursor.on_update) {
         using atrium::to_point;
         auto [source, dir] = Rxt::cast_ray(cursor.position(), camera);
 
@@ -78,7 +78,7 @@ void dirt_app::_init_observers()
         }
     };
 
-    Pz_observe(ux.on_update) {
+    PZ_observe(ux.on_update) {
         using namespace Rxt::colors;
         Rxt::rgb const axis_colors[3] {red, green, blue};
 
@@ -88,29 +88,27 @@ void dirt_app::_init_observers()
             b_lines.push(Rxt::zero3<fvec3>, c);
             b_lines.push(Rxt::basis3<fvec3>(i), c);
         }
-
         render_ux(ux, geom, b_lines);
         b_lines.update();
     };
 
-    Pz_observe(model_update) {
+    PZ_observe(model_update) {
         b_triangles.clear();
         render_triangles(geom, colors, b_triangles);
         b_triangles.update();
     };
 
-    Pz_observe(terrain.on_update) {
+    PZ_observe(terrain.on_update) {
         object_mesh mesh;
         terrain.for_each([&](auto pos, auto& cell) {
-            // add cell surface to mesh;
             auto x = pos.x, y = pos.y;
             const auto max_elev = std::numeric_limits<terrain_value>::max();
             auto elev = float(cell)/max_elev;
             atrium::Point corners[4] = {
-                {x, y, elev},
-                {x+1 , y, elev},
+                {  x,   y, elev},
+                {x+1,   y, elev},
                 {x+1, y+1, elev},
-                {x, y+1, elev}
+                {  x, y+1, elev}
             };
             CGAL::make_quad(corners[0], corners[1], corners[2], corners[3], mesh);
         });
@@ -151,17 +149,24 @@ void dirt_app::_init_controls()
     keys.on_press["D"] = show_hl;
     keys.on_press["R"] = reset_camera;
 
-    Pz_observe(mouse.on_quit) { quit = true; };
-    Pz_observe(mouse.on_key_down, SDL_Keysym k) { keys.press(k); };
-    Pz_observe(mouse.on_mouse_motion, SDL_MouseMotionEvent motion) {
+    PZ_observe(mouse.on_quit) { quit = true; };
+    PZ_observe(mouse.on_key_down, SDL_Keysym k) { keys.press(k); };
+    PZ_observe(mouse.on_mouse_motion, SDL_MouseMotionEvent motion) {
         auto [x, y] = sdl::nds_coords(*window, motion.x, motion.y);
         cursor.position({x, y});
     };
-    Pz_observe(mouse.on_mouse_wheel, SDL_MouseWheelEvent wheel) {
+    PZ_observe(mouse.on_mouse_wheel, SDL_MouseWheelEvent wheel) {
         if (wheel.y != 0)
             camera.forward(wheel.y);
         if (wheel.x != 0)
             camera.orbit(glm::angleAxis(speed, Rxt::basis3<fvec3>(Ax::z)));
+    };
+    PZ_observe(mouse.on_mouse_down, SDL_MouseButtonEvent button) {
+        switch (button.button) {
+        case SDL_BUTTON_MIDDLE:
+            // drag_origin = controls.cursor_position_world();
+            break;
+        }
     };
 }
 
