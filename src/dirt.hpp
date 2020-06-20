@@ -39,8 +39,8 @@ struct ui_traits
 };
 
 using namespace Rxt::frp;
-using cursor_type = adapt_reactive_crt<reactive_cursor, ui_traits>;
-using camera_type = adapt_reactive_crt<reactive_focus_cam>;
+using cursor_type = adapt_reactive_crt<reactive_cursor, hooks<>, ui_traits>;
+using camera_type = adapt_reactive_crt<reactive_focus_cam, hooks<>>;
 
 using atrium::mesh_data;
 using atrium::mesh_colors;

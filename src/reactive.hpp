@@ -4,7 +4,9 @@
 #include <functional>
 #include <vector>
 
-namespace Rxt::frp
+namespace Rxt
+{
+inline namespace frp
 {
 template<class... Ts>
 struct hooks
@@ -38,13 +40,14 @@ struct hooks
     void operator()(Ts... t) { dispatch(t...); }
 };
 
-template <class Reactive>
+template <class Reactive, class Hook=hooks<>>
 struct adapt_reactive : Reactive
 {
     using reactive_base = Reactive;
     using reactive_base::reactive_base;
+    using hook_type = Hook;
 
-    hooks<> on_update;
+    hook_type on_update;
 
     auto& emplace(reactive_base that)
     {
@@ -56,11 +59,11 @@ struct adapt_reactive : Reactive
     reactive_base& operator*() { return *this; }
 };
 
-template <template <class...> class Reactive, class... T>
+template <template <class...> class Reactive, class Hook, class... T>
 struct adapt_reactive_crt
-    : adapt_reactive<Reactive<adapt_reactive_crt<Reactive, T...>, T...>>
+    : adapt_reactive<Reactive<adapt_reactive_crt<Reactive, Hook, T...>, T...>, Hook>
 {
-    using super_type = adapt_reactive<Reactive<adapt_reactive_crt<Reactive, T...>, T...>>;
+    using super_type = adapt_reactive<Reactive<adapt_reactive_crt<Reactive, Hook, T...>, T...>, Hook>;
     using super_type::super_type;
 };
 
@@ -74,5 +77,6 @@ int flush_all(Rh& r)
     int ret = 0;
     for (auto& h: r) ret += h->flush();
     return ret;
+}
 }
 }

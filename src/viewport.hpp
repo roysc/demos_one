@@ -35,6 +35,9 @@ struct basic_viewport
         assert(gt_zero(max));
     }
 
+    virtual void position(P pos) { _position = pos; }
+    virtual void set_scale(Size scale) { scale_factor = scale; }
+
     P position() const { return _position; }
 
     void scale(int exp)
@@ -43,16 +46,16 @@ struct basic_viewport
         const Size min_scale{1};
         if (exp > 0) {
             if (scale_factor.x > min_scale.x && scale_factor.y > min_scale.y)
-                set_scale(scale_factor / 2);
+                set_scale(scale_factor / 2u);
         } else {
             if (scale_factor.x < max_scale.x && scale_factor.y < max_scale.y)
-                set_scale(scale_factor * 2);
+                set_scale(scale_factor * 2u);
         }
     }
 
     void move(P d)
     {
-        _position += d;
+        position(position() + d);
     }
 
     // size in number of cells

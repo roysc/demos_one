@@ -5,10 +5,15 @@
 #include "map.hpp"
 #include "observable.hpp"
 #include "viewport_old.hpp"
+#include "controls.hpp"
 
 #include <Rxt/graphics/sdl.hpp>
 #include <Rxt/graphics/shader/grid_quad_2D.hpp>
 #include <Rxt/graphics/shader/solid_color_3D.hpp>
+
+#include <optional>
+
+using Rxt::hooks;
 
 using grid_program = Rxt::shader_programs::webcompat::grid_quad_2D;
 
@@ -18,29 +23,81 @@ struct grid_traits
     using size_type = uvec;
 };
 
-using grid_controls = control_port<grid_traits>;
+using grid_controls = controls_2d<grid_traits>;
 using grid_selector = mouse_select_tool<grid_traits>;
 using grid_painter = mouse_paint_tool<grid_traits>;
 using stroke_tool = mouse_stroke_tool<grid_traits>;
 
-using tool_tags = Rxt::type_tuple<
-    tags::debug_tag,
-    tags::viewport_tag,
-    tags::cursor_motion_tag,
-    tags::object_edit_tag,
-    tags::cursor_selection_tag
-    >;
+using viewport_type = Rxt::adapt_reactive_crt<reactive_viewport, hooks<>, grid_traits>;
+using cursor_type = Rxt::adapt_reactive_crt<reactive_cursor, hooks<>, grid_traits>;
 
-using main_router = Rxt::tuple_apply_t<observer_router, tool_tags>;
-using main_tool = Rxt::tuple_apply_t<swappable_tool, tool_tags>;
+struct tool_hooks
+{
+    hooks<> on_viewport_update;
+    hooks<> on_cursor_update;
+    hooks<> on_edit;
+    hooks<> on_select;
+    hooks<> on_debug;
 
-// The hook list implementation routed to by the swappable_tool
-// uses eager_observable<Tag> for the tool's exposed tags
-using tool_observable = Rxt::tuple_apply_t<multi_observable,
-    Rxt::tuple_map_t<eager_observable, main_tool::observable_tags>>;
+    using hook_member = hooks<> tool_hooks::*;
+    static constexpr std::array<hook_member, 5> _members = {
+        (&tool_hooks::on_viewport_update),
+        (&tool_hooks::on_cursor_update),
+        (&tool_hooks::on_edit),
+        (&tool_hooks::on_select),
+        (&tool_hooks::on_debug)
+    };
+};
 
-template <class Tool>
-using tool_proxy = observable_proxy<Tool, tool_observable>;
+struct switch_hooks
+{
+    hooks<> on_enable;
+    hooks<> on_disable;
+
+    using hook_member = hooks<> switch_hooks::*;
+    static constexpr std::array<hook_member, 2> _members = {
+        (&switch_hooks::on_enable),
+        (&switch_hooks::on_disable)
+    };
+};
+
+template <class A, class B>
+struct extend_all : A, B {};
+
+template <class T, class H>
+struct multi_hooks : extend_all<H, switch_hooks>
+{
+    using hook_type = extend_all<H, switch_hooks>;
+    using map_type = std::map<T, hook_type>;
+
+    map_type _map;
+    std::optional<T> _switch;
+
+    multi_hooks()
+    {
+        for (auto m: tool_hooks::_members) {
+            auto mem = std::mem_fn(m);
+            auto hook = [mem, this] {
+                if (!_switch) return;
+                auto it = _map.find(*_switch);
+                if (it != end(_map))
+                    mem(it->second)();
+            };
+            mem(*this).add(hook);
+        }
+    }
+
+    auto& operator[](T k) { return _map[k]; }
+    void insert(T k) {_map.emplace(k, hook_type{}); }
+
+    void enable(T k)
+    {
+        if (_switch)
+            _map[*_switch].on_disable();
+        _switch = k;
+        _map[*_switch].on_enable();
+    }
+};
 
 using glm::fvec2;
 using line_program = Rxt::shader_programs::solid_color_3D<GL_LINES>;
@@ -78,6 +135,7 @@ struct line_buffers
     }
 };
 
+
 struct canvas
     : Rxt::sdl::simple_gui
     , Rxt::sdl::input_handler<canvas>
@@ -90,12 +148,11 @@ struct canvas
     cursor_type cursor;
     grid_controls controls{cursor, viewport};
 
-    tool_proxy<grid_selector> selector {controls};
-    tool_proxy<stroke_tool> stroker {controls};
-    tool_proxy<grid_painter> painter {controls};
-    tool_observable tool_hooks;
-    main_tool tool;
-    main_router router;
+    grid_selector selector {controls};
+    stroke_tool stroker {controls};
+    grid_painter painter {controls};
+    mouse_tool* tool {};
+    multi_hooks<mouse_tool*, tool_hooks> th;
 
     grid_program p_ui, p_quad;
     line_program p_lines;
@@ -122,18 +179,25 @@ struct canvas
     void step(SDL_Event);
     void draw();
 
-    void handle_mouse_motion(SDL_MouseMotionEvent motion)
+    void on_mouse_motion(SDL_MouseMotionEvent motion)
     {
         auto [x, y] = Rxt::sdl::nds_coords(*window, motion.x, motion.y);
         auto gridpos = viewport.from_nds(x, y);
 
         cursor.position(gridpos);
     }
+    void on_mouse_down(SDL_MouseButtonEvent button);
+    void on_mouse_up(SDL_MouseButtonEvent button);
+    void on_quit() { quit = true; }
+    void on_key_down(SDL_Keysym k) { keys.press(k); }
+    void on_mouse_wheel(SDL_MouseWheelEvent wheel)
+    {
+        if (wheel.y != 0)
+            viewport.scale(wheel.y);
+        // if (wheel.x != 0)
+        //     camera.orbit(glm::angleAxis(speed, Rxt::basis3<fvec3>(Ax::z)));
+    }
 
-    void handle_mouse_down(SDL_MouseButtonEvent button);
-    void handle_mouse_up(SDL_MouseButtonEvent button);
-    void handle_should_quit() { quit = true; }
-    void handle_key_down(SDL_Keysym k) { keys.press(k); }
     bool should_quit() const { return quit; }
 
     void _init_controls();

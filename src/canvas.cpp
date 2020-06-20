@@ -29,6 +29,75 @@ int main(int argc, char** argv)
     return 0;
 }
 
+#define PZ_observe Pz_observe
+
+void canvas::_init_observers()
+{
+    th.insert(&selector);
+    th.insert(&stroker);
+    th.insert(&painter);
+
+    PZ_observe(cursor.on_update) {
+        th.on_cursor_update();
+    };
+    PZ_observe(viewport.on_update) {
+        viewport.update_uniforms(p_ui, false);
+        th.on_viewport_update();
+    };
+    PZ_observe(th.on_viewport_update) {
+        viewport.update_uniforms(p_quad);
+        set(p_lines->mvp_matrix, viewport.view_matrix());
+    };
+
+    PZ_observe(th.on_enable) {
+        viewport.on_update();
+        cursor.on_update();
+    };
+
+    PZ_observe(th[&selector].on_cursor_update) {
+        selector.update_cursor(b_ui);
+    };
+    PZ_observe(th[&selector].on_disable) {
+        b_ui.clear(); b_ui.update();
+    };
+    // PZ_observe(th[&selector].on_select) {
+    PZ_observe(selector.on_selection) {
+        b_ui.clear(); b_ui.update();
+        selector.update_selection(b_model);
+    };
+
+    // PZ_observe(th[&painter].on_edit) {
+    PZ_observe(painter.on_edit) {
+        b_paint.clear();
+        paint_layer.for_each([&] (auto pos, auto& cell) {
+            if (!cell) return;
+            b_paint.push(pos, uvec(1), rgba(Rxt::colors::sand, 1));
+        });
+        b_paint.update();
+    };
+
+    PZ_observe(stroker.on_edit) {
+        stroker.update_cursor(b_lines_cursor);
+        stroker.update_model(b_lines);
+    };
+    PZ_observe(th[&stroker].on_cursor_update) {
+        stroker.update_cursor(b_lines_cursor);
+    };
+    PZ_observe(th[&stroker].on_debug) {
+        if (stroker._current)
+            Rxt_DEBUG(stroker._current->at(0));
+        else print("nothing\n");
+    };
+
+    set(p_ui->viewport_position, ivec{0});
+    viewport.on_update(); // set initial viewport
+
+    // router.set_subject(cursor.on_update);
+    // router.set_subject(viewport.on_update);
+    // router.set_subject(selector.on_selection);
+    // router.set_subject(painter.on_edit);
+}
+
 void canvas::_init_controls()
 {
     keys.on_press["C-W"] = [this] { quit = true; };
@@ -43,88 +112,17 @@ void canvas::_init_controls()
     keys.on_press["."] = std::bind(scale, +1);
     keys.on_press[","] = std::bind(scale, -1);
 
-    keys.on_press["1"] = [&] { tool.set_current(&selector); };
-    keys.on_press["2"] = [&] { tool.set_current(&painter); };
-    keys.on_press["3"] = [&] { tool.set_current(&stroker); };
+    auto set_tool = [this] (auto t) { tool = t; th.enable(t); };
+    keys.on_press["1"] = std::bind(set_tool, &selector);
+    keys.on_press["2"] = std::bind(set_tool, &painter);
+    keys.on_press["3"] = std::bind(set_tool, &stroker);
+    set_tool(&selector);
 
-    keys.on_press["D"] = [&] { tool.dispatch(tags::debug); };
+    keys.on_press["D"] = [&] { th.on_debug(); };
 
-    auto paint = [&](auto p, int) { paint_layer.put(p, 1); };
+    auto paint = [this](auto p, int) { paint_layer.put(p, 1); };
     painter.set_method(paint);
     paint_layer.resize(uvec(320));
-}
-
-#define _observe Pz_observe_tag
-
-void canvas::_init_observers()
-{
-    _observe(cursor.on_change) {
-        tool.dispatch(tags::cursor_motion);
-    };
-    _observe(viewport.on_change) {
-        viewport.update_uniforms(p_ui, false);
-        tool.dispatch(tags::viewport);
-    };
-    // router.route(tags::viewport, controls.on_viewport_change);
-
-    tool.add_shared_subjects(tool_hooks);
-    tool.set_current(
-        tool.add_tool(selector)
-    );
-    tool.add_tool(painter);
-    tool.get_router(
-        tool.add_tool(stroker)
-    ).set_subject(stroker.on_edit);
-
-    _observe(tool.on(tags::activate)) {
-        viewport.on_change.dispatch({});
-        cursor.on_change.dispatch({});
-    };
-    _observe(tool.on(tags::viewport)) {
-        viewport.update_uniforms(p_quad);
-        set(p_lines->mvp_matrix, viewport.view_matrix());
-    };
-
-    _observe(selector.on(tags::cursor_motion)) {
-        selector.update_cursor(b_ui);
-    };
-    _observe(selector.on(tags::deactivate)) {
-        b_ui.clear(); b_ui.update();
-    };
-    _observe(selector.on_selection) {
-        b_ui.clear(); b_ui.update();
-        selector.update_selection(b_model);
-    };
-
-    _observe(painter.on_edit) {
-        b_paint.clear();
-        paint_layer.for_each([&] (auto pos, auto& cell) {
-            if (!cell) return;
-            b_paint.push(pos, uvec(1), rgba(Rxt::colors::sand, 1));
-        });
-        b_paint.update();
-    };
-
-    _observe(stroker.on(tags::cursor_motion)) {
-        stroker.update_cursor(b_lines_cursor);
-    };
-    _observe(stroker.on_edit) {
-        stroker.update_cursor(b_lines_cursor);
-        stroker.update_model(b_lines);
-    };
-    _observe(stroker.on(tags::debug)) {
-        if (stroker._current)
-            Rxt_DEBUG(stroker._current->at(0));
-        else print("nothing\n");
-    };
-
-    set(p_ui->viewport_position, ivec{0});
-    viewport.on_change.dispatch({}); // set initial viewport
-
-    router.set_subject(cursor.on_change);
-    router.set_subject(viewport.on_change);
-    router.set_subject(selector.on_selection);
-    router.set_subject(painter.on_edit);
 }
 
 void canvas::step(SDL_Event event)
@@ -141,8 +139,15 @@ void canvas::step(SDL_Event event)
     }
 
     // Ideally we can track everything from flush() calls
-    auto dirty = router.flush();
-    dirty += tool.flush();
+    // auto dirty = router.flush();
+    // dirty += tool.flush();
+
+    auto updates = {
+        &cursor.on_update,
+        &viewport.on_update,
+        // &th.on_update
+    };
+    auto dirty = Rxt::flush_all(updates);
 
     if (dirty) draw();
 }
@@ -161,12 +166,12 @@ void canvas::draw()
     SDL_GL_SwapWindow(window.get());
 }
 
-void canvas::handle_mouse_down(SDL_MouseButtonEvent button)
+void canvas::on_mouse_down(SDL_MouseButtonEvent button)
 {
-    tool.mouse_down(mouse_button_from_sdl(button));
+    tool->mouse_down(mouse_button_from_sdl(button));
 }
 
-void canvas::handle_mouse_up(SDL_MouseButtonEvent button)
+void canvas::on_mouse_up(SDL_MouseButtonEvent button)
 {
-    tool.mouse_up(mouse_button_from_sdl(button));
+    tool->mouse_up(mouse_button_from_sdl(button));
 }
