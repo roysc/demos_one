@@ -1,4 +1,5 @@
 #pragma once
+#include "_debug.hpp"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/transform.hpp>
@@ -7,6 +8,7 @@
 
 using ivec = glm::ivec2;
 using uvec = glm::uvec2;
+using fvec = glm::fvec2;
 
 template <class ST>
 struct basic_viewport
@@ -40,17 +42,33 @@ struct basic_viewport
 
     P position() const { return _position; }
 
-    void scale(int exp)
+    Size scale_relative(float factor) const
     {
-        // simulate zoom in/out by scaling down/up resp.; correct position to keep centered
+        return scale_factor * factor;
+    }
+
+    Size scale_pow(int exp) const
+    {
         const Size min_scale{1};
         if (exp > 0) {
             if (scale_factor.x > min_scale.x && scale_factor.y > min_scale.y)
-                set_scale(scale_factor / 2u);
+                return scale_factor / 2u;
         } else {
             if (scale_factor.x < max_scale.x && scale_factor.y < max_scale.y)
-                set_scale(scale_factor * 2u);
+                return scale_factor * 2u;
         }
+        return scale_factor;
+    }
+
+    // scale, adjusting to maintain position
+    void scale_to(Size coef, P focw)
+    {
+        ivec max {max_scale};
+        auto coefr = fvec(coef) / fvec(max);
+        P newpos = P(coefr * fvec(position() - focw)) + focw;
+        position(newpos);
+        set_scale(coef);
+        // PZ_debug("coef = {}, rel. = {}\n", coef, coefr);
     }
 
     void move(P d)
@@ -61,7 +79,7 @@ struct basic_viewport
     // size in number of cells
     Size size_cells() const
     {
-        return Size(glm::vec2(size_pixels()) / glm::vec2(scale_factor));
+        return Size(fvec(size_pixels()) / fvec(scale_factor));
     }
 
     Size size_pixels() const { return size_px; }
@@ -90,20 +108,19 @@ struct basic_viewport
 
     auto from_nds(float x, float y) const
     {
-        return floor(glm::vec2(x, y) * glm::vec2(size_cells() / 2u));
+        return floor(fvec(x, y) * fvec(size_cells() / 2u));
     }
 
-    glm::vec2 to_nds(P p) const { return glm::vec2(p) / glm::vec2(size_cells() / 2u); }
+    fvec to_nds(P p) const { return fvec(p) / fvec(size_cells() / 2u); }
 
     glm::mat4 view_matrix() const
     {
-        using glm::vec2;
         using glm::vec3;
 
         auto pos3 = vec3(position(), 0);
         auto cells = vec3(size_cells(), 1);
         glm::mat4 view_matrix =
-            glm::scale(vec3(2.f / vec2(cells), 0)) *
+            glm::scale(vec3(2.f / fvec(cells), 0)) *
             glm::translate(-pos3);
         return view_matrix;
     }

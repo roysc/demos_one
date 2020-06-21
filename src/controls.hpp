@@ -38,6 +38,7 @@ struct reactive_viewport : basic_viewport<ST>, reactive_base<Der>
 {
     using super_type = basic_viewport<ST>;
     using super_type::super_type;
+    using super_type::position;
 
     using P = typename ST::position_type;
     using Size = typename ST::size_type;
@@ -67,12 +68,12 @@ struct cursor_port
     using position_type = typename ST::position_type;
     using P = position_type;
 
-    virtual P cursor_position() const = 0;
-    virtual P viewport_position() const = 0;
+    virtual P cursor_viewspace() const = 0;
+    virtual P viewport_worldspace() const = 0;
     virtual ~cursor_port() {}
 
-    P cursor_position_world() const { return cursor_position() + viewport_position(); }
-    auto from_world(P w) const { return w - viewport_position(); }
+    P cursor_worldspace() const { return cursor_viewspace() + viewport_worldspace(); }
+    auto from_world(P w) const { return w - viewport_worldspace(); }
 };
 
 template <class ST>
@@ -80,6 +81,7 @@ struct controls_2d : cursor_port<ST>
 {
     using super_type = cursor_port<ST>;
     using P = typename ST::position_type;
+    using Size = typename ST::size_type;
 
     using cursor_type = basic_cursor<ST>;
     using viewport_type = basic_viewport<ST>;
@@ -88,8 +90,8 @@ struct controls_2d : cursor_port<ST>
     viewport_type& _viewport;
 
     controls_2d(cursor_type& c, viewport_type& v) : _cursor(c), _viewport(v) {}
-    P cursor_position() const override { return _cursor.position(); }
-    P viewport_position() const override { return _viewport.position(); }
+    P cursor_viewspace() const override { return _cursor.position(); }
+    P viewport_worldspace() const override { return _viewport.position(); }
 };
 
 // template <class ST>
@@ -102,5 +104,5 @@ struct controls_2d : cursor_port<ST>
 //     camera_type& _camera;
 
 //     P cursor_position() const override { return _cursor.position(); }
-//     P viewport_position() const override { return _camera.position(); }
+//     P viewport_worldspace() const override { return _camera.position(); }
 // };

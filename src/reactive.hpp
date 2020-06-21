@@ -48,14 +48,17 @@ struct proxy_adder
 {
     T& self;
     template <class F>
-    auto& operator<<(F&& h) { self.add(h); return *this; }
+    auto& operator=(F&& h) { self.add(h); return *this; }
 };
 
 template <class T>
 proxy_adder(T&) -> proxy_adder<T>;
 }
 
-#define PZ_observe(val_, ...) (::Rxt::frp::_det::proxy_adder{(val_)}) << [&](__VA_ARGS__)
+#define PZ_observe_capr(val_, ...) (::Rxt::frp::_det::proxy_adder{(val_)}) = [&](__VA_ARGS__)
+#define PZ_observe_capv(val_, ...) (::Rxt::frp::_det::proxy_adder{(val_)}) = [=](__VA_ARGS__)
+#define PZ_observe PZ_observe_capr
+// #define PZ_observe(val_, ...) RXT_set_lambda(::Rxt::frp::_det::proxy_adder{(val_)}, __VA_ARGS__)
 
 
 template <class Reactive, class Hook=hooks<>>
@@ -98,12 +101,12 @@ int flush_all(Rh& r)
 
 
 // Router hooks dispatch to active item
-// Attaches per-item enable/disable hooks, which dispatch back to router
+// Attaches per-item enable/disable hooks, which also dispatch back to router
 template <class T, class H>
 struct hook_router
 {
-    struct switch_hooks { hooks<> on_enable, on_disable; };
-    struct hook_type : H, switch_hooks {};
+    struct hook_type : H { hooks<> on_enable, on_disable; };
+
     using map_type = std::map<T, hook_type>;
 
     hook_type _dispatch;

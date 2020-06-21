@@ -4,6 +4,7 @@
 #include "mouse_tools.hpp"
 #include "controls.hpp"
 #include "reactive.hpp"
+#include "input.hpp"
 
 #include <Rxt/graphics/sdl.hpp>
 #include <Rxt/graphics/shader/grid_quad_2D.hpp>
@@ -48,6 +49,8 @@ struct tool_hooks
     }
 };
 
+using tool_router = Rxt::hook_router<mouse_tool*, tool_hooks>;
+
 using glm::fvec2;
 using line_program = Rxt::shader_programs::solid_color_3D<GL_LINES>;
 using Rxt::rgba;
@@ -84,9 +87,9 @@ struct line_buffers
 
 struct canvas
     : Rxt::sdl::simple_gui
-    , Rxt::sdl::input_handler<canvas>
 {
     Rxt::sdl::key_dispatcher keys;
+    input_hooks input;
     bool enable_edge_scroll = true;
     bool quit = false;
 
@@ -98,7 +101,7 @@ struct canvas
     stroke_tool stroker {controls};
     grid_painter painter {controls};
     mouse_tool* tool {};
-    Rxt::hook_router<mouse_tool*, tool_hooks> router;
+    tool_router router;
 
     grid_program p_ui, p_quad;
     line_program p_lines;
@@ -124,25 +127,6 @@ struct canvas
 
     void step(SDL_Event);
     void draw();
-
-    void on_mouse_motion(SDL_MouseMotionEvent motion)
-    {
-        auto [x, y] = Rxt::sdl::nds_coords(*window, motion.x, motion.y);
-        auto gridpos = viewport.from_nds(x, y);
-
-        cursor.position(gridpos);
-    }
-    void on_mouse_down(SDL_MouseButtonEvent button);
-    void on_mouse_up(SDL_MouseButtonEvent button);
-    void on_quit() { quit = true; }
-    void on_key_down(SDL_Keysym k) { keys.press(k); }
-    void on_mouse_wheel(SDL_MouseWheelEvent wheel)
-    {
-        if (wheel.y != 0)
-            viewport.scale(wheel.y);
-        // if (wheel.x != 0)
-        //     camera.orbit(glm::angleAxis(speed, Rxt::basis3<fvec3>(Ax::z)));
-    }
 
     bool should_quit() const { return quit; }
 

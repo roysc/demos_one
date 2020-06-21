@@ -34,7 +34,7 @@ struct mouse_select_tool
     {
         switch (i) {
         case mouse_button::left:
-            drag_origin = controls.cursor_position_world();
+            drag_origin = controls.cursor_worldspace();
             break;
         default: {}
         }
@@ -46,7 +46,7 @@ struct mouse_select_tool
         switch (i) {
         case mouse_button::left:
             if (drag_origin) {
-                auto abspos = controls.cursor_position_world();
+                auto abspos = controls.cursor_worldspace();
                 auto [a, b] = Rxt::box(*drag_origin, abspos);
                 selection = {a, b};
                 drag_origin = {};
@@ -71,10 +71,10 @@ struct mouse_select_tool
     void update_cursor(UIbuf& buf) const
     {
         if (drag_origin) {
-            auto [a, b] = Rxt::box(controls.cursor_position(), controls.from_world(*drag_origin));
+            auto [a, b] = Rxt::box(controls.cursor_viewspace(), controls.from_world(*drag_origin));
             buf.set_cursor(a, b-a+1, color);
         } else {
-            buf.set_cursor(controls.cursor_position(), uvec{1}, color);
+            buf.set_cursor(controls.cursor_viewspace(), uvec{1}, color);
         }
     }
 
@@ -108,7 +108,7 @@ struct mouse_paint_tool : mouse_tool
     void mouse_down(mouse_button i) override
     {
         if (_paint)
-            _paint(controls.cursor_position_world(), i);
+            _paint(controls.cursor_worldspace(), i);
         on_edit();
     }
 
@@ -141,7 +141,7 @@ struct mouse_stroke_tool : mouse_tool
         }
         if (!_current)
             _current.emplace();
-        _current->push_back(controls.cursor_position_world());
+        _current->push_back(controls.cursor_worldspace());
         on_edit();
     }
 
@@ -166,7 +166,7 @@ struct mouse_stroke_tool : mouse_tool
         buf.clear();
         if (!_current) return;
 
-        P a = _current->back(), b = controls.cursor_position_world();
+        P a = _current->back(), b = controls.cursor_worldspace();
         buf.add_line(a, b, cursor_color);
         buf.update();
     }

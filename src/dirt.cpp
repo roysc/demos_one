@@ -149,19 +149,19 @@ void dirt_app::_init_controls()
     keys.on_press["D"] = show_hl;
     keys.on_press["R"] = reset_camera;
 
-    PZ_observe(mouse.on_quit) { quit = true; };
-    PZ_observe(mouse.on_key_down, SDL_Keysym k) { keys.press(k); };
-    PZ_observe(mouse.on_mouse_motion, SDL_MouseMotionEvent motion) {
+    PZ_observe(input.on_quit) { quit = true; };
+    PZ_observe(input.on_key_down, SDL_Keysym k) { keys.press(k); };
+    PZ_observe(input.on_mouse_motion, SDL_MouseMotionEvent motion) {
         auto [x, y] = sdl::nds_coords(*window, motion.x, motion.y);
         cursor.position({x, y});
     };
-    PZ_observe(mouse.on_mouse_wheel, SDL_MouseWheelEvent wheel) {
+    PZ_observe(input.on_mouse_wheel, SDL_MouseWheelEvent wheel) {
         if (wheel.y != 0)
             camera.forward(wheel.y);
         if (wheel.x != 0)
             camera.orbit(glm::angleAxis(speed, Rxt::basis3<fvec3>(Ax::z)));
     };
-    PZ_observe(mouse.on_mouse_down, SDL_MouseButtonEvent button) {
+    PZ_observe(input.on_mouse_down, SDL_MouseButtonEvent button) {
         switch (button.button) {
         case SDL_BUTTON_MIDDLE:
             // drag_origin = controls.cursor_position_world();
@@ -173,7 +173,7 @@ void dirt_app::_init_controls()
 void dirt_app::step(SDL_Event event)
 {
     do {
-        mouse.handle_input(event);
+        input.handle_input(event);
     } while (SDL_PollEvent(&event));
     keys.scan();
 

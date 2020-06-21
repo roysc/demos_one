@@ -1,6 +1,7 @@
 #include "canvas.hpp"
 #include "util.hpp"
 
+#include <Rxt/graphics/gl_handy.hpp>
 #include <Rxt/range.hpp>
 #include <iostream>
 
@@ -19,6 +20,8 @@ int main(int argc, char** argv)
     if (argc > 1) {
         seed = std::stoi(argv[1]);
     }
+
+    gl::debugging().enable_logging = false;
 
     auto loop = sdl::make_looper(
         new canvas(viewport_type{uvec(80), uvec(8)}),
@@ -88,6 +91,12 @@ void canvas::_init_observers()
         else print("nothing\n");
     };
 
+    PZ_observe(router->on_debug) {
+        print("cursor={}\nviewport=(pos={}, scale={})\n",
+              cursor.position(), viewport.position(), viewport.scale_factor
+        );
+    };
+
     set(p_ui->viewport_position, ivec{0});
     viewport.on_update(); // set initial viewport
 }
@@ -97,14 +106,14 @@ void canvas::_init_controls()
     keys.on_press["C-W"] = [this] { quit = true; };
 
     auto move = [this] (int dx, int dy) { viewport.move(ivec(dx, dy)); };
-    auto scale = [this] (int a) { viewport.scale(a); };
+    auto scale_center = [this] (int a) { viewport.set_scale(viewport.scale_pow(a)); };
 
     keys.on_scan["Left"]  = std::bind(move, -1, 0);
     keys.on_scan["Right"] = std::bind(move, +1, 0);
     keys.on_scan["Down"]  = std::bind(move, 0, -1);
     keys.on_scan["Up"]    = std::bind(move, 0, +1);
-    keys.on_press["."] = std::bind(scale, +1);
-    keys.on_press[","] = std::bind(scale, -1);
+    keys.on_press["."] = std::bind(scale_center, +1);
+    keys.on_press[","] = std::bind(scale_center, -1);
 
     auto set_tool = [this] (auto t) { tool = t; router.enable(t); };
     keys.on_press["1"] = std::bind(set_tool, &selector);
@@ -117,12 +126,32 @@ void canvas::_init_controls()
     auto paint = [this](auto p, int) { paint_layer.put(p, 1); };
     painter.set_method(paint);
     paint_layer.resize(uvec(320));
+
+    PZ_observe(input.on_mouse_motion, SDL_MouseMotionEvent motion) {
+        auto [x, y] = Rxt::sdl::nds_coords(*window, motion.x, motion.y);
+        auto gridpos = viewport.from_nds(x, y);
+        cursor.position(gridpos);
+    };
+    PZ_observe(input.on_quit) { quit = true; };
+    PZ_observe(input.on_key_down, SDL_Keysym k) { keys.press(k); };
+    PZ_observe(input.on_mouse_wheel, SDL_MouseWheelEvent wheel) {
+        if (wheel.y == 0) return;
+        auto sf = viewport.scale_pow(-wheel.y);
+        viewport.scale_to(sf, controls.cursor_worldspace());
+    };
+
+    PZ_observe(input.on_mouse_down, SDL_MouseButtonEvent button) {
+        tool->mouse_down(mouse_button_from_sdl(button));
+    };
+    PZ_observe(input.on_mouse_up, SDL_MouseButtonEvent button) {
+        tool->mouse_up(mouse_button_from_sdl(button));
+    };
 }
 
 void canvas::step(SDL_Event event)
 {
     do {
-        handle_input(event);
+        input.handle_input(event);
     } while (SDL_PollEvent(&event));
 
     keys.scan();
@@ -154,14 +183,4 @@ void canvas::draw()
     b_lines_cursor.draw();
 
     SDL_GL_SwapWindow(window.get());
-}
-
-void canvas::on_mouse_down(SDL_MouseButtonEvent button)
-{
-    tool->mouse_down(mouse_button_from_sdl(button));
-}
-
-void canvas::on_mouse_up(SDL_MouseButtonEvent button)
-{
-    tool->mouse_up(mouse_button_from_sdl(button));
 }

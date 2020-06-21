@@ -1,6 +1,7 @@
 #include "controls.hpp"
 #include "reactive.hpp"
 #include "map.hpp"
+#include "input.hpp"
 
 #include "atrium/geometry.hpp"
 #include "atrium/rendering.hpp"
@@ -53,32 +54,25 @@ using int8 = unsigned char;
 using terrain_value = int8;
 using terrain_map = dense_map<terrain_value>;
 
-struct mouse_hooks : sdl::input_handler<mouse_hooks>
-{
-    hooks<> on_quit;
-    hooks<SDL_Keysym> on_key_down;
-    hooks<SDL_MouseButtonEvent> on_mouse_down, on_mouse_up;
-    hooks<SDL_MouseMotionEvent> on_mouse_motion;
-    hooks<SDL_MouseWheelEvent> on_mouse_wheel;
-};
+using tool_router = Rxt::hook_router<int, input_hooks>;
 
 struct dirt_app : public sdl::simple_gui
 {
-    bool quit = false;
     sdl::key_dispatcher keys;
-    mouse_hooks mouse;
-    sdl::metronome metronome {Rxt::duration_fps<30>(1), [this] { return !should_quit(); }};
+    input_hooks input;
+    bool quit = false;
+    sdl::metronome metronome {Rxt::duration_fps<30>(1), [this] { return !should_quit(*this); }};
     // time_point last_draw_time;
     // bool draw_needed = true;
+
+    fvec3 const start_camera_at{8};
+    camera_type camera{start_camera_at};
+    cursor_type cursor;
 
     triangle_program triangle_prog;
     triangle_program::data b_triangles {triangle_prog};
     line_program line_prog;
     line_program::data b_lines {line_prog};
-
-    fvec3 const start_camera_at{8};
-    camera_type camera{start_camera_at};
-    cursor_type cursor;
 
     mesh_data geom;
     mesh_colors colors;
@@ -92,7 +86,7 @@ struct dirt_app : public sdl::simple_gui
     void step(SDL_Event);
     void draw();
 
-    bool should_quit() const { return quit; }
+    friend bool should_quit(dirt_app const& self) { return self.quit; }
 
     void _init_controls();
     void _init_observers();
