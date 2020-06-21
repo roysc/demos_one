@@ -9,6 +9,7 @@
 #include <Rxt/graphics/color.hpp>
 #include <Rxt/range.hpp>
 #include <Rxt/util.hpp>
+#include <Rxt/log.hpp>
 
 #include <optional>
 
@@ -154,7 +155,7 @@ struct mouse_stroke_tool : mouse_tool
             return Rxt::print("ignoring empty stroke\n");
 
         _strokes.emplace_back(*_current);
-        for (auto& p: _strokes.back()) Rxt_DEBUG(p);
+        for (auto& p: _strokes.back()) RXT_show(p);
 
         _current.reset();
         on_edit();

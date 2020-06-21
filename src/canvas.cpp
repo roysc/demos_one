@@ -3,6 +3,7 @@
 
 #include <Rxt/graphics/gl_handy.hpp>
 #include <Rxt/range.hpp>
+#include <Rxt/log.hpp>
 #include <iostream>
 
 namespace gl = Rxt::gl;
@@ -21,7 +22,7 @@ int main(int argc, char** argv)
         seed = std::stoi(argv[1]);
     }
 
-    gl::debugging().enable_logging = false;
+    gl::debug_context::enable_logging = false;
 
     auto loop = sdl::make_looper(
         new canvas(viewport_type{uvec(80), uvec(8)}),
@@ -87,7 +88,7 @@ void canvas::_init_observers()
     };
     PZ_observe(router[&stroker].on_debug) {
         if (stroker._current)
-            Rxt_DEBUG(stroker._current->at(0));
+            RXT_show(stroker._current->at(0));
         else print("nothing\n");
     };
 
