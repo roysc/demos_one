@@ -65,7 +65,7 @@ struct dirt_app : public sdl::simple_gui
     // time_point last_draw_time;
     // bool draw_needed = true;
 
-    fvec3 const start_camera_at{8};
+    fvec3 start_camera_at{8};
     camera_type camera{start_camera_at};
     cursor_type cursor;
 

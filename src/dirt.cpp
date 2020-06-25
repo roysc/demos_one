@@ -11,8 +11,8 @@
 using Rxt::print;
 
 auto _orbit = [](auto cam, auto axis, float d) {
-    auto basis = Rxt::basis3<fvec3>(axis);
-    cam->orbit(glm::angleAxis(d, basis));
+    auto about = Rxt::basis3<fvec3>(axis);
+    cam->orbit(glm::angleAxis(d, about));
 };
 
 extern "C" void step_state(void* c)

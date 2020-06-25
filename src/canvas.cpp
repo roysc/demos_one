@@ -104,29 +104,26 @@ void canvas::_init_observers()
 
 void canvas::_init_controls()
 {
-    keys.on_press["C-W"] = [this] { quit = true; };
-
     auto move = [this] (int dx, int dy) { viewport.move(ivec(dx, dy)); };
     auto scale_center = [this] (int a) { viewport.set_scale(viewport.scale_pow(a)); };
+    auto set_tool = [this] (auto t) { tool = t; router.enable(t); };
+    auto paint = [this](auto p, int) { paint_layer.put(p, 1); };
 
+    set_tool(&selector);
+    painter.set_method(paint);
+    paint_layer.resize(uvec(320));
+
+    keys.on_press["C-W"] = [this] { quit = true; };
     keys.on_scan["Left"]  = std::bind(move, -1, 0);
     keys.on_scan["Right"] = std::bind(move, +1, 0);
     keys.on_scan["Down"]  = std::bind(move, 0, -1);
     keys.on_scan["Up"]    = std::bind(move, 0, +1);
     keys.on_press["."] = std::bind(scale_center, +1);
     keys.on_press[","] = std::bind(scale_center, -1);
-
-    auto set_tool = [this] (auto t) { tool = t; router.enable(t); };
     keys.on_press["1"] = std::bind(set_tool, &selector);
     keys.on_press["2"] = std::bind(set_tool, &painter);
     keys.on_press["3"] = std::bind(set_tool, &stroker);
-    set_tool(&selector);
-
     keys.on_press["D"] = [&] { router->on_debug(); };
-
-    auto paint = [this](auto p, int) { paint_layer.put(p, 1); };
-    painter.set_method(paint);
-    paint_layer.resize(uvec(320));
 
     PZ_observe(input.on_mouse_motion, SDL_MouseMotionEvent motion) {
         auto [x, y] = Rxt::sdl::nds_coords(*window, motion.x, motion.y);
@@ -140,7 +137,6 @@ void canvas::_init_controls()
         auto sf = viewport.scale_pow(-wheel.y);
         viewport.scale_to(sf, controls.cursor_worldspace());
     };
-
     PZ_observe(input.on_mouse_down, SDL_MouseButtonEvent button) {
         tool->mouse_down(mouse_button_from_sdl(button));
     };
