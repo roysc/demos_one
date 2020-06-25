@@ -17,7 +17,7 @@ auto _orbit = [](auto cam, auto axis, float d) {
 
 extern "C" void step_state(void* c)
 {
-    sdl::step<dirt_app>(c);
+    sdl::em_advance<dirt_app>(c);
 }
 
 int main(int argc, char* argv[])
@@ -170,7 +170,7 @@ void dirt_app::_init_controls()
     };
 }
 
-void dirt_app::step(SDL_Event event)
+void dirt_app::advance(SDL_Event event)
 {
     do {
         input.handle_input(event);

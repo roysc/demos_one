@@ -12,7 +12,7 @@ using Rxt::print;
 
 extern "C" void step_state(void* c)
 {
-    sdl::step<canvas>(c);
+    sdl::em_advance<canvas>(c);
 }
 
 int main(int argc, char** argv)
@@ -149,7 +149,7 @@ void canvas::_init_controls()
     };
 }
 
-void canvas::step(SDL_Event event)
+void canvas::advance(SDL_Event event)
 {
     do {
         input.handle_input(event);

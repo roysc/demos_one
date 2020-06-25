@@ -49,7 +49,7 @@ using Rxt::print;
 
 extern "C" void step_state(void* c)
 {
-    sdl::step<map_editor>(c);
+    sdl::em_advance<map_editor>(c);
 }
 
 int main(int argc, char** argv)
@@ -145,7 +145,7 @@ map_editor::map_editor(int seed, uvec size, grid_viewport vp)
     glClearColor(russet.r, russet.g, russet.b, 1);
 }
 
-void map_editor::step(SDL_Event event)
+void map_editor::advance(SDL_Event event)
 {
     do {
         handle_input(event);

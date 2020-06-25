@@ -43,7 +43,7 @@ struct map_editor
     using tool_state = std::variant<std::monostate, selection_tool, pen_tool>;
 
     bool _quit = false;
-    bool should_quit() const { return _quit; }
+    bool is_stopped() const { return _quit; }
 
     uvec grid_size;
     grid_viewport viewport;
@@ -76,7 +76,7 @@ struct map_editor
         return ret;
     }
 
-    void step(SDL_Event);
+    void advance(SDL_Event);
     void draw();
 
     // void _update_entities(tick_duration);

@@ -61,7 +61,7 @@ struct dirt_app : public sdl::simple_gui
     sdl::key_dispatcher keys;
     input_hooks input;
     bool quit = false;
-    sdl::metronome metronome {Rxt::duration_fps<30>(1), [this] { return !should_quit(*this); }};
+    sdl::metronome metronome {Rxt::duration_fps<30>(1), [this] { return !is_stopped(*this); }};
     // time_point last_draw_time;
     // bool draw_needed = true;
 
@@ -82,11 +82,10 @@ struct dirt_app : public sdl::simple_gui
     adapt_reactive<terrain_map> terrain;
 
     dirt_app(uvec2);
-
-    void step(SDL_Event);
+    void advance(SDL_Event);
     void draw();
 
-    friend bool should_quit(dirt_app const& self) { return self.quit; }
+    friend bool is_stopped(dirt_app const& self) { return self.quit; }
 
     void _init_controls();
     void _init_observers();

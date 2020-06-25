@@ -125,10 +125,10 @@ struct canvas
         glClearColor(0, 0, 0, 1);
     }
 
-    void step(SDL_Event);
+    void advance(SDL_Event);
     void draw();
 
-    bool should_quit() const { return quit; }
+    bool is_stopped() const { return quit; }
 
     void _init_controls();
     void _init_observers();
