@@ -58,13 +58,13 @@ void canvas::_init_observers()
 
     PZ_observe(selector.on_selection) {
         b_ui.clear(); b_ui.update();
-        selector.update_selection(b_model);
+        selector.render_selection(b_model);
     };
     PZ_observe(selector.on_motion) {
         cursor.on_update();
     };
     PZ_observe(router[&selector].on_cursor_update) {
-        selector.update_cursor(b_ui);
+        selector.render_cursor(b_ui);
     };
     PZ_observe(router[&selector].on_disable) {
         b_ui.clear(); b_ui.update();
@@ -80,11 +80,11 @@ void canvas::_init_observers()
     };
 
     PZ_observe(stroker.on_edit) {
-        stroker.update_cursor(b_lines_cursor);
-        stroker.update_model(b_lines);
+        stroker.render_cursor(b_lines_cursor);
+        stroker.render_model(b_lines);
     };
     PZ_observe(router[&stroker].on_cursor_update) {
-        stroker.update_cursor(b_lines_cursor);
+        stroker.render_cursor(b_lines_cursor);
     };
     PZ_observe(router[&stroker].on_debug) {
         if (stroker._current)

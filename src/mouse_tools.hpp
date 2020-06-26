@@ -69,7 +69,7 @@ struct mouse_select_tool
     }
 
     template <class UIbuf>
-    void update_cursor(UIbuf& buf) const
+    void render_cursor(UIbuf& buf) const
     {
         if (drag_origin) {
             auto [a, b] = Rxt::box(controls.cursor_viewspace(), controls.from_world(*drag_origin));
@@ -80,7 +80,7 @@ struct mouse_select_tool
     }
 
     template <class Objbuf>
-    void update_selection(Objbuf& buf) const
+    void render_selection(Objbuf& buf) const
     {
         buf.clear();
         for (auto [a, b]: Rxt::to_range(selection)) {
@@ -162,7 +162,7 @@ struct mouse_stroke_tool : mouse_tool
     }
 
     template <class Buf>
-    void update_cursor(Buf& buf) const
+    void render_cursor(Buf& buf) const
     {
         buf.clear();
         if (!_current) return;
@@ -173,7 +173,7 @@ struct mouse_stroke_tool : mouse_tool
     }
 
     template <class Buf>
-    void update_model(Buf& buf) const
+    void render_model(Buf& buf) const
     {
         auto add_lines = [&](auto& s, auto color) {
             for (auto it = s.begin(); it+1 != s.end(); ++it) {
