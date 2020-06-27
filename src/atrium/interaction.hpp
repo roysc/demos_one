@@ -6,7 +6,7 @@
 #include <optional>
 #include <utility>
 
-namespace atrium
+namespace a3um
 {
 enum class ux_mode { object, face };
 

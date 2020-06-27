@@ -11,10 +11,10 @@
 
 #include <glm/glm.hpp>
 
-namespace atrium
+namespace a3um
 {
-inline glm::vec3 to_glm(_g3d::Point p) { return {p.x(), p.y(), p.z()}; }
-inline glm::vec3 to_glm(_g3d::Vector v) { return {v.x(), v.y(), v.z()}; }
+inline glm::vec3 to_glm(g3d::Point p) { return {p.x(), p.y(), p.z()}; }
+inline glm::vec3 to_glm(g3d::Vector v) { return {v.x(), v.y(), v.z()}; }
 
 using mesh_colors = std::map<object_index, Rxt::rgb>;
 
@@ -24,7 +24,7 @@ void render_triangles(mesh_data const& geom,
                       Bufs& bufs)
 {
     using Face = boost::graph_traits<triangle_mesh>::face_descriptor;
-    using NormalMap = std::map<Face, _g3d::Vector>;
+    using NormalMap = std::map<Face, g3d::Vector>;
 
     for (object_index i = 0; i < geom.meshes.size(); ++i) {
         auto& mesh = geom.meshes.at(i);
