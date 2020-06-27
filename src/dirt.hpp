@@ -2,6 +2,9 @@
 #include "reactive.hpp"
 #include "map.hpp"
 #include "input.hpp"
+#include "entity.hpp"
+#include "space.hpp"
+
 #include "a3um/geometry.hpp"
 #include "a3um/rendering.hpp"
 #include "a3um/interaction.hpp"
@@ -15,8 +18,6 @@
 #include <Rxt/time.hpp>
 #include <Rxt/util.hpp>
 
-#include <entt/entt.hpp>
-#include <glm/glm.hpp>
 #include <chrono>
 #include <vector>
 
@@ -27,10 +28,6 @@ namespace gl = Rxt::gl;
 namespace sdl = Rxt::sdl;
 using triangle_program = Rxt::shader_programs::colored_triangle_3D;
 using line_program = Rxt::shader_programs::solid_color_3D<GL_LINES>;
-
-using uvec2 = glm::uvec2;
-using fvec2 = glm::vec2;
-using fvec3 = glm::vec3;
 
 struct ui_traits
 {
@@ -65,7 +62,6 @@ using face_to_space = std::map<a3um::mesh::face_descriptor,
 // using mesh_to_space = std::pair<object_index, face_to_terrain_map>;
 
 using tool_router = Rxt::hook_router<int, input_hooks>;
-using entity_registry = entt::registry;
 
 struct dirt_app : public sdl::simple_gui
 {

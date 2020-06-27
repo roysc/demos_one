@@ -6,67 +6,12 @@
 #include <Rxt/math.hpp>
 #include <Rxt/geometry/shapes.hpp>
 #include <Rxt/graphics/color.hpp>
-#include <Rxt/data/graph.hpp>
 
-#include <random>
 #include <functional>
 #include <string>
 
 using Rxt::print;
 using glm::ivec2;
-
-namespace cpt
-{
-struct zpos { ivec2 r; };
-struct realpos { fvec3 r; };
-// struct vel { fvec3 dr; };
-
-struct body
-{
-    struct vertex_t { using kind = Rxt::vertex_property_tag; };
-    struct edge_t { using kind = Rxt::edge_property_tag; };
-    using graph_type = Rxt::g_dl<Rxt::property<vertex_t, fvec3>,
-                                 Rxt::property<edge_t, Rxt::rgb>>;
-    graph_type graph;
-
-    template <class Lines, class P>
-    void render(Lines& lines, P offset)
-    {
-        auto pointpm = get(vertex_t{}, graph);
-        auto edgepm = get(edge_t{}, graph);
-        for (auto e: Rxt::to_range(edges(graph))) {
-            auto color = edgepm[e];
-            lines.push(pointpm[source(e, graph)] + offset , color);
-            lines.push(pointpm[target(e, graph)] + offset, color);
-        }
-    }
-};
-
-body create_plant()
-{
-    body::graph_type g;
-    auto seed = add_vertex(fvec3(0), g);
-    auto sprout = add_vertex(fvec3(0,0,.25), g);
-    auto e = add_edge(seed, sprout, Rxt::colors::green, g);
-    return {g};
-}
-
-struct bioent
-{
-    int age = 0;
-    void update(body& bod) { age += 1; }
-};
-}
-
-void put_plant(entity_registry& r, ivec2 pos)
-{
-    using namespace cpt;
-    auto e = r.create();
-
-    r.emplace<zpos>(e, pos);
-    r.emplace<body>(e, create_plant());
-    Rxt::print("creating plant at {}\n", pos);
-}
 
 dirt_app::dirt_app(uvec2 size)
     : simple_gui("plaza: dirt", size)
@@ -78,11 +23,6 @@ dirt_app::dirt_app(uvec2 size)
     glDepthFunc(GL_LESS);
     glEnable(GL_CULL_FACE);
 
-    // object_mesh mesh;
-    // Rxt::make_cuboid(mesh, a3um::_g3d::Point{-.5, -.5, -.5}, {.5, .5, .5});
-    // insert_mesh(mesh, Rxt::colors::red);
-
-    // the map
     uvec2 map_size(8);
     terrain_map tm(map_size);
     auto scale = 0xFF;
@@ -151,7 +91,7 @@ void dirt_app::_init_observers()
             auto hd = CGAL::make_quad(corners[0], corners[1], corners[2], corners[3], mesh);
             f2s[face(hd, mesh)] = pos;
         });
-        auto i = insert_mesh(mesh, Rxt::colors::violet);
+        auto i = insert_mesh(mesh, Rxt::colors::soil);
         face_spaces[i] = f2s;
 
         geom.index_triangles();

@@ -18,9 +18,11 @@ set(_HEADERS
     viewport.hpp
     controls.hpp
     noise.hpp
+    entity.hpp
+    space.hpp
 )
 
-set(_SOURCES)
+set(_SOURCES entity.cpp)
 
 add_library(plaza ${_HEADERS} ${_SOURCES})
 target_link_libraries(plaza PUBLIC Rxt::Graphics)
