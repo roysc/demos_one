@@ -88,7 +88,8 @@ void dirt_app::_init_observers()
             b_lines.push(Rxt::zero3<fvec3>, c);
             b_lines.push(Rxt::basis3<fvec3>(i), c);
         }
-        render_ux(ux, geom, b_lines);
+        if (ux)
+            render_ux(**ux, geom, b_lines);
         b_lines.update();
     };
 

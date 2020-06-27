@@ -47,18 +47,17 @@ void render_triangles(mesh_data const& geom,
 }
 
 template <class LineBufs>
-void render_ux(ux_data const& ux,
+void render_ux(object_face_key const& fk,
                mesh_data const& geom,
                LineBufs& lines)
 {
-    if (ux) {
-        auto [oi, fd] = *ux;
-        auto& mesh = geom.meshes.at(oi);
-        auto points = get(CGAL::vertex_point, mesh);
-        for (auto h: halfedges_around_face(halfedge(fd, mesh), mesh)) {
-            lines.push(to_glm(points[source(h, mesh)]), Rxt::colors::white);
-            lines.push(to_glm(points[target(h, mesh)]), Rxt::colors::white);
-        }
+    auto [oi, fd] = fk;
+    auto& mesh = geom.meshes.at(oi);
+    auto points = get(g3d::vertex_point, mesh);
+    // Draw lines around face
+    for (auto h: halfedges_around_face(halfedge(fd, mesh), mesh)) {
+        lines.push(to_glm(points[source(h, mesh)]), Rxt::colors::white);
+        lines.push(to_glm(points[target(h, mesh)]), Rxt::colors::white);
     }
 }
 }
