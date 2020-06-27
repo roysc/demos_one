@@ -9,15 +9,15 @@ using Rxt::rgb;
 
 struct tile_info
 {
-    std::string description;
+    std::string name;
     Rxt::rgb color;
 };
 
 using tile_id = std::size_t;
 
-const std::vector<tile_info> tiles = {
-    tile_info {"empty", rgb {0}},
-    tile_info {"stone", Rxt::colors::gray},
+const std::vector<tile_info> materials = {
+    {"stone", Rxt::colors::gray},
+    {"water", Rxt::colors::blue},
 };
 
 // struct {

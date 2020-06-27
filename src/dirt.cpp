@@ -1,35 +1,71 @@
 #include "dirt.hpp"
 #include "noise.hpp"
+#include "util.hpp"
 
+#include <Rxt/io.hpp>
+#include <Rxt/math.hpp>
 #include <Rxt/geometry/shapes.hpp>
 #include <Rxt/graphics/color.hpp>
+#include <Rxt/data/graph.hpp>
 
+#include <random>
 #include <functional>
 #include <string>
-#include <Rxt/io.hpp>
 
 using Rxt::print;
+using glm::ivec2;
 
-auto _orbit = [](auto cam, auto axis, float d) {
-    auto about = Rxt::basis3<fvec3>(axis);
-    cam->orbit(glm::angleAxis(d, about));
+namespace cpt
+{
+struct zpos { ivec2 r; };
+struct realpos { fvec3 r; };
+// struct vel { fvec3 dr; };
+
+struct body
+{
+    struct vertex_t { using kind = Rxt::vertex_property_tag; };
+    struct edge_t { using kind = Rxt::edge_property_tag; };
+    using graph_type = Rxt::g_dl<Rxt::property<vertex_t, fvec3>,
+                                 Rxt::property<edge_t, Rxt::rgb>>;
+    graph_type graph;
+
+    template <class Lines, class P>
+    void render(Lines& lines, P offset)
+    {
+        auto pointpm = get(vertex_t{}, graph);
+        auto edgepm = get(edge_t{}, graph);
+        for (auto e: Rxt::to_range(edges(graph))) {
+            auto color = edgepm[e];
+            lines.push(pointpm[source(e, graph)] + offset , color);
+            lines.push(pointpm[target(e, graph)] + offset, color);
+        }
+    }
 };
 
-extern "C" void step_state(void* c)
+body create_plant()
 {
-    sdl::em_advance<dirt_app>(c);
+    body::graph_type g;
+    auto seed = add_vertex(fvec3(0), g);
+    auto sprout = add_vertex(fvec3(0,0,.25), g);
+    auto e = add_edge(seed, sprout, Rxt::colors::green, g);
+    return {g};
 }
 
-int main(int argc, char* argv[])
+struct bioent
 {
-    int seed = 42;
-    if (argc > 1) {
-        seed = std::stoi(argv[1]);
-    }
+    int age = 0;
+    void update(body& bod) { age += 1; }
+};
+}
 
-    auto loop = sdl::make_looper(new dirt_app(uvec2(800)), step_state);
-    loop();
-    return 0;
+void put_plant(entity_registry& r, ivec2 pos)
+{
+    using namespace cpt;
+    auto e = r.create();
+
+    r.emplace<zpos>(e, pos);
+    r.emplace<body>(e, create_plant());
+    Rxt::print("creating plant at {}\n", pos);
 }
 
 dirt_app::dirt_app(uvec2 size)
@@ -43,9 +79,10 @@ dirt_app::dirt_app(uvec2 size)
     glEnable(GL_CULL_FACE);
 
     // object_mesh mesh;
-    // Rxt::make_cuboid(mesh, atrium::_g3d::Point{-.5, -.5, -.5}, {.5, .5, .5});
+    // Rxt::make_cuboid(mesh, a3um::_g3d::Point{-.5, -.5, -.5}, {.5, .5, .5});
     // insert_mesh(mesh, Rxt::colors::red);
 
+    // the map
     uvec2 map_size(8);
     terrain_map tm(map_size);
     auto scale = 0xFF;
@@ -63,16 +100,16 @@ void dirt_app::_init_observers()
         set(triangle_prog->model_matrix, m);
         set(triangle_prog->view_matrix, v);
         set(triangle_prog->mvp_matrix, camera.projection_matrix() * v * m);
-        set(triangle_prog->light_position, glm::vec3 {15, 10, 15});
+        set(triangle_prog->light_position, fvec3 {15, 10, 15});
 
         set(line_prog->mvp_matrix, camera.projection_matrix() * v * m);
     };
 
     PZ_observe(cursor.on_update) {
-        using atrium::to_point;
+        using a3um::to_point;
         auto [source, dir] = Rxt::cast_ray(cursor.position(), camera);
 
-        auto newhl = geom.face_query(atrium::_g3d::Ray{to_point(source), to_point(source + dir)});
+        auto newhl = geom.face_query(a3um::ray{to_point(source), to_point(source + dir)});
         if (ux != newhl) {
             ux.emplace(newhl);
         }
@@ -82,15 +119,15 @@ void dirt_app::_init_observers()
         using namespace Rxt::colors;
         Rxt::rgb const axis_colors[3] {red, green, blue};
 
-        b_lines.clear();
+        b_uilines.clear();
         for (unsigned i = 0; i < 3; ++i) {
             auto c = axis_colors[i];
-            b_lines.push(Rxt::zero3<fvec3>, c);
-            b_lines.push(Rxt::basis3<fvec3>(i), c);
+            b_uilines.push(Rxt::zero3<fvec3>, c);
+            b_uilines.push(Rxt::basis3<fvec3>(i), c);
         }
         if (ux)
-            render_ux(**ux, geom, b_lines);
-        b_lines.update();
+            render_ux(*ux, geom, b_uilines);
+        b_uilines.update();
     };
 
     PZ_observe(model_update) {
@@ -101,22 +138,35 @@ void dirt_app::_init_observers()
 
     PZ_observe(terrain.on_update) {
         object_mesh mesh;
+        face_to_space f2s;
         terrain.for_each([&](auto pos, auto& cell) {
             auto x = pos.x, y = pos.y;
-            const auto max_elev = std::numeric_limits<terrain_value>::max();
-            auto elev = float(cell)/max_elev;
-            atrium::Point corners[4] = {
+            auto elev = normalize_elevation(cell);
+            a3um::point corners[4] = {
                 {  x,   y, elev},
                 {x+1,   y, elev},
                 {x+1, y+1, elev},
                 {  x, y+1, elev}
             };
-            CGAL::make_quad(corners[0], corners[1], corners[2], corners[3], mesh);
+            auto hd = CGAL::make_quad(corners[0], corners[1], corners[2], corners[3], mesh);
+            f2s[face(hd, mesh)] = pos;
         });
-        insert_mesh(mesh, Rxt::colors::green);
+        auto i = insert_mesh(mesh, Rxt::colors::violet);
+        face_spaces[i] = f2s;
 
         geom.index_triangles();
         model_update();
+    };
+
+    PZ_observe(ent_update) {
+        auto render_body = [this](auto pos, auto& bod)
+        {
+            auto elev = normalize_elevation(terrain.at(pos.r));
+            bod.render(b_lines, fvec3(pos.r, elev) + fvec3(.5,.5,0));
+        };
+        b_lines.clear();
+        entreg.view<cpt::zpos, cpt::body>().each(render_body);
+        b_lines.update();
     };
 }
 
@@ -139,10 +189,10 @@ void dirt_app::_init_controls()
     };
 
     using Ax = Rxt::axis3;
-    keys.on_scan["Right"] = std::bind(_orbit, &camera, Ax::z, +speed);
-    keys.on_scan["Left"] = std::bind(_orbit, &camera, Ax::z, -speed);
-    keys.on_scan["Up"] = std::bind(_orbit, &camera, Ax::y, +speed);
-    keys.on_scan["Down"] = std::bind(_orbit, &camera, Ax::y, -speed);
+    keys.on_scan["Right"] = std::bind(orbit_cam, &camera, Ax::z, +speed);
+    keys.on_scan["Left"] = std::bind(orbit_cam, &camera, Ax::z, -speed);
+    keys.on_scan["Up"] = std::bind(orbit_cam, &camera, Ax::y, +speed);
+    keys.on_scan["Down"] = std::bind(orbit_cam, &camera, Ax::y, -speed);
     keys.on_scan[","] = [=, this] { camera.forward(+speed); };
     keys.on_scan["."] = [=, this] { camera.forward(-speed); };
     keys.on_press["C-W"] = [this] { quit = true; };
@@ -164,6 +214,16 @@ void dirt_app::_init_controls()
     };
     PZ_observe(input.on_mouse_down, SDL_MouseButtonEvent button) {
         switch (button.button) {
+        case SDL_BUTTON_LEFT: {
+            if (ux) {
+                auto [oi, fd] = *ux;
+                ivec2 pos = face_spaces[oi][fd];
+                assert(Rxt::point_within(pos, terrain.shape()));
+                put_plant(entreg, pos);
+                ent_update();
+            }
+            break;
+        }
         case SDL_BUTTON_MIDDLE:
             // drag_origin = controls.cursor_position_world();
             break;
@@ -195,9 +255,27 @@ void dirt_app::draw()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     b_triangles.draw();
+    b_lines.draw();
     // Draw indicator lines over model
     glClear(GL_DEPTH_BUFFER_BIT);
-    b_lines.draw();
+    b_uilines.draw();
 
     SDL_GL_SwapWindow(window.get());
+}
+
+extern "C" void step_state(void* c)
+{
+    sdl::em_advance<dirt_app>(c);
+}
+
+int main(int argc, char* argv[])
+{
+    int seed = 42;
+    if (argc > 1) {
+        seed = std::stoi(argv[1]);
+    }
+
+    auto loop = sdl::make_looper(new dirt_app(uvec2(800)), step_state);
+    loop();
+    return 0;
 }

@@ -35,7 +35,11 @@ using kernel = g3d::Kernel;
 using point = g3d::Point;
 using vector = g3d::Vector;
 using ray = g3d::Ray;
-using mesh = g3d::Mesh;
+// using mesh = g3d::Mesh;
+struct mesh : g3d::Mesh, boost::graph_traits<g3d::Mesh>
+{
+    // using g3d::Mesh::Mesh;
+};
 
 inline g3d::Point to_point(glm::vec3 v) { return {v.x, v.y, v.z}; }
 inline g3d::Point to_point(glm::vec2 v) { return {v.x, v.y, 0}; }
@@ -60,9 +64,7 @@ using triangle_aabb_tree = CGAL::AABB_tree<CGAL::AABB_traits<g3d::Kernel, triang
 // Struct for geometric mesh data with spatially indexed triangulations
 // w/ faces mapped back to source mesh faces
 struct mesh_data
-// struct mesh_index
 {
-    // mesh_data& meshes;
     mesh_vector meshes;
     mesh_triangulations triangulations;
     triangle_comaps face_comaps;

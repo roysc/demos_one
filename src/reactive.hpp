@@ -77,7 +77,8 @@ struct adapt_reactive : Reactive
         return *this;
     }
 
-    reactive_base& operator*() { return *this; }
+    // reactive_base& operator*() { return *this; }
+    // reactive_base* operator->() { return this; }
 };
 
 template <template <class...> class Reactive, class Hook, class... T>

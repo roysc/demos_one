@@ -181,6 +181,11 @@ void map_editor::draw()
     SDL_GL_SwapWindow(window.get());
 }
 
+const std::vector<tile_info> tiles = {
+    tile_info {"empty", rgb {0}},
+    tile_info {"stone", Rxt::colors::gray},
+};
+
 void map_editor::_update_features()
 {
     b_features.clear();

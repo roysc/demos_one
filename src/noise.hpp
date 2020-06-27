@@ -7,7 +7,7 @@ using Vec4u8 = glm::tvec4<unsigned char, glm::highp>;
 using image_data = boost::multi_array<Vec4u8, 2>;
 
 template <class Put>
-void fill_noise(glm::uvec2 size, int seed, Put&& put)
+void fill_noise(glm::uvec2 size, int seed, Put&& put) // fill_torus2
 {
     auto scale = 0xFF;
     using glm::vec2;
@@ -27,8 +27,6 @@ void fill_noise(glm::uvec2 size, int seed, Put&& put)
             for (int i = 0; i < 8; ++i) {
                 sample += (1.f / (i+1)) * get_noise(c, 1 << i);
             }
-            // out[x][y] = Vec4u8(sample * scale / 2);
-            // out.put({x, y}, sample);
             put(x, y, sample);
         }
     }

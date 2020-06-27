@@ -10,12 +10,20 @@ struct dense_map
 {
     using data_type = boost::multi_array<T, 2>;
     using key_type = glm::uvec2;
-    using size_type = key_type;
+    using shape_type = key_type;
 
     data_type _data;
 
     dense_map() {}
-    dense_map(size_type size) { resize(size); }
+    dense_map(shape_type shape) { resize(shape); }
+
+    shape_type shape() const
+    {
+        shape_type ret;
+        for (int i = 0; i < ret.length(); ++i)
+            ret[i] = _data.shape()[i];
+        return ret;
+    }
 
     auto& operator=(dense_map const& that)
     {
@@ -23,11 +31,12 @@ struct dense_map
         return *this;
     }
 
-    void resize(size_type size)
+    void resize(shape_type shape)
     {
-        _data.resize(boost::extents[size.x][size.y]);
+        _data.resize(boost::extents[shape.x][shape.y]);
     }
 
+    auto at(key_type i) { return _data[i.x][i.y]; }
     void put(key_type i, T a) { _data[i.x][i.y] = a; }
 
     template <class F>

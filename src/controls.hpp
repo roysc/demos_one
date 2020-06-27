@@ -67,12 +67,14 @@ struct cursor_port
 {
     using position_type = typename ST::position_type;
     using P = position_type;
+    // virtual P cursor(ST::space) const = 0;
+    // virtual P viewport(ST::space) const = 0;
 
-    virtual P cursor_viewspace() const = 0;
-    virtual P viewport_worldspace() const = 0;
     virtual ~cursor_port() {}
-
+    virtual P cursor_viewspace() const = 0;
     P cursor_worldspace() const { return cursor_viewspace() + viewport_worldspace(); }
+    virtual P viewport_worldspace() const = 0;
+
     auto from_world(P w) const { return w - viewport_worldspace(); }
 };
 
