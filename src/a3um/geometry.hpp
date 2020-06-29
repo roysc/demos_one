@@ -35,25 +35,20 @@ using kernel = g3d::Kernel;
 using point = g3d::Point;
 using vector = g3d::Vector;
 using ray = g3d::Ray;
-// using mesh = g3d::Mesh;
-struct mesh : g3d::Mesh, boost::graph_traits<g3d::Mesh>
-{
-    // using g3d::Mesh::Mesh;
-};
+using mesh = g3d::Mesh;
 
 inline g3d::Point to_point(glm::vec3 v) { return {v.x, v.y, v.z}; }
 inline g3d::Point to_point(glm::vec2 v) { return {v.x, v.y, 0}; }
 
-using object_mesh = g3d::Mesh;
-using triangle_mesh = g3d::Mesh;
+using object_mesh = mesh;
+using triangle_mesh = mesh;
 
 using mesh_transformer = Rxt::transform_comap_faces<object_mesh, triangle_mesh>;
-using triangle_comap = mesh_transformer::face_comap;
 
 using mesh_vector = std::vector<object_mesh>;
 using object_index = mesh_vector::size_type;
 using mesh_triangulations = std::vector<triangle_mesh>;
-using triangle_comaps = std::map<object_index, triangle_comap>;
+using triangle_comaps = std::map<object_index, mesh_transformer::face_comap>;
 
 using object_face_descriptor = typename boost::graph_traits<object_mesh>::face_descriptor;
 using object_face_key = std::pair<object_index, object_face_descriptor>;

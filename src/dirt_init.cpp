@@ -22,8 +22,6 @@ void dirt_app::_init_observers()
         set(triangle_prog->light_position, fvec3 {15, 10, 15});
 
         set(line_prog->mvp_matrix, camera.projection_matrix() * v * m);
-
-        // print("camera:\npos={}\nup={}\n", camera.position(), camera.up);
     };
 
     PZ_observe(cursor.on_update) {
@@ -31,12 +29,12 @@ void dirt_app::_init_observers()
         auto [source, dir] = Rxt::cast_ray(cursor.position(), camera);
 
         auto newhl = geom.face_query(a3um::ray{to_point(source), to_point(source + dir)});
-        if (ux != newhl) {
-            ux.emplace(newhl);
+        if (hlite != newhl) {
+            hlite.emplace(newhl);
         }
     };
 
-    PZ_observe(ux.on_update) {
+    PZ_observe(hlite.on_update) {
         using namespace Rxt::colors;
         Rxt::rgb const axis_colors[3] {red, green, blue};
 
@@ -46,8 +44,11 @@ void dirt_app::_init_observers()
             b_uilines.push(Rxt::zero3<fvec3>, c);
             b_uilines.push(Rxt::basis3<fvec3>(i), c);
         }
-        if (ux)
-            render_ux(*ux, geom, b_uilines);
+        if (hlite) {
+            render_hl(*hlite, geom, b_uilines, Rxt::colors::white);
+            if (auto others = face_ephem.find(*hlite); others != end(face_ephem))
+                render_hl(others->second, ephem, b_uilines, Rxt::colors::sky_blue);
+        }
         b_uilines.update();
     };
 
@@ -62,11 +63,13 @@ void dirt_app::_init_observers()
     };
 
     PZ_observe(terrain.on_update) {
-        object_mesh mesh, eph;
+        a3um::mesh mesh, eph;
         face_to_space f2s;
+        std::map<object_face_descriptor, object_face_descriptor> f2f;
+
         terrain.for_each([&](auto pos, auto& cell)
         {
-            auto _quad = [pos](float elev, object_mesh& m) {
+            auto _quad = [pos](float elev, auto& m) {
                 auto x = pos.x, y = pos.y;
                 a3um::point corners[4] = {
                     {  x,   y, elev},
@@ -78,17 +81,22 @@ void dirt_app::_init_observers()
             };
             auto elev = normalize_elevation(cell);
             auto hd = _quad(elev, mesh);
-            f2s[face(hd, mesh)] = pos;
+            auto fd = face(hd, mesh);
+            f2s[fd] = pos;
 
             if (elev < .5) {
                 auto hdw = _quad(.5, eph);
+                f2f[fd] = face(hdw, eph);
             }
         });
 
         auto i = add_mesh(mesh, to_rgba(Rxt::colors::soil));
         face_spaces[i] = f2s;
 
-        add_ephemeral(eph, to_rgba(Rxt::colors::blue, .7));
+        auto ei = add_ephemeral(eph, to_rgba(Rxt::colors::blue, .7));
+        for (auto& [f, ef]: f2f) {
+            face_ephem[object_face(i, f)] = object_face(ei, ef);
+        }
     };
 
     PZ_observe(ent_update) {
@@ -104,8 +112,8 @@ void dirt_app::_init_observers()
 
     PZ_observe(on_debug) {
         print("camera.pos={} .focus={} .up={}\n", camera.position(), camera.focus, camera.up);
-        if (ux) {
-            print("cursor({}) => {}\n", cursor.position(), ux->second);
+        if (hlite) {
+            print("cursor({}) => {}\n", cursor.position(), hlite->second);
         } else {
             print("cursor({})\n", cursor.position());
         }

@@ -42,7 +42,7 @@ void dirt_app::advance(SDL_Event event)
     auto updates = {
         &cursor.on_update,
         &camera.on_update,
-        &ux.on_update,
+        &hlite.on_update,
         &model_update
     };
     auto dirty = flush_all(updates);

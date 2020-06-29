@@ -41,18 +41,18 @@ using camera_type = adapt_reactive_crt<reactive_focus_cam, hooks<>>;
 
 using mesh_data = a3um::indexed_mesh_data;
 using a3um::mesh_colors;
-using a3um::object_mesh;
-using ux_data = adapt_reactive<a3um::ux_data>;
+using a3um::object_index;
+using object_face = a3um::object_face_key;
+using hl_data = adapt_reactive<a3um::hl_data>;
 
-//wip
-// using agent_registry = std::vector<int>;
 using int8 = unsigned char;
 using terrain_value = int8;
 using terrain_map = dense_map<terrain_value>;
 
 // map back to terrain grid for face selection
-using face_to_space = std::map<a3um::mesh::face_descriptor,
-                               terrain_map::key_type>;
+using face_to_space = std::map<a3um::object_face_descriptor, terrain_map::key_type>;
+// map to dependent faces
+using foreign_face_map = std::map<object_face, object_face>;
 
 struct dirt_app : public sdl::simple_gui
 {
@@ -61,7 +61,6 @@ struct dirt_app : public sdl::simple_gui
     bool quit = false;
     sdl::metronome metronome {Rxt::duration_fps<30>(1), [this] { return !is_stopped(); }};
     // time_point last_draw_time;
-    // bool draw_needed = true;
 
     fvec3 start_camera_at{8};
     camera_type camera{start_camera_at};
@@ -74,15 +73,15 @@ struct dirt_app : public sdl::simple_gui
     line_program::data b_lines {line_prog};
     line_program::data b_uilines {line_prog};
 
-    adapt_reactive<terrain_map> terrain;
-    std::map<a3um::object_index, face_to_space> face_spaces;
-
-    entity_registry entreg;
-
     mesh_data geom;
+    hl_data hlite;
     mesh_data ephem;
     mesh_colors colors, ephem_colors;
-    ux_data ux;
+    foreign_face_map face_ephem;
+    std::map<object_index, face_to_space> face_spaces;
+
+    adapt_reactive<terrain_map> terrain;
+    entity_registry entreg;
     hooks<> model_update, ent_update, on_debug;
 
     dirt_app(uvec2);
@@ -93,7 +92,7 @@ struct dirt_app : public sdl::simple_gui
     void _init_controls();
     void _init_observers();
 
-    auto add_mesh(object_mesh mesh, Rxt::rgba color)
+    auto add_mesh(a3um::mesh mesh, Rxt::rgba color)
     {
         auto ix = geom.insert(mesh);
         geom.index_triangles();        
@@ -102,7 +101,7 @@ struct dirt_app : public sdl::simple_gui
         return ix;
     }
 
-    auto add_ephemeral(object_mesh mesh, Rxt::rgba color)
+    auto add_ephemeral(a3um::mesh mesh, Rxt::rgba color)
     {
         auto ix = ephem.insert(mesh);
         ephem.build_triangulations();
@@ -113,8 +112,8 @@ struct dirt_app : public sdl::simple_gui
 
     std::optional<ivec2> selected_space() const
     {
-        if (ux) {
-            auto [oi, fd] = *ux;
+        if (hlite) {
+            auto [oi, fd] = *hlite;
             ivec2 pos = face_spaces.at(oi).at(fd);
             assert(Rxt::point_within(pos, terrain.shape()));
             return pos;

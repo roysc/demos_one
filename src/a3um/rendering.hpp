@@ -47,17 +47,18 @@ void render_triangles(indexed_mesh_data const& geom,
 }
 
 template <class LineBufs>
-void render_ux(object_face_key const& fk,
+void render_hl(object_face_key const& fk,
                basic_mesh_data const& geom,
-               LineBufs& lines)
+               LineBufs& lines,
+               Rxt::rgb const color)
 {
     auto [oi, fd] = fk;
     auto& mesh = geom.meshes.at(oi);
     auto points = get(g3d::vertex_point, mesh);
     // Draw lines around face
     for (auto h: halfedges_around_face(halfedge(fd, mesh), mesh)) {
-        lines.push(to_glm(points[source(h, mesh)]), Rxt::colors::white);
-        lines.push(to_glm(points[target(h, mesh)]), Rxt::colors::white);
+        lines.push(to_glm(points[source(h, mesh)]), color);
+        lines.push(to_glm(points[target(h, mesh)]), color);
     }
 }
 }
