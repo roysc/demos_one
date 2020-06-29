@@ -16,10 +16,10 @@ namespace a3um
 inline glm::vec3 to_glm(g3d::Point p) { return {p.x(), p.y(), p.z()}; }
 inline glm::vec3 to_glm(g3d::Vector v) { return {v.x(), v.y(), v.z()}; }
 
-using mesh_colors = std::map<object_index, Rxt::rgb>;
+using mesh_colors = std::map<object_index, Rxt::rgba>;
 
 template <class Bufs>
-void render_triangles(mesh_data const& geom,
+void render_triangles(indexed_mesh_data const& geom,
                       mesh_colors const& colors,
                       Bufs& bufs)
 {
@@ -48,7 +48,7 @@ void render_triangles(mesh_data const& geom,
 
 template <class LineBufs>
 void render_ux(object_face_key const& fk,
-               mesh_data const& geom,
+               basic_mesh_data const& geom,
                LineBufs& lines)
 {
     auto [oi, fd] = fk;

@@ -63,12 +63,10 @@ using triangle_aabb_tree = CGAL::AABB_tree<CGAL::AABB_traits<g3d::Kernel, triang
 
 // Struct for geometric mesh data with spatially indexed triangulations
 // w/ faces mapped back to source mesh faces
-struct mesh_data
+struct basic_mesh_data
 {
     mesh_vector meshes;
     mesh_triangulations triangulations;
-    triangle_comaps face_comaps;
-    triangle_aabb_tree triangle_tree;
 
     object_index insert(object_mesh mesh)
     {
@@ -76,6 +74,25 @@ struct mesh_data
         meshes.emplace_back(mesh);
         return index;
     }
+
+    void build_triangulations()
+    {
+        auto transform = [](auto const& src, auto& tgt)
+        {
+            CGAL::copy_face_graph(src, tgt);
+            CGAL::Polygon_mesh_processing::triangulate_faces<triangle_mesh>(tgt);
+        };
+        triangulations.clear();
+        for (auto& mesh: meshes) {
+            transform(mesh, triangulations.emplace_back());
+        }
+    }
+};
+
+struct indexed_mesh_data : basic_mesh_data
+{
+    triangle_comaps face_comaps;
+    triangle_aabb_tree triangle_tree;
 
     void build_triangulations()
     {

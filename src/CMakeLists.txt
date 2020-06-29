@@ -22,7 +22,8 @@ set(_HEADERS
     space.hpp
 )
 
-set(_SOURCES entity.cpp)
+set(_SOURCES
+    entity.cpp)
 
 add_library(plaza ${_HEADERS} ${_SOURCES})
 target_link_libraries(plaza PUBLIC Rxt::Graphics)
@@ -41,7 +42,7 @@ Rxt_emscripten_use_boost(map_editor)
 add_executable(canvas ${_HEADERS} canvas.hpp canvas.cpp)
 target_link_libraries(canvas PUBLIC plaza)
 
-add_executable(dirt ${_HEADERS} dirt.cpp dirt.hpp)
+add_executable(dirt ${_HEADERS} dirt_main.cpp dirt.cpp dirt.hpp)
 target_link_libraries(dirt PUBLIC plaza)
 
 function(_configure_emscripten _TARGET)

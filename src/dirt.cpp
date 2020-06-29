@@ -11,7 +11,14 @@
 #include <string>
 
 using Rxt::print;
+using Rxt::to_rgba;
 using glm::ivec2;
+
+static float normalize_elevation(terrain_value t)
+{
+    auto max_elev = std::numeric_limits<terrain_value>::max();
+    return float(t)/max_elev;
+}
 
 dirt_app::dirt_app(uvec2 size)
     : simple_gui("plaza: dirt", size)
@@ -23,12 +30,16 @@ dirt_app::dirt_app(uvec2 size)
     glDepthFunc(GL_LESS);
     glEnable(GL_CULL_FACE);
 
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     uvec2 map_size(8);
     terrain_map tm(map_size);
     auto scale = 0xFF;
     fill_noise(map_size, 42, [&](int x, int y, auto a) { tm.put({x, y}, a * scale / 2); });
     terrain.emplace(tm);
 
+    camera.focus = fvec3(fvec2(map_size) / 4.f, 0);
     camera.on_update();
 }
 
@@ -43,6 +54,8 @@ void dirt_app::_init_observers()
         set(triangle_prog->light_position, fvec3 {15, 10, 15});
 
         set(line_prog->mvp_matrix, camera.projection_matrix() * v * m);
+
+        // print("camera:\npos={}\nup={}\n", camera.position(), camera.up);
     };
 
     PZ_observe(cursor.on_update) {
@@ -74,28 +87,40 @@ void dirt_app::_init_observers()
         b_triangles.clear();
         render_triangles(geom, colors, b_triangles);
         b_triangles.update();
+
+        b_tris_alpha.clear();
+        render_triangles(ephem, ephem_colors, b_tris_alpha);
+        b_tris_alpha.update();
     };
 
     PZ_observe(terrain.on_update) {
-        object_mesh mesh;
+        object_mesh mesh, eph;
         face_to_space f2s;
-        terrain.for_each([&](auto pos, auto& cell) {
-            auto x = pos.x, y = pos.y;
-            auto elev = normalize_elevation(cell);
-            a3um::point corners[4] = {
-                {  x,   y, elev},
-                {x+1,   y, elev},
-                {x+1, y+1, elev},
-                {  x, y+1, elev}
+        terrain.for_each([&](auto pos, auto& cell)
+        {
+            auto _quad = [pos](float elev, object_mesh& m) {
+                auto x = pos.x, y = pos.y;
+                a3um::point corners[4] = {
+                    {  x,   y, elev},
+                    {x+1,   y, elev},
+                    {x+1, y+1, elev},
+                    {  x, y+1, elev}
+                };
+                return make_quad(corners[0], corners[1], corners[2], corners[3], m);
             };
-            auto hd = CGAL::make_quad(corners[0], corners[1], corners[2], corners[3], mesh);
+            auto elev = normalize_elevation(cell);
+            auto hd = _quad(elev, mesh);
             f2s[face(hd, mesh)] = pos;
+
+            if (elev < .5) {
+                auto hdw = _quad(.5, eph);
+            }
         });
-        auto i = insert_mesh(mesh, Rxt::colors::soil);
+
+        auto i = add_mesh(mesh, to_rgba(Rxt::colors::soil));
         face_spaces[i] = f2s;
 
-        geom.index_triangles();
-        model_update();
+        add_ephemeral(eph, to_rgba(Rxt::colors::blue, .7));
     };
 
     PZ_observe(ent_update) {
@@ -105,8 +130,17 @@ void dirt_app::_init_observers()
             bod.render(b_lines, fvec3(pos.r, elev) + fvec3(.5,.5,0));
         };
         b_lines.clear();
-        entreg.view<cpt::zpos, cpt::body>().each(render_body);
+        entreg.view<cpt::zpos, cpt::skel>().each(render_body);
         b_lines.update();
+    };
+
+    PZ_observe(on_debug) {
+        print("camera.pos={} .focus={} .up={}\n", camera.position(), camera.focus, camera.up);
+        if (ux) {
+            print("cursor({}) => {}\n", cursor.position(), ux->second);
+        } else {
+            print("cursor({})\n", cursor.position());
+        }
     };
 }
 
@@ -114,16 +148,6 @@ void dirt_app::_init_controls()
 {
     float speed = 0.04;
 
-    auto show_info = [this] {
-        print("cursor={} camera={}\n", cursor.position(), camera.position());
-    };
-    auto show_hl = [this] {
-        if (ux) {
-            print("cursor({}) => {}\n", cursor.position(), ux->second);
-        } else {
-            print("cursor({})\n", cursor.position());
-        }
-    };
     auto reset_camera = [this] {
         camera.emplace(start_camera_at);
     };
@@ -136,8 +160,7 @@ void dirt_app::_init_controls()
     keys.on_scan[","] = [=, this] { camera.forward(+speed); };
     keys.on_scan["."] = [=, this] { camera.forward(-speed); };
     keys.on_press["C-W"] = [this] { quit = true; };
-    keys.on_press["I"] = show_info;
-    keys.on_press["D"] = show_hl;
+    keys.on_press["D"] = on_debug;
     keys.on_press["R"] = reset_camera;
 
     PZ_observe(input.on_quit) { quit = true; };
@@ -152,14 +175,13 @@ void dirt_app::_init_controls()
         if (wheel.x != 0)
             camera.orbit(glm::angleAxis(speed, Rxt::basis3<fvec3>(Ax::z)));
     };
+
+    
     PZ_observe(input.on_mouse_down, SDL_MouseButtonEvent button) {
         switch (button.button) {
         case SDL_BUTTON_LEFT: {
-            if (ux) {
-                auto [oi, fd] = *ux;
-                ivec2 pos = face_spaces[oi][fd];
-                assert(Rxt::point_within(pos, terrain.shape()));
-                put_plant(entreg, pos);
+            if (auto pos = selected_space()) {
+                put_body(entreg, *pos, cpt::build_plant());
                 ent_update();
             }
             break;
@@ -196,26 +218,20 @@ void dirt_app::draw()
 
     b_triangles.draw();
     b_lines.draw();
+
+    {
+    glEnable(GL_BLEND);
+    glDisable(GL_CULL_FACE);
+        // gl::enable_guard _blend{GL_BLEND};
+        // gl::disable_guard _cull{GL_CULL};
+        b_tris_alpha.draw();
+    glDisable(GL_BLEND);
+    glEnable(GL_CULL_FACE);
+    }
+
     // Draw indicator lines over model
     glClear(GL_DEPTH_BUFFER_BIT);
     b_uilines.draw();
 
     SDL_GL_SwapWindow(window.get());
-}
-
-extern "C" void step_state(void* c)
-{
-    sdl::em_advance<dirt_app>(c);
-}
-
-int main(int argc, char* argv[])
-{
-    int seed = 42;
-    if (argc > 1) {
-        seed = std::stoi(argv[1]);
-    }
-
-    auto loop = sdl::make_looper(new dirt_app(uvec2(800)), step_state);
-    loop();
-    return 0;
 }

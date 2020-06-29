@@ -3,9 +3,9 @@
 
 namespace cpt
 {
-body build_plant()
+skeleton build_plant()
 {
-    body::graph_type g;
+    skeleton::graph_type g;
     auto root = add_vertex(fvec3(0), g);
     auto top = add_vertex(fvec3(0,0,.25), g);
     add_edge(root, top, Rxt::colors::green, g);
@@ -13,13 +13,13 @@ body build_plant()
 }
 }
 
-void put_plant(entity_registry& r, ivec2 pos)
+void put_body(entity_registry& r, ivec2 pos, cpt::skel b)
 {
     using namespace cpt;
     auto e = r.create();
 
     r.emplace<zpos>(e, pos);
-    r.emplace<body>(e, build_plant());
-    r.emplace<life>(e);
+    r.emplace<skel>(e, b);
+    // r.emplace<life>(e);
     Rxt::print("creating plant at {}\n", pos);
 }
