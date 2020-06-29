@@ -45,6 +45,12 @@ void dirt_app::_init_controls()
         case SDL_BUTTON_MIDDLE:
             // drag_origin = controls.cursor_position_world();
             break;
+        case SDL_BUTTON_RIGHT:
+            if (auto pos = selected_space()) {
+                put_body(entreg, *pos, cpt::build_man());
+                ent_update();
+            }
+            break;
         }
     };
 }

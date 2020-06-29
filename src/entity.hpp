@@ -44,6 +44,7 @@ struct life
 using skel = skeleton;
 
 skeleton build_plant();
+skeleton build_man();
 }
 
 void put_body(entity_registry& r, ivec2 pos, skeleton);
