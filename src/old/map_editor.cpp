@@ -87,7 +87,7 @@ map_editor::map_editor(int seed, uvec size, grid_viewport vp)
     [this] {
         interface.set_viewport(viewport);
         background.set_viewport(viewport);
-        set_dirty();
+        dirty = true;
     }}
 {
     keys.on_press["C-W"]    = [this] { _quit = true; };
@@ -164,9 +164,9 @@ void map_editor::advance(SDL_Event event)
     update_cursor.flush();
     update_tool.flush();
 
-    if (is_dirty()) {
+    if (dirty) {
         draw();
-        set_dirty(false);
+        dirty = false;
     }
 }
 
@@ -202,7 +202,7 @@ void map_editor::_update_features()
     }
     b_features.update();
 
-    set_dirty();
+    dirty = true;
 }
 
 void map_editor::_update_tool()
@@ -242,7 +242,7 @@ void map_editor::_update_cursor()
     visit(visitor, current_tool);
     interface.set_cursor(pos, size);
 
-    set_dirty();
+    dirty = true;
 }
 
 void map_editor::on_mouse_motion(SDL_MouseMotionEvent motion)

@@ -2,21 +2,18 @@
 
 #include <Rxt/geometry/mesh_transform.hpp>
 #include <Rxt/geometry/triangle_primitive.hpp>
+#include <Rxt/graphics/glm.hpp>
 
 #include <CGAL/Simple_cartesian.h>
 #include <CGAL/Surface_mesh.h>
 
 #include <CGAL/AABB_tree.h>
 #include <CGAL/AABB_traits.h>
-#include <CGAL/Polygon_mesh_processing/triangulate_faces.h>
-
-#include <boost/iterator/transform_iterator.hpp>
-#include <boost/range/iterator.hpp>
-#include <boost/range/iterator_range.hpp>
 
 #include <map>
 #include <vector>
 #include <utility>
+#include <optional>
 
 namespace a3um
 {
@@ -70,18 +67,7 @@ struct basic_mesh_data
         return index;
     }
 
-    void build_triangulations()
-    {
-        auto transform = [](auto const& src, auto& tgt)
-        {
-            CGAL::copy_face_graph(src, tgt);
-            CGAL::Polygon_mesh_processing::triangulate_faces<triangle_mesh>(tgt);
-        };
-        triangulations.clear();
-        for (auto& mesh: meshes) {
-            transform(mesh, triangulations.emplace_back());
-        }
-    }
+    void build_triangulations();
 };
 
 struct indexed_mesh_data : basic_mesh_data
@@ -89,31 +75,8 @@ struct indexed_mesh_data : basic_mesh_data
     triangle_comaps face_comaps;
     triangle_aabb_tree triangle_tree;
 
-    void build_triangulations()
-    {
-        mesh_transformer transformer{CGAL::Polygon_mesh_processing::triangulate_faces<triangle_mesh>};
-
-        triangulations.clear();
-        face_comaps.clear();
-
-        unsigned index = 0;
-        for (auto& mesh: meshes) {
-            face_comaps.emplace(index, transformer(mesh, triangulations.emplace_back()));
-            ++index;
-        }
-    }
-
-    void index_triangles()
-    {
-        build_triangulations();
-        for (unsigned ix = 0; ix < triangulations.size(); ++ix) {
-            for (auto fd: faces(triangulations.at(ix))) {
-                triangle_primitive prim{ix, fd};
-                triangle_tree.insert(prim);
-            }
-        }
-        triangle_tree.build(&triangulations);
-    }
+    void build_triangulations();
+    void index_triangles();
 
     template <class Query>
     auto face_query(Query query) const

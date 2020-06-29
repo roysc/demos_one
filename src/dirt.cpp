@@ -2,6 +2,7 @@
 #include "noise.hpp"
 
 #include <Rxt/math.hpp>
+#include <Rxt/time.hpp>
 #include <Rxt/geometry/shapes.hpp>
 
 #include <functional>
@@ -11,8 +12,11 @@ using glm::ivec2;
 
 dirt_app::dirt_app(uvec2 size)
     : simple_gui("plaza: dirt", size)
+    , palette(default_palette())
+    // , metronome(Rxt::duration_fps<30>(1), [this] { return !is_stopped(); })
 {
-    _init_observers();
+    _init_signals_ui();
+    _init_signals_model();
     _init_controls();
 
     glEnable(GL_DEPTH_TEST);
@@ -22,7 +26,7 @@ dirt_app::dirt_app(uvec2 size)
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    uvec2 map_size(8);
+    uvec2 map_size(16);
     terrain_map tm(map_size);
     auto scale = 0xFF;
     fill_noise(map_size, 42, [&](int x, int y, auto a) { tm.put({x, y}, a * scale / 2); });
@@ -30,6 +34,17 @@ dirt_app::dirt_app(uvec2 size)
 
     camera.focus = fvec3(fvec2(map_size) / 4.f, 0);
     camera.on_update();
+}
+
+std::optional<ivec2> dirt_app::selected_space() const
+{
+    if (selected) {
+        auto [oi, fd] = *selected;
+        ivec2 pos = face_spaces.at(oi).at(fd);
+        assert(Rxt::point_within(pos, terrain.shape()));
+        return pos;
+    }
+    return std::nullopt;
 }
 
 void dirt_app::advance(SDL_Event event)
@@ -42,7 +57,7 @@ void dirt_app::advance(SDL_Event event)
     auto updates = {
         &cursor.on_update,
         &camera.on_update,
-        &hlite.on_update,
+        &selected.on_update,
         &model_update
     };
     auto dirty = flush_all(updates);
@@ -51,7 +66,7 @@ void dirt_app::advance(SDL_Event event)
 
 void dirt_app::draw()
 {
-    auto bg = Rxt::colors::black;
+    auto bg = palette.at("bg");
     glClearColor(bg.r, bg.g, bg.b, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -63,7 +78,7 @@ void dirt_app::draw()
     glDisable(GL_CULL_FACE);
         // gl::enable_guard _blend{GL_BLEND};
         // gl::disable_guard _cull{GL_CULL};
-        b_tris_alpha.draw();
+        b_tris_txp.draw();
     glDisable(GL_BLEND);
     glEnable(GL_CULL_FACE);
     }

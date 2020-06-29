@@ -2,8 +2,6 @@
 cmake_minimum_required(VERSION 3.8)
 project(Plaza VERSION 0.1)
 
-find_package(Rxt 0.2 REQUIRED COMPONENTS Graphics NO_CMAKE_FIND_ROOT_PATH)
-
 # Global options
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

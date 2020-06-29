@@ -43,6 +43,7 @@ struct map_editor
     using tool_state = std::variant<std::monostate, selection_tool, pen_tool>;
 
     bool _quit = false;
+    bool dirty = true;
     bool is_stopped() const { return _quit; }
 
     uvec grid_size;

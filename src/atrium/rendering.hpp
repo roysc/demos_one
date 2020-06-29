@@ -1,26 +1,22 @@
 #pragma once
 
 #include "geometry.hpp"
-#include "interaction.hpp"
 
 #include <Rxt/geometry/helper.hpp>
 #include <Rxt/graphics/color.hpp>
+#include <Rxt/graphics/glm.hpp>
 
 #include <CGAL/boost/graph/helpers.h>
 #include <boost/property_map/property_map.hpp>
-
-#include <glm/glm.hpp>
 
 namespace a3um
 {
 inline glm::vec3 to_glm(g3d::Point p) { return {p.x(), p.y(), p.z()}; }
 inline glm::vec3 to_glm(g3d::Vector v) { return {v.x(), v.y(), v.z()}; }
 
-using mesh_colors = std::map<object_index, Rxt::rgba>;
-
-template <class Bufs>
+template <class Bufs, class Colors>
 void render_triangles(indexed_mesh_data const& geom,
-                      mesh_colors const& colors,
+                      Colors const& colors,
                       Bufs& bufs)
 {
     using Face = boost::graph_traits<triangle_mesh>::face_descriptor;

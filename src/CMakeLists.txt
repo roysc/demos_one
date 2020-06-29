@@ -1,8 +1,12 @@
 # Plaza source root CMakeLists.txt
 
+set(OpenGL_GL_PREFERENCE GLVND)
+find_package(Rxt 0.2 REQUIRED COMPONENTS Graphics Geometry
+    NO_CMAKE_FIND_ROOT_PATH)
+
 include(RxtEmscriptenHelpers)
-include(CMakePrintHelpers)
-cmake_print_variables(CMAKE_PREFIX_PATH)
+# include(CMakePrintHelpers)
+# cmake_print_variables(CMAKE_PREFIX_PATH)
 
 if(EMSCRIPTEN)
     add_compile_options(-fno-diagnostics-color)
@@ -21,12 +25,15 @@ set(_HEADERS
     entity.hpp
     space.hpp
 )
-
 set(_SOURCES
     entity.cpp)
 
+# include(atrium/CMakeLists.txt)
+add_subdirectory(atrium)
+
 add_library(plaza ${_HEADERS} ${_SOURCES})
 target_link_libraries(plaza PUBLIC Rxt::Graphics)
+target_link_libraries(plaza PUBLIC atrium)
 target_include_directories(plaza PUBLIC ${PROJECT_SOURCE_DIR}/external)
 
 add_executable(map_editor ${_HEADERS} ${_SOURCES}
@@ -43,11 +50,13 @@ add_executable(canvas ${_HEADERS} canvas.hpp canvas.cpp)
 target_link_libraries(canvas PUBLIC plaza)
 
 add_executable(dirt ${_HEADERS}
-    dirt_main.cpp
+    dirt.hpp
+    dirt_signals_ui.cpp
+    dirt_signals_model.cpp
     dirt_controls.cpp
-    dirt_init.cpp
     dirt.cpp
-    dirt.hpp)
+    dirt_main.cpp
+)
 target_link_libraries(dirt PUBLIC plaza)
 
 function(_configure_emscripten _TARGET)

@@ -1,13 +1,12 @@
 #pragma once
 
-#include <Rxt/math.hpp>
-
-#include <glm/glm.hpp>
+#include <Rxt/graphics/glm.hpp>
 #include <boost/multi_array.hpp>
 
 template <class T>
 struct dense_map
 {
+    using value_type = T;
     using data_type = boost::multi_array<T, 2>;
     using key_type = glm::uvec2;
     using shape_type = key_type;
@@ -51,4 +50,5 @@ struct dense_map
     }
 };
 
-template <class T> using dense_map2 = dense_map<T>;
+template <class T>
+using dense_map2 = dense_map<T>;

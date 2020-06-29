@@ -7,8 +7,6 @@
 
 namespace Rxt
 {
-inline namespace frp
-{
 template<class... Ts>
 struct hooks
 {
@@ -55,10 +53,10 @@ template <class T>
 proxy_adder(T&) -> proxy_adder<T>;
 }
 
-#define PZ_observe_capr(val_, ...) (::Rxt::frp::_det::proxy_adder{(val_)}) = [&](__VA_ARGS__)
-#define PZ_observe_capv(val_, ...) (::Rxt::frp::_det::proxy_adder{(val_)}) = [=](__VA_ARGS__)
+#define PZ_observe_capr(val_, ...) (::Rxt::_det::proxy_adder{(val_)}) = [&](__VA_ARGS__)
+#define PZ_observe_capv(val_, ...) (::Rxt::_det::proxy_adder{(val_)}) = [=](__VA_ARGS__)
 #define PZ_observe PZ_observe_capr
-// #define PZ_observe(val_, ...) RXT_set_lambda(::Rxt::frp::_det::proxy_adder{(val_)}, __VA_ARGS__)
+// #define PZ_observe(val_, ...) RXT_set_lambda(::Rxt::_det::proxy_adder{(val_)}, __VA_ARGS__)
 
 
 template <class Reactive, class Hook=hooks<>>
@@ -157,5 +155,5 @@ struct hook_router
     }
 };
 
-}
+
 }
