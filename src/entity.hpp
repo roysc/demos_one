@@ -1,7 +1,7 @@
 #pragma once
 
 #include "space.hpp"
-#include "atrium/skeleton.hpp"
+#include "skeleton.hpp"
 
 #include <entt/entt.hpp>
 

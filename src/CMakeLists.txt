@@ -28,8 +28,19 @@ set(_HEADERS
 set(_SOURCES
     entity.cpp)
 
-# include(atrium/CMakeLists.txt)
-add_subdirectory(atrium)
+set(_HEADERS ${_HEADERS}
+    geometry.hpp
+    rendering.hpp
+    skeleton.hpp
+)
+set(_SOURCES ${_SOURCES}
+    geometry.cpp)
+
+add_library(atrium ${_HEADERS} ${_SOURCES})
+target_link_libraries(atrium
+    Rxt::Graphics Rxt::Geometry
+    glm::glm
+)
 
 add_library(plaza ${_HEADERS} ${_SOURCES})
 target_link_libraries(plaza PUBLIC Rxt::Graphics)

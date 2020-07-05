@@ -1,5 +1,5 @@
 #include "dirt.hpp"
-#include "atrium/rendering.hpp"
+#include "rendering.hpp"
 #include <Rxt/graphics/color.hpp>
 
 using Rxt::to_rgba;

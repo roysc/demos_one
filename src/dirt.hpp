@@ -5,7 +5,7 @@
 #include "palette.hpp"
 
 #include "entity.hpp"
-#include "atrium/geometry.hpp"
+#include "geometry.hpp"
 
 #include <Rxt/graphics/shader/colored_triangle_3D.hpp>
 #include <Rxt/graphics/shader/solid_color_3D.hpp>
