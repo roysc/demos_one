@@ -37,6 +37,8 @@ struct hooks
     }
 
     void operator()(Ts... t) { dispatch(t...); }
+
+    auto size() const { return observers.size(); }
 };
 
 namespace _det
@@ -59,32 +61,59 @@ proxy_adder(T&) -> proxy_adder<T>;
 // #define PZ_observe(val_, ...) RXT_set_lambda(::Rxt::_det::proxy_adder{(val_)}, __VA_ARGS__)
 
 
-template <class Reactive, class Hook=hooks<>>
-struct adapt_reactive : Reactive
+template <class T, class Hook=hooks<>>
+struct adapt_reactive : T
 {
-    using reactive_base = Reactive;
-    using reactive_base::reactive_base;
-    using hook_type = Hook;
+    using value_type = T;
+    using super_type = T;
+    using super_type::super_type;
 
+    using hook_type = Hook;
     hook_type on_update;
 
-    auto& emplace(reactive_base that)
+    template <class...A>
+    value_type& emplace(A&&...args)
     {
-        this->reactive_base::operator=(that);
+        this->super_type::operator=(value_type{std::forward<A>(args)...});
+        // *this = value_type{std::forward<A>(args)...};
         on_update();
         return *this;
     }
-
-    // reactive_base& operator*() { return *this; }
-    // reactive_base* operator->() { return this; }
 };
 
-template <template <class...> class Reactive, class Hook, class... T>
-struct adapt_reactive_crt
-    : adapt_reactive<Reactive<adapt_reactive_crt<Reactive, Hook, T...>, T...>, Hook>
+// template <template <class...> class Crt, class Hook, class... T>
+// struct adapt_reactive_crt
+//     : adapt_reactive<Crt<adapt_reactive_crt<Crt, Hook, T...>, T...>, Hook>
+// {
+//     using super_type = adapt_reactive<Crt<adapt_reactive_crt<Crt, Hook, T...>, T...>, Hook>;
+//     using super_type::super_type;
+// };
+
+template <class Der>
+struct reactive_base
 {
-    using super_type = adapt_reactive<Reactive<adapt_reactive_crt<Reactive, Hook, T...>, T...>, Hook>;
+    void do_update() { static_cast<Der&>(*this).on_update(); };
+};
+    
+template <template <class...> class Crt, class Hook, class... T>
+struct adapt_reactive_crt
+    : Crt<adapt_reactive_crt<Crt, Hook, T...>, T...>
+{
+    using value_type = Crt<adapt_reactive_crt<Crt, Hook, T...>, T...>;
+    using super_type = value_type;
     using super_type::super_type;
+    
+    using hook_type = Hook;
+    hook_type on_update;
+
+    template <class...A>
+    value_type& emplace(A&&...args)
+    {
+        // this->super_type::operator=(value_type{std::forward<A>(args)...});
+        new (this) value_type{std::forward<A>(args)...};
+        on_update();
+        return static_cast<value_type&>(*this);
+    }
 };
 
 struct no_hook { void on_update() {} };
@@ -154,6 +183,4 @@ struct hook_router
         _map[*_switch].on_enable();
     }
 };
-
-
 }

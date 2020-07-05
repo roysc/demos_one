@@ -6,11 +6,12 @@
 #include <entt/entt.hpp>
 
 using entity_registry = entt::registry;
+using entity_id = entt::entity;
 
 namespace cpt
 {
 struct zpos { ivec2 r; };
-// struct fpos { fvec3 r; };
+struct fpos { fvec3 r; };
 // struct vel { fvec3 dr; };
 struct life
 {
@@ -23,4 +24,4 @@ skeleton build_plant();
 skeleton build_man();
 }
 
-void put_body(entity_registry& r, ivec2 pos, skeleton);
+entity_id put_body(entity_registry& r, ivec2 pos, skeleton);

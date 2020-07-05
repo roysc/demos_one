@@ -39,7 +39,7 @@ using mesh_colors = std::map<object_index, Rxt::rgba>;
 using Rxt::adapt_reactive_crt;
 using Rxt::adapt_reactive;
 using cursor_type = adapt_reactive_crt<reactive_cursor, Rxt::hooks<>, ui_traits>;
-using camera_type = adapt_reactive_crt<reactive_focus_cam, Rxt::hooks<>>;
+using camera_type = adapt_reactive_crt<reactive_cam, Rxt::hooks<>>;
 using hl_data = adapt_reactive<std::optional<object_face>>;
 using terrain_map = adapt_reactive<dense_map<std::uint8_t>>;
 
@@ -56,17 +56,26 @@ struct dirt_app : public sdl::simple_gui
     sdl::key_dispatcher keys;
     // sdl::metronome metronome;
 
-    camera_type::position_type start_camera_at{8};
-    camera_type camera{start_camera_at};
+    Rxt::focus_cam initial_camera;
+    camera_type camera;
     cursor_type cursor;
-    std::optional<ui_traits::position_type> drag_origin;
+
+    struct Drag { ui_traits::position_type pos; Rxt::focus_cam cam; };
+    std::optional<Drag> drag_origin;
+    // std::optional<ui_traits::position_type> drag_origin;
+    // std::optional<Rxt::focus_cam> drag_origin;
+
+    color_palette palette;
+    terrain_map terrain;
+    entity_registry entities;
+    entity_id e_debug;
 
     triangle_program triangle_prog;
-    triangle_program::data b_triangles {triangle_prog};
-    triangle_program::data b_tris_txp {triangle_prog};
+    triangle_program::buffers b_triangles {triangle_prog};
+    triangle_program::buffers b_tris_txp {triangle_prog};
     line_program line_prog;
-    line_program::data b_lines {line_prog};
-    line_program::data b_uilines {line_prog};
+    line_program::buffers b_lines {line_prog};
+    line_program::buffers b_uilines {line_prog};
 
     mesh_data geom;
     hl_data selected;
@@ -75,9 +84,6 @@ struct dirt_app : public sdl::simple_gui
     foreign_face_map face_ephem;
     std::map<object_index, face_to_space> face_spaces;
 
-    color_palette palette;
-    terrain_map terrain;
-    entity_registry entreg;
     Rxt::hooks<> model_update, ent_update, on_debug;
 
     dirt_app(uvec2);
@@ -88,6 +94,9 @@ struct dirt_app : public sdl::simple_gui
     void _init_controls();
     void _init_signals_ui();
     void _init_signals_model();
+
+    void handle_drag(fvec2);
+    std::optional<ivec2> selected_space() const;
 
     auto add_mesh(a3um::mesh mesh, Rxt::rgba color)
     {
@@ -106,6 +115,4 @@ struct dirt_app : public sdl::simple_gui
         model_update();
         return ix;
     }
-
-    std::optional<ivec2> selected_space() const;
 };

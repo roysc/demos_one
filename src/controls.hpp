@@ -8,12 +8,6 @@
 
 // ST = spatial_traits
 
-template <class Der>
-struct reactive_base
-{
-    void _update() { static_cast<Der&>(*this).on_update(); };
-};
-
 template <class ST>
 struct basic_cursor
 {
@@ -21,6 +15,8 @@ struct basic_cursor
     P _position {0};
     P position() const { return _position; }
 };
+
+using Rxt::reactive_base;
 
 template <class Der, class ST>
 struct reactive_cursor : basic_cursor<ST>, reactive_base<Der>
@@ -30,7 +26,7 @@ struct reactive_cursor : basic_cursor<ST>, reactive_base<Der>
     using super_type::position;
     using P = typename ST::position_type;
 
-    void position(P p) { this->_position = p; this->_update(); }
+    void position(P p) { this->_position = p; this->do_update(); }
 };
 
 template <class Der, class ST>
@@ -43,21 +39,22 @@ struct reactive_viewport : basic_viewport<ST>, reactive_base<Der>
     using P = typename ST::position_type;
     using Size = typename ST::size_type;
 
-    void position(P p) override { super_type::position(p); this->_update(); }
-    void set_scale(Size s) override { super_type::set_scale(s); this->_update(); }
+    void position(P p) override { super_type::position(p); this->do_update(); }
+    void set_scale(Size s) override { super_type::set_scale(s); this->do_update(); }
 };
 
-template <class Der>
-struct reactive_focus_cam : Rxt::focus_cam, reactive_base<Der>
+template <class Der, class Cam = Rxt::focus_cam>
+struct reactive_cam : Cam, reactive_base<Der>
 {
-    using super_type = Rxt::focus_cam;
+    using super_type = Cam;
     using super_type::super_type;
     using super_type::position;
+    reactive_cam(super_type c) : super_type(c) {}
 
-    void position(position_type pos) override
+    void position(super_type::position_type pos) override
     {
         super_type::position(pos);
-        this->_update();
+        this->do_update();
     }
 };
 

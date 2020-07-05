@@ -7,7 +7,7 @@ void dirt_app::_init_controls()
     using Ax = Rxt::axis3;
     float speed = 0.04;
 
-    auto reset_camera = [this] { camera.emplace(start_camera_at); };
+    auto reset_camera = [this] { camera.emplace(initial_camera); };
 
     keys.on_scan["Right"] = std::bind(orbit_cam, &camera, Ax::z, +speed);
     keys.on_scan["Left"] = std::bind(orbit_cam, &camera, Ax::z, -speed);
@@ -37,18 +37,22 @@ void dirt_app::_init_controls()
         switch (button.button) {
         case SDL_BUTTON_LEFT: {
             if (auto pos = selected_space()) {
-                put_body(entreg, *pos, cpt::build_plant());
+                put_body(entities, *pos, cpt::build_plant());
                 ent_update();
             }
             break;
         }
         case SDL_BUTTON_MIDDLE:
-            drag_origin = cursor.position();
+            // drag_origin = cursor.position();
+            drag_origin = {
+                .pos = cursor.position(),
+                .cam = camera
+            };
             // if (drag_origin) print("drag_origin = {}\n", *drag_origin); 
             break;
         case SDL_BUTTON_RIGHT:
             if (auto pos = selected_space()) {
-                put_body(entreg, *pos, cpt::build_man());
+                put_body(entities, *pos, cpt::build_man());
                 ent_update();
             }
             break;

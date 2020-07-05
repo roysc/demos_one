@@ -37,7 +37,7 @@ skeleton build_man()
 }
 }
 
-void put_body(entity_registry& r, ivec2 pos, cpt::skel b)
+entity_id put_body(entity_registry& r, ivec2 pos, cpt::skel b)
 {
     using namespace cpt;
     auto e = r.create();
@@ -46,4 +46,5 @@ void put_body(entity_registry& r, ivec2 pos, cpt::skel b)
     r.emplace<skel>(e, b);
     // r.emplace<life>(e);
     Rxt::print("creating plant at {}\n", pos);
+    return e;
 }
