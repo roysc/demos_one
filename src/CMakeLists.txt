@@ -1,8 +1,10 @@
 # Plaza source root CMakeLists.txt
 
 set(OpenGL_GL_PREFERENCE GLVND)
-find_package(Rxt 0.2 REQUIRED COMPONENTS Graphics Geometry
+find_package(Rxt 0.2 REQUIRED
+    COMPONENTS Graphics Geometry
     NO_CMAKE_FIND_ROOT_PATH)
+find_package(EnTT REQUIRED)
 
 include(RxtEmscriptenHelpers)
 # include(CMakePrintHelpers)
@@ -24,28 +26,22 @@ set(_HEADERS
     noise.hpp
     entity.hpp
     space.hpp
-)
-set(_SOURCES
-    entity.cpp)
-
-set(_HEADERS ${_HEADERS}
     geometry.hpp
     rendering.hpp
     skeleton.hpp
 )
-set(_SOURCES ${_SOURCES}
-    geometry.cpp)
+set(_SOURCES
+    entity.cpp
+    geometry.cpp
+)
 
 add_library(atrium ${_HEADERS} ${_SOURCES})
+target_include_directories(atrium PUBLIC ${PROJECT_SOURCE_DIR}/external)
 target_link_libraries(atrium
     Rxt::Graphics Rxt::Geometry
     glm::glm
+    EnTT::EnTT
 )
-
-add_library(plaza ${_HEADERS} ${_SOURCES})
-target_link_libraries(plaza PUBLIC Rxt::Graphics)
-target_link_libraries(plaza PUBLIC atrium)
-target_include_directories(plaza PUBLIC ${PROJECT_SOURCE_DIR}/external)
 
 add_executable(map_editor ${_HEADERS} ${_SOURCES}
     old/interface_display.hpp
@@ -54,11 +50,11 @@ add_executable(map_editor ${_HEADERS} ${_SOURCES}
     old/map_editor.hpp
     old/map_editor.cpp
 )
-target_link_libraries(map_editor PUBLIC plaza)
+target_link_libraries(map_editor PUBLIC atrium)
 Rxt_emscripten_use_boost(map_editor)
 
 add_executable(canvas ${_HEADERS} canvas.hpp canvas.cpp)
-target_link_libraries(canvas PUBLIC plaza)
+target_link_libraries(canvas PUBLIC atrium)
 
 add_executable(dirt ${_HEADERS}
     dirt.hpp
@@ -68,7 +64,7 @@ add_executable(dirt ${_HEADERS}
     dirt.cpp
     dirt_main.cpp
 )
-target_link_libraries(dirt PUBLIC plaza)
+target_link_libraries(dirt PUBLIC atrium)
 
 function(_configure_emscripten _TARGET)
     set_target_properties(${_TARGET} PROPERTIES SUFFIX ".html")

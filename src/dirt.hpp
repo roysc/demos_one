@@ -39,7 +39,8 @@ using mesh_colors = std::map<object_index, Rxt::rgba>;
 using Rxt::adapt_reactive_crt;
 using Rxt::adapt_reactive;
 using cursor_type = adapt_reactive_crt<reactive_cursor, Rxt::hooks<>, ui_traits>;
-using camera_type = adapt_reactive_crt<reactive_cam, Rxt::hooks<>>;
+using camera_state = Rxt::focus_cam;
+using camera_type = adapt_reactive_crt<reactive_cam, Rxt::hooks<>, camera_state>;
 using hl_data = adapt_reactive<std::optional<object_face>>;
 using terrain_map = adapt_reactive<dense_map<std::uint8_t>>;
 
@@ -56,11 +57,11 @@ struct dirt_app : public sdl::simple_gui
     sdl::key_dispatcher keys;
     // sdl::metronome metronome;
 
-    Rxt::focus_cam initial_camera;
+    camera_state initial_camera;
     camera_type camera;
     cursor_type cursor;
 
-    struct Drag { ui_traits::position_type pos; Rxt::focus_cam cam; };
+    struct Drag { ui_traits::position_type pos; camera_state cam; };
     std::optional<Drag> drag_origin;
     // std::optional<ui_traits::position_type> drag_origin;
     // std::optional<Rxt::focus_cam> drag_origin;
@@ -73,9 +74,10 @@ struct dirt_app : public sdl::simple_gui
     triangle_program triangle_prog;
     triangle_program::buffers b_triangles {triangle_prog};
     triangle_program::buffers b_tris_txp {triangle_prog};
-    line_program line_prog;
+    line_program line_prog, ui_line_prog;
     line_program::buffers b_lines {line_prog};
-    line_program::buffers b_uilines {line_prog};
+    line_program::buffers b_overlines {line_prog};
+    line_program::buffers b_uilines {ui_line_prog};
 
     mesh_data geom;
     hl_data selected;
@@ -95,7 +97,7 @@ struct dirt_app : public sdl::simple_gui
     void _init_signals_ui();
     void _init_signals_model();
 
-    void handle_drag(fvec2);
+    void handle_drag(fvec2, camera_state);
     std::optional<ivec2> selected_space() const;
 
     auto add_mesh(a3um::mesh mesh, Rxt::rgba color)

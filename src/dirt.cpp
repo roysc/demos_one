@@ -40,8 +40,12 @@ dirt_app::dirt_app(uvec2 size)
     camera.focus = fvec3(fvec2(map_size) / 4.f, 0);
     camera.on_update();
 
-    // std::cout << std::setprecision(1);
+    // e_debug = entities.create<cpt::skel, cpt::fpos>();
     e_debug = entities.create();
+    // entities.emplace<cpt::skel>(e_debug, cpt::skel{});
+    // entities.emplace<cpt::fpos>(e_debug, fvec3(0));
+
+    set(ui_line_prog->mvp_matrix, glm::mat4(1));
 }
 
 std::optional<ivec2> dirt_app::selected_space() const
@@ -55,31 +59,40 @@ std::optional<ivec2> dirt_app::selected_space() const
     return std::nullopt;
 }
 
-void dirt_app::handle_drag(fvec2 nds)
+void dirt_app::handle_drag(fvec2 dist_nds, camera_state cam_start)
 {
     using Rxt::print;
-    auto p_vs = Rxt::unproject(fvec4(nds, 0, 0), camera);
-    float dist = length(nds) * Rxt::tau;
-    // auto perp = perp(fvec2(1), nds);
-    auto perp = fvec4(-nds.y, nds.x, 0, 0);
-    auto about = Rxt::unview(perp, camera);
-    auto q_drag = glm::angleAxis(glm::degrees(dist), about);
-    auto newcam = drag_origin->cam;
-    newcam.orbit(q_drag);
-    camera.emplace(newcam);
+    float mag = length(dist_nds);
+
+    auto perp_nds = fvec2(-dist_nds.y, dist_nds.x); // ccw
+    auto perp_vs = Rxt::unproject(fvec4(perp_nds, 0, 0), cam_start);
+    auto about_ms = normalize(Rxt::unview(perp_vs, cam_start));
+    auto q_drag_ms = glm::angleAxis(glm::degrees(-mag), about_ms);
+    cam_start.orbit(q_drag_ms);
+    camera.emplace(cam_start);
 
     {
-    skeleton g;
-    // auto b = g.builder(); b.e[b.v(p), b.v(pp), white];
-    add_edge(add_vertex(fvec3(0), g.graph), add_vertex(10.f * about, g.graph),
-             Rxt::colors::white, g.graph);
-    // e_debug = put_body(entities, camera.focus, g);
-    entities.emplace<cpt::skel>(e_debug, g);
-    entities.emplace<cpt::fpos>(e_debug, camera.focus);
-    ent_update();
+        using namespace cpt;
+        skel g;
+        // auto b = g.builder(); b.e[b.v(p), b.v(pp), white];
+        add_edge(add_vertex(fvec3(0), g.graph), add_vertex(10.f * about_ms, g.graph),
+                 Rxt::colors::white, g.graph);
+        // e_debug = put_body(entities, camera.focus, g);
+        // entities.emplace_or_replace<skel>(e_debug, g);
+        // entities.emplace_or_replace<fpos>(e_debug, camera.focus);
+        // ent_update();
+
+        auto color = Rxt::colors::white;
+        b_uilines.clear();
+        b_uilines.push(fvec3(0), color);
+        b_uilines.push(fvec3(dist_nds, 0), color);
+        b_uilines.push(fvec3(0), color);
+        b_uilines.push(fvec3(perp_nds, 0), .5f*color);
+        b_uilines.update();
     }
-    print("drag perp = {} about = {} dist = {}\n", perp, about, dist);
-    // print("drag about = {} dist = {}\n", about, dist);
+
+    print("drag around axis[M] = {}\n", about_ms);
+    // print("drag perp[V] = {} about[M] = {} mag[ND] = {}\n", perp_vs, about_ms, mag);
     // print("camera hooks #= {}\n", camera.on_update.size());
 }
 
@@ -94,7 +107,7 @@ void dirt_app::advance(SDL_Event event)
         &cursor.on_update,
         &camera.on_update,
         &selected.on_update,
-        &model_update
+        &model_update,
     };
     auto dirty = flush_all(updates);
     if (dirty) draw();
@@ -121,6 +134,7 @@ void dirt_app::draw()
 
     // Draw indicator lines over model
     glClear(GL_DEPTH_BUFFER_BIT);
+    b_overlines.draw();
     b_uilines.draw();
 
     SDL_GL_SwapWindow(window.get());

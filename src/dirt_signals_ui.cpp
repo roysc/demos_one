@@ -18,8 +18,9 @@ void dirt_app::_init_signals_ui()
         }
 
         if (drag_origin) {
-            auto drag = cursor.position() - drag_origin->pos;
-            handle_drag(drag);
+            auto [pos, cam] = *drag_origin;
+            auto drag = cursor.position() - pos;
+            handle_drag(drag, cam);
             // print("dragging from {}, dist = {}\n", drag_origin->pos, drag);
         }        
     };
@@ -39,18 +40,18 @@ void dirt_app::_init_signals_ui()
         using namespace Rxt::colors;
         Rxt::rgb const axis_colors[3] {red, green, blue};
 
-        b_uilines.clear();
+        b_overlines.clear();
         for (unsigned i = 0; i < 3; ++i) {
             auto c = axis_colors[i];
-            b_uilines.push(Rxt::zero3<fvec3>, c);
-            b_uilines.push(Rxt::basis3<fvec3>(i), c);
+            b_overlines.push(Rxt::zero3<fvec3>, c);
+            b_overlines.push(Rxt::basis3<fvec3>(i), c);
         }
         if (selected) {
-            render_hl(*selected, geom, b_uilines, palette.at("hl"));
+            render_hl(*selected, geom, b_overlines, palette.at("hl"));
             if (auto others = face_ephem.find(*selected); others != end(face_ephem))
-                render_hl(others->second, ephem, b_uilines, palette.at("hl_water"));
+                render_hl(others->second, ephem, b_overlines, palette.at("hl_water"));
         }
-        b_uilines.update();
+        b_overlines.update();
     };
 
     PZ_observe(on_debug) {
@@ -60,6 +61,6 @@ void dirt_app::_init_signals_ui()
         } else {
             print("cursor({})\n", cursor.position());
         }
-        if (drag_origin) print("drag_origin = {}\n", drag_origin->pos); 
+        if (drag_origin) print("drag_origin = {}\n", drag_origin->pos);
     };
 }

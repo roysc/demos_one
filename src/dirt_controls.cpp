@@ -8,6 +8,13 @@ void dirt_app::_init_controls()
     float speed = 0.04;
 
     auto reset_camera = [this] { camera.emplace(initial_camera); };
+    auto put_camera = [this] (fvec3 pos)
+    {
+        auto up = fvec3(0,0,1);
+        if (pos == up)
+            up = fvec3(1,0,0);
+        camera.emplace(pos, fvec3(0), up);
+    };
 
     keys.on_scan["Right"] = std::bind(orbit_cam, &camera, Ax::z, +speed);
     keys.on_scan["Left"] = std::bind(orbit_cam, &camera, Ax::z, -speed);
@@ -18,6 +25,9 @@ void dirt_app::_init_controls()
     keys.on_press["C-W"] = [this] { quit = true; };
     keys.on_press["D"] = on_debug;
     keys.on_press["R"] = reset_camera;
+    keys.on_press["X"] = std::bind(put_camera, Rxt::basis3<fvec3>(Rxt::axis3::x));
+    keys.on_press["Y"] = std::bind(put_camera, Rxt::basis3<fvec3>(Rxt::axis3::y));
+    keys.on_press["Z"] = std::bind(put_camera, Rxt::basis3<fvec3>(Rxt::axis3::z));
 
     PZ_observe(input.on_quit) { quit = true; };
     PZ_observe(input.on_key_down, SDL_Keysym k) { keys.press(k); };
