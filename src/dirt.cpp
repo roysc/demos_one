@@ -61,39 +61,14 @@ std::optional<ivec2> dirt_app::selected_space() const
 
 void dirt_app::handle_drag(fvec2 dist_nds, camera_state cam_start)
 {
-    using Rxt::print;
     float mag = length(dist_nds);
-
+    assert(dist_nds != fvec2(0));// degenerate
     auto perp_nds = fvec2(-dist_nds.y, dist_nds.x); // ccw
-    auto perp_vs = Rxt::unproject(fvec4(perp_nds, 0, 0), cam_start);
+    auto perp_vs = fvec4(perp_nds, 0, 0);
     auto about_ms = normalize(Rxt::unview(perp_vs, cam_start));
-    auto q_drag_ms = glm::angleAxis(glm::degrees(-mag), about_ms);
+    auto q_drag_ms = glm::angleAxis(-(mag) * Rxt::tau, about_ms);
     cam_start.orbit(q_drag_ms);
     camera.emplace(cam_start);
-
-    {
-        using namespace cpt;
-        skel g;
-        // auto b = g.builder(); b.e[b.v(p), b.v(pp), white];
-        add_edge(add_vertex(fvec3(0), g.graph), add_vertex(10.f * about_ms, g.graph),
-                 Rxt::colors::white, g.graph);
-        // e_debug = put_body(entities, camera.focus, g);
-        // entities.emplace_or_replace<skel>(e_debug, g);
-        // entities.emplace_or_replace<fpos>(e_debug, camera.focus);
-        // ent_update();
-
-        auto color = Rxt::colors::white;
-        b_uilines.clear();
-        b_uilines.push(fvec3(0), color);
-        b_uilines.push(fvec3(dist_nds, 0), color);
-        b_uilines.push(fvec3(0), color);
-        b_uilines.push(fvec3(perp_nds, 0), .5f*color);
-        b_uilines.update();
-    }
-
-    print("drag around axis[M] = {}\n", about_ms);
-    // print("drag perp[V] = {} about[M] = {} mag[ND] = {}\n", perp_vs, about_ms, mag);
-    // print("camera hooks #= {}\n", camera.on_update.size());
 }
 
 void dirt_app::advance(SDL_Event event)

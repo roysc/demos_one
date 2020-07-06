@@ -4,6 +4,8 @@
 #include <Rxt/math.hpp>
 #include <Rxt/io.hpp>
 
+#include <glm/gtc/epsilon.hpp>
+
 using Rxt::print;
 
 void dirt_app::_init_signals_ui()
@@ -20,8 +22,10 @@ void dirt_app::_init_signals_ui()
         if (drag_origin) {
             auto [pos, cam] = *drag_origin;
             auto drag = cursor.position() - pos;
-            handle_drag(drag, cam);
-            // print("dragging from {}, dist = {}\n", drag_origin->pos, drag);
+            auto threshold = 0.001f;
+            if (!all(glm::epsilonEqual(drag, fvec2(0), threshold)))
+                handle_drag(drag, cam);
+            // else print("ignoring degenerate drag\n");
         }        
     };
 
