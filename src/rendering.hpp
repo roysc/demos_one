@@ -14,15 +14,15 @@ namespace a3um
 inline glm::vec3 to_glm(g3d::Point p) { return {p.x(), p.y(), p.z()}; }
 inline glm::vec3 to_glm(g3d::Vector v) { return {v.x(), v.y(), v.z()}; }
 
-template <class Bufs, class Colors>
+template <class Colors, class Bufs>
 void render_triangles(indexed_mesh_data const& geom,
                       Colors const& colors,
                       Bufs& bufs)
 {
-    using Face = boost::graph_traits<triangle_mesh>::face_descriptor;
-    using NormalMap = std::map<Face, g3d::Vector>;
+    using TriFace = boost::graph_traits<indexed_mesh_data::triangle_mesh>::face_descriptor;
+    using NormalMap = std::map<TriFace, g3d::Vector>;
 
-    for (object_index i = 0; i < geom.meshes.size(); ++i) {
+    for (unsigned i = 0; i < geom.meshes.size(); ++i) {
         auto& mesh = geom.meshes.at(i);
         auto& t3n = geom.triangulations.at(i);
 
@@ -43,7 +43,7 @@ void render_triangles(indexed_mesh_data const& geom,
 }
 
 template <class LineBufs>
-void render_hl(object_face_key const& fk,
+void render_hl(basic_mesh_data::object_face_key const& fk,
                basic_mesh_data const& geom,
                LineBufs& lines,
                Rxt::rgb const color)

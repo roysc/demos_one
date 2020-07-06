@@ -25,9 +25,10 @@ void dirt_app::_init_signals_model()
 
     PZ_observe(terrain.on_update) {
         using namespace a3um;
-        object_mesh mesh, eph;
+        using Fd = mesh_data::object_face_descriptor;
+        mesh3 mesh, eph;
         face_to_space f2s;
-        std::map<object_face_descriptor, object_face_descriptor> f2f;
+        std::map<Fd, Fd> f2f;
 
         terrain.for_each([&](auto pos, auto& cell) {
             auto _quad = [pos](float elev, auto& m) {

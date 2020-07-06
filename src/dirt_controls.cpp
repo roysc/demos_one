@@ -47,7 +47,7 @@ void dirt_app::_init_controls()
         switch (button.button) {
         case SDL_BUTTON_LEFT: {
             if (auto pos = selected_space()) {
-                put_body(entities, *pos, cpt::build_plant());
+                put_body(entities, *pos, build_plant());
                 ent_update();
             }
             break;
@@ -62,7 +62,7 @@ void dirt_app::_init_controls()
             break;
         case SDL_BUTTON_RIGHT:
             if (auto pos = selected_space()) {
-                put_body(entities, *pos, cpt::build_man());
+                put_body(entities, *pos, build_man());
                 ent_update();
             }
             break;
