@@ -31,12 +31,11 @@ map_chain<M> chain_map(M const& head, M const& next)
     return {{head, next}};
 }
 
-using color_palette = std::map<std::string_view, Rxt::rgba>;
+using color_palette = std::map<std::string, Rxt::rgba>;
 
 inline color_palette default_palette()
 {
     using namespace Rxt;
-    using namespace std::literals;
     color_palette p;
     p.emplace("hl", to_rgba(colors::white));
     p.emplace("bg", to_rgba(colors::black));

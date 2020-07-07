@@ -8,7 +8,13 @@ using Source = g3d::Mesh;
 using Trin = g3d::Mesh;
 using Sources = std::vector<Source>;
 using Trins = std::vector<Trin>;
-using SourceKey = std::size_t;
+using Source_key = std::size_t;
+
+using Mesh_transformer = Rxt::transform_comap_faces<Source, Trin>;
+using Triangle_comaps = std::map<Source_key, typename Mesh_transformer::face_comap>;
+
+using Triangle_primitive = Rxt::triangle_primitive<Trins>;
+using Triangle_aabb_tree = CGAL::AABB_tree<CGAL::AABB_traits<g3d::Kernel, Triangle_primitive>>;
 
 template <>
 void build_triangulations(Sources const& meshes, Trins& triangulations)
@@ -23,9 +29,6 @@ void build_triangulations(Sources const& meshes, Trins& triangulations)
         transform(mesh, triangulations.emplace_back());
     }
 }
-
-using Mesh_transformer = Rxt::transform_comap_faces<Source, Trin>;
-using Triangle_comaps = std::map<SourceKey, typename Mesh_transformer::face_comap>;
 
 template <>
 void build_triangulations(Sources const& sources,
@@ -43,9 +46,6 @@ void build_triangulations(Sources const& sources,
         ++i;
     }
 }
-
-using Triangle_primitive = Rxt::triangle_primitive<Trins>;
-using Triangle_aabb_tree = CGAL::AABB_tree<CGAL::AABB_traits<g3d::Kernel, Triangle_primitive>>;
 
 template <>
 void index_triangles(Trins const& triangulations, Triangle_aabb_tree& tree)
