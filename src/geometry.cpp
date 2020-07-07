@@ -4,12 +4,19 @@
 
 namespace a3um
 {
-void basic_mesh_data::build_triangulations()
+using Source = g3d::Mesh;
+using Trin = g3d::Mesh;
+using Sources = std::vector<Source>;
+using Trins = std::vector<Trin>;
+using SourceKey = std::size_t;
+
+template <>
+void build_triangulations(Sources const& meshes, Trins& triangulations)
 {
     auto transform = [](auto const& src, auto& tgt)
     {
         CGAL::copy_face_graph(src, tgt);
-        CGAL::Polygon_mesh_processing::triangulate_faces<triangle_mesh>(tgt);
+        CGAL::Polygon_mesh_processing::triangulate_faces<Trin>(tgt);
     };
     triangulations.clear();
     for (auto& mesh: meshes) {
@@ -17,29 +24,38 @@ void basic_mesh_data::build_triangulations()
     }
 }
 
-void indexed_mesh_data::build_triangulations()
+using Mesh_transformer = Rxt::transform_comap_faces<Source, Trin>;
+using Triangle_comaps = std::map<SourceKey, typename Mesh_transformer::face_comap>;
+
+template <>
+void build_triangulations(Sources const& sources,
+                          Trins& triangulations,
+                          Triangle_comaps& face_comaps)
 {
-    mesh_transformer transformer{CGAL::Polygon_mesh_processing::triangulate_faces<triangle_mesh>};
+    Mesh_transformer transformer{CGAL::Polygon_mesh_processing::triangulate_faces<Trin>};
 
     triangulations.clear();
     face_comaps.clear();
 
-    unsigned index = 0;
-    for (auto& mesh: meshes) {
-        face_comaps.emplace(index, transformer(mesh, triangulations.emplace_back()));
-        ++index;
+    unsigned i = 0;
+    for (auto& mesh: sources) {
+        face_comaps.emplace(i, transformer(mesh, triangulations.emplace_back()));
+        ++i;
     }
 }
 
-void indexed_mesh_data::index_triangles()
+using Triangle_primitive = Rxt::triangle_primitive<Trins>;
+using Triangle_aabb_tree = CGAL::AABB_tree<CGAL::AABB_traits<g3d::Kernel, Triangle_primitive>>;
+
+template <>
+void index_triangles(Trins const& triangulations, Triangle_aabb_tree& tree)
 {
-    build_triangulations();
     for (unsigned ix = 0; ix < triangulations.size(); ++ix) {
         for (auto fd: faces(triangulations.at(ix))) {
-            triangle_primitive prim{ix, fd};
-            triangle_tree.insert(prim);
+            Triangle_primitive prim{ix, fd};
+            tree.insert(prim);
         }
     }
-    triangle_tree.build(&triangulations);
+    tree.build(&triangulations);
 }
 }
