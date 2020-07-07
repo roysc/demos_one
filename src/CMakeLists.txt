@@ -32,7 +32,7 @@ set(_HEADERS
 )
 set(_SOURCES
     entity.cpp
-    geometry.cpp
+    mesh.cpp
 )
 
 add_library(atrium ${_HEADERS} ${_SOURCES})

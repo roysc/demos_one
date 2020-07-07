@@ -11,10 +11,9 @@ using Rxt::print;
 void dirt_app::_init_signals_ui()
 {
     PZ_observe(cursor.on_update) {
-        using a3um::to_point;
         auto [source, dir] = Rxt::cast_ray(cursor.position(), camera);
 
-        auto newsel = geom.face_query(a3um::ray(to_point(source), to_point(source + dir)));
+        auto newsel = geom.face_query(geometry::ray(to_point(source), to_point(source + dir)));
         if (selected != newsel) {
             selected.emplace(newsel);
         }

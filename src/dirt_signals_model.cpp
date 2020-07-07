@@ -24,7 +24,6 @@ void dirt_app::_init_signals_model()
     };
 
     PZ_observe(terrain.on_update) {
-        using namespace a3um;
         using Sfd = mesh_data::source_face_descriptor;
         mesh3 mesh, eph;
         face_to_space f2s;
@@ -33,7 +32,7 @@ void dirt_app::_init_signals_model()
         terrain.for_each([&](auto pos, auto& cell) {
             auto _quad = [pos](float elev, auto& m) {
                 auto x = pos.x, y = pos.y;
-                a3um::point corners[4] = {
+                geometry::point corners[4] = {
                     {  x,   y, elev},
                     {x+1,   y, elev},
                     {x+1, y+1, elev},

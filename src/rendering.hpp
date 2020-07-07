@@ -9,10 +9,8 @@
 #include <CGAL/boost/graph/helpers.h>
 #include <boost/property_map/property_map.hpp>
 
-namespace a3um
-{
-inline glm::vec3 to_glm(g3d::Point p) { return {p.x(), p.y(), p.z()}; }
-inline glm::vec3 to_glm(g3d::Vector v) { return {v.x(), v.y(), v.z()}; }
+inline glm::vec3 to_glm(geometry::point p) { return {p.x(), p.y(), p.z()}; }
+inline glm::vec3 to_glm(geometry::vector v) { return {v.x(), v.y(), v.z()}; }
 
 template <class Trin, class Normals, class Color, class Bufs>
 void render_mesh(Trin const& trin,
@@ -37,7 +35,7 @@ void render_triangles(Index const& geom,
 {
     using TriMesh = typename Index::triangle_mesh;
     using TriFace = boost::graph_traits<TriMesh>::face_descriptor;
-    using NormalMap = std::map<TriFace, g3d::Vector>;
+    using NormalMap = std::map<TriFace, geometry::vector>;
 
     for (unsigned i = 0; i < geom.sources.size(); ++i) {
         auto& mesh = geom.sources.at(i);
@@ -59,11 +57,10 @@ void render_hl(typename Index::face_descriptor fk,
 {
     auto [oi, fd] = fk;
     auto& mesh = geom.sources.at(oi);
-    auto points = get(g3d::vertex_point, mesh);
+    auto points = get(props::vertex_point, mesh);
     // Draw lines around face
     for (auto h: halfedges_around_face(halfedge(fd, mesh), mesh)) {
         lines.push(to_glm(points[source(h, mesh)]), color);
         lines.push(to_glm(points[target(h, mesh)]), color);
     }
-}
 }

@@ -38,8 +38,8 @@ using camera_state = Rxt::focused_camera;
 using camera_type = adapt_reactive_crt<reactive_cam, Rxt::hooks<>, camera_state>;
 using terrain_map = adapt_reactive<dense_map<std::uint8_t>>;
 
-using mesh3 = a3um::mesh;
-using mesh_data = a3um::indexed_mesh_vector<mesh3>;
+using mesh3 = geometry::surface_mesh;
+using mesh_data = indexed_mesh_vector<mesh3>;
 using mesh_key = mesh_data::key_type;
 using mesh_face = mesh_data::face_descriptor;
 using mesh_colors = std::map<mesh_key, Rxt::rgba>;

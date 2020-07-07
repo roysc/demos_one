@@ -2,10 +2,9 @@
 
 #include <CGAL/Polygon_mesh_processing/triangulate_faces.h>
 
-namespace a3um
-{
-using Source = g3d::Mesh;
-using Trin = g3d::Mesh;
+// Specialize for a vector of meshes
+using Source = geometry::surface_mesh;
+using Trin = geometry::surface_mesh;
 using Sources = std::vector<Source>;
 using Trins = std::vector<Trin>;
 using Source_key = std::size_t;
@@ -14,7 +13,7 @@ using Mesh_transformer = Rxt::transform_comap_faces<Source, Trin>;
 using Triangle_comaps = std::map<Source_key, typename Mesh_transformer::face_comap>;
 
 using Triangle_primitive = Rxt::triangle_primitive<Trins>;
-using Triangle_aabb_tree = CGAL::AABB_tree<CGAL::AABB_traits<g3d::Kernel, Triangle_primitive>>;
+using Triangle_aabb_tree = CGAL::AABB_tree<CGAL::AABB_traits<geometry::kernel, Triangle_primitive>>;
 
 template <>
 void build_triangulations(Sources const& meshes, Trins& triangulations)
@@ -57,5 +56,4 @@ void index_triangles(Trins const& triangulations, Triangle_aabb_tree& tree)
         }
     }
     tree.build(&triangulations);
-}
 }
