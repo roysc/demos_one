@@ -4,7 +4,7 @@
 #include <boost/multi_array.hpp>
 
 template <class T>
-struct dense_map
+struct dense_grid
 {
     using value_type = T;
     using data_type = boost::multi_array<T, 2>;
@@ -13,8 +13,8 @@ struct dense_map
 
     data_type _data;
 
-    dense_map() {}
-    dense_map(shape_type shape) { resize(shape); }
+    dense_grid() {}
+    dense_grid(shape_type shape) { resize(shape); }
 
     shape_type shape() const
     {
@@ -24,7 +24,7 @@ struct dense_map
         return ret;
     }
 
-    auto& operator=(dense_map const& that)
+    auto& operator=(dense_grid const& that)
     {
         new(&_data) data_type(that._data);
         return *this;
@@ -51,4 +51,7 @@ struct dense_map
 };
 
 template <class T>
-using dense_map2 = dense_map<T>;
+using dense_grid2 = dense_grid<T>;
+
+template <class T>
+using dense_grid3 = void;
