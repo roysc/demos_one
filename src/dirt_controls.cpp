@@ -8,20 +8,31 @@ void dirt_app::_init_controls()
     float speed = 0.04;
 
     auto reset_camera = [this] { camera.emplace(initial_camera); };
-    auto put_camera = [this] (fvec3 pos)
+    auto put_camera = [this] (fvec3 relpos)
     {
+        auto focus = camera.focus;
+        auto pos = focus + relpos;
         auto up = fvec3(0,0,1);
-        if (pos == up)
-            up = fvec3(1,0,0);
-        camera.emplace(pos, fvec3(0), up);
+        if (focus - pos == -up)
+            up = fvec3(0,1,0);
+        camera.emplace(pos, focus, up);
+    };
+    auto camera_forward = [=, this] (float dist)
+    {
+        camera.forward(dist);
+        auto distance_threshold = 0.001f;
+        if (length(camera.offset()) < distance_threshold) {
+            print("Resetting degenerate camera position...\n");
+            reset_camera();
+        }
     };
 
     keys.on_scan["Right"] = std::bind(orbit_cam, &camera, Ax::z, +speed);
     keys.on_scan["Left"] = std::bind(orbit_cam, &camera, Ax::z, -speed);
     keys.on_scan["Up"] = std::bind(orbit_cam, &camera, Ax::y, +speed);
     keys.on_scan["Down"] = std::bind(orbit_cam, &camera, Ax::y, -speed);
-    keys.on_scan[","] = [=, this] { camera.forward(+speed); };
-    keys.on_scan["."] = [=, this] { camera.forward(-speed); };
+    keys.on_scan[","] = std::bind(camera_forward, +speed);
+    keys.on_scan["."] = std::bind(camera_forward, -speed);
     keys.on_press["C-W"] = [this] { quit = true; };
     keys.on_press["D"] = on_debug;
     keys.on_press["R"] = reset_camera;
@@ -36,9 +47,9 @@ void dirt_app::_init_controls()
         cursor.position({x, y});
     };
 
-    PZ_observe(input.on_mouse_wheel, SDL_MouseWheelEvent wheel) {
+    input.on_mouse_wheel += [=, this] (SDL_MouseWheelEvent wheel) {
         if (wheel.y != 0)
-            camera.forward(wheel.y);
+            camera_forward(wheel.y);
         // if (wheel.x != 0)
         //     camera.orbit(glm::angleAxis(wheel.x*speed, Rxt::basis3<fvec3>(Ax::z)));
     };

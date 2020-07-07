@@ -58,14 +58,16 @@ struct dirt_app : public sdl::simple_gui
     sdl::key_dispatcher keys;
     // sdl::metronome metronome;
 
+    uvec2 map_size;
     camera_state initial_camera;
     camera_type camera;
     cursor_type cursor;
 
-    struct Drag { ui_traits::position_type pos; camera_state cam; };
+    struct Drag {
+        ui_traits::position_type pos;
+        camera_state cam;
+    };
     std::optional<Drag> drag_origin;
-    // std::optional<ui_traits::position_type> drag_origin;
-    // std::optional<Rxt::focus_cam> drag_origin;
 
     color_palette palette;
     terrain_map terrain;

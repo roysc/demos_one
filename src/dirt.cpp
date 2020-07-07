@@ -15,14 +15,24 @@ using glm::ivec2;
 
 dirt_app::dirt_app(uvec2 size)
     : simple_gui("plaza: dirt", size)
+    , map_size(16)
+    , initial_camera(fvec3(8), fvec3(fvec2(map_size) / 4.f, 0))
+    , camera(initial_camera)
     , palette(default_palette())
     // , metronome(Rxt::duration_fps<30>(1), [this] { return !is_stopped(); })
-    , initial_camera{fvec3(8), fvec3()}
-    , camera{initial_camera}
 {
     _init_signals_ui();
     _init_signals_model();
     _init_controls();
+    set(ui_line_prog->mvp_matrix, glm::mat4(1));
+    camera.on_update();
+
+    terrain_map tm(map_size);
+    auto scale = 0xFF;
+    fill_noise(map_size, 42, [&](int x, int y, auto a) { tm.put({x, y}, a * scale / 2); });
+    terrain.emplace(tm);
+
+    e_debug = entities.create();
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
@@ -30,22 +40,6 @@ dirt_app::dirt_app(uvec2 size)
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    uvec2 map_size(16);
-    terrain_map tm(map_size);
-    auto scale = 0xFF;
-    fill_noise(map_size, 42, [&](int x, int y, auto a) { tm.put({x, y}, a * scale / 2); });
-    terrain.emplace(tm);
-
-    camera.focus = fvec3(fvec2(map_size) / 4.f, 0);
-    camera.on_update();
-
-    // e_debug = entities.create<cpt::skel, cpt::fpos>();
-    e_debug = entities.create();
-    // entities.emplace<cpt::skel>(e_debug, cpt::skel{});
-    // entities.emplace<cpt::fpos>(e_debug, fvec3(0));
-
-    set(ui_line_prog->mvp_matrix, glm::mat4(1));
 }
 
 std::optional<ivec2> dirt_app::selected_space() const

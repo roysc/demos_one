@@ -36,9 +36,12 @@ struct hooks
         return ret;
     }
 
+    auto size() const { return observers.size(); }
+
     void operator()(Ts... t) { dispatch(t...); }
 
-    auto size() const { return observers.size(); }
+    template <class F>
+    auto& operator+=(F&& h) { add(h); return *this; }
 };
 
 namespace _det
@@ -48,7 +51,7 @@ struct proxy_adder
 {
     T& self;
     template <class F>
-    auto& operator=(F&& h) { self.add(h); return *this; }
+    auto& operator=(F&& h) { self.add(h); return self; }
 };
 
 template <class T>
