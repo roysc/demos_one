@@ -31,24 +31,24 @@ namespace sdl = Rxt::sdl;
 using triangle_program = Rxt::shader_programs::colored_triangle_3D;
 using line_program = Rxt::shader_programs::solid_color_3D<GL_LINES>;
 
-using mesh_data = a3um::indexed_mesh_data;
-using mesh3 = mesh_data::object_mesh;
-using mesh_index = mesh_data::object_index;
-using object_face = mesh_data::object_face_key;
-using mesh_colors = std::map<mesh_index, Rxt::rgba>;
-
 using Rxt::adapt_reactive_crt;
 using Rxt::adapt_reactive;
 using cursor_type = adapt_reactive_crt<reactive_cursor, Rxt::hooks<>, ui_traits>;
 using camera_state = Rxt::focused_camera;
 using camera_type = adapt_reactive_crt<reactive_cam, Rxt::hooks<>, camera_state>;
-using hl_data = adapt_reactive<std::optional<object_face>>;
 using terrain_map = adapt_reactive<dense_map<std::uint8_t>>;
 
+using mesh3 = a3um::mesh;
+using mesh_data = a3um::indexed_mesh_vector<mesh3>;
+using mesh_key = mesh_data::key_type;
+using mesh_face = mesh_data::face_descriptor;
+using mesh_colors = std::map<mesh_key, Rxt::rgba>;
+using optional_face = adapt_reactive<std::optional<mesh_face>>;
+
 // map back to terrain grid for face selection
-using face_to_space = std::map<mesh_data::object_face_descriptor, terrain_map::key_type>;
+using face_to_space = std::map<mesh_data::source_face_descriptor, terrain_map::key_type>;
 // map to dependent faces
-using foreign_face_map = std::map<object_face, object_face>;
+using foreign_face_map = std::map<mesh_face, mesh_face>;
 
 struct dirt_app : public sdl::simple_gui
 {
@@ -81,11 +81,11 @@ struct dirt_app : public sdl::simple_gui
     line_program::buffers b_uilines {ui_line_prog};
 
     mesh_data geom;
-    hl_data selected;
+    optional_face selected;
     mesh_data ephem;
     mesh_colors colors, ephem_colors;
     foreign_face_map face_ephem;
-    std::map<mesh_index, face_to_space> face_spaces;
+    std::map<mesh_key, face_to_space> face_spaces;
 
     Rxt::hooks<> model_update, ent_update, on_debug;
 
@@ -101,19 +101,19 @@ struct dirt_app : public sdl::simple_gui
     void handle_drag(fvec2, camera_state);
     std::optional<ivec2> selected_space() const;
 
-    auto add_mesh(a3um::mesh mesh, Rxt::rgba color)
+    auto add_mesh(mesh3 mesh, Rxt::rgba color)
     {
         auto ix = geom.insert(mesh);
-        geom.index_triangles();        
+        geom.build();
         colors.emplace(ix, color);
         model_update();
         return ix;
     }
 
-    auto add_ephemeral(a3um::mesh mesh, Rxt::rgba color)
+    auto add_ephemeral(mesh3 mesh, Rxt::rgba color)
     {
         auto ix = ephem.insert(mesh);
-        ephem.build_triangulations();
+        ephem.build();
         ephem_colors.emplace(ix, color);
         model_update();
         return ix;

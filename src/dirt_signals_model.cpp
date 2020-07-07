@@ -25,10 +25,10 @@ void dirt_app::_init_signals_model()
 
     PZ_observe(terrain.on_update) {
         using namespace a3um;
-        using Fd = mesh_data::object_face_descriptor;
+        using Sfd = mesh_data::source_face_descriptor;
         mesh3 mesh, eph;
         face_to_space f2s;
-        std::map<Fd, Fd> f2f;
+        std::map<Sfd, Sfd> f2f;
 
         terrain.for_each([&](auto pos, auto& cell) {
             auto _quad = [pos](float elev, auto& m) {
@@ -57,7 +57,7 @@ void dirt_app::_init_signals_model()
 
         auto ei = add_ephemeral(eph, to_rgba(palette.at("water"), .7));
         for (auto [f, ef]: f2f) {
-            face_ephem[object_face(i, f)] = object_face(ei, ef);
+            face_ephem[mesh_face(i, f)] = mesh_face(ei, ef);
         }
     };
 
