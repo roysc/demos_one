@@ -1,19 +1,7 @@
 #pragma once
 
-#include <Rxt/geometry/mesh_transform.hpp>
-#include <Rxt/geometry/triangle_primitive.hpp>
-#include <Rxt/graphics/glm.hpp>
-
 #include <CGAL/Simple_cartesian.h>
 #include <CGAL/Surface_mesh.h>
-
-#include <CGAL/AABB_tree.h>
-#include <CGAL/AABB_traits.h>
-
-#include <map>
-#include <vector>
-#include <utility>
-#include <optional>
 
 namespace geometry
 {
@@ -31,8 +19,8 @@ using vector = cgal::Vector;
 using ray = cgal::Ray;
 using surface_mesh = cgal::Mesh;
 
-inline point to_point(glm::vec3 v) { return {v.x, v.y, v.z}; }
-inline point to_point(glm::vec2 v) { return {v.x, v.y, 0}; }
+template <class T>
+point to_point(T);
 }
 
 namespace props

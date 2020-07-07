@@ -27,11 +27,13 @@ set(_HEADERS
     entity.hpp
     space.hpp
     geometry.hpp
+    mesh.hpp
     rendering.hpp
     skeleton.hpp
 )
 set(_SOURCES
     entity.cpp
+    geometry.cpp
     mesh.cpp
 )
 
