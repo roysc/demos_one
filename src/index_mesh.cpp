@@ -1,8 +1,9 @@
-#include "mesh.hpp"
+#include "index_mesh.hpp"
 #include "geometry.hpp"
 
 #include <CGAL/Polygon_mesh_processing/triangulate_faces.h>
 
+namespace {
 // Specialize for a vector of meshes
 using Source = geometry::surface_mesh;
 using Trin = geometry::surface_mesh;
@@ -15,6 +16,7 @@ using Triangle_comaps = std::map<Source_key, typename Mesh_transformer::face_com
 
 using Triangle_primitive = Rxt::triangle_primitive<Trins>;
 using Triangle_aabb_tree = CGAL::AABB_tree<CGAL::AABB_traits<geometry::kernel, Triangle_primitive>>;
+}
 
 template <>
 void build_triangulations(Sources const& meshes, Trins& triangulations)

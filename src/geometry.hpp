@@ -13,11 +13,15 @@ using Vector = CGAL::Vector_3<Kernel>;
 using Ray = CGAL::Ray_3<Kernel>;
 using Mesh = CGAL::Surface_mesh<Point>;
 }
+
 using kernel = cgal::Kernel;
 using point = cgal::Point;
 using vector = cgal::Vector;
 using ray = cgal::Ray;
+
 using surface_mesh = cgal::Mesh;
+using surface_mesh_vertex = surface_mesh::Vertex_index;
+using surface_mesh_edge = surface_mesh::Edge_index;
 
 template <class T>
 point to_point(T);

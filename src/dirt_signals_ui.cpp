@@ -13,7 +13,7 @@ void dirt_app::_init_signals_ui()
     PZ_observe(cursor.on_update) {
         using namespace geometry;
         auto [source, dir] = Rxt::cast_ray(cursor.position(), camera);
-        auto newsel = geom.face_query(ray(to_point(source), to_point(source + dir)));
+        auto newsel = face_query(ray(to_point(source), to_point(source + dir)), geom);
         if (selected != newsel) {
             selected.emplace(newsel);
         }

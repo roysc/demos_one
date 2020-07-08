@@ -27,14 +27,15 @@ set(_HEADERS
     entity.hpp
     space.hpp
     geometry.hpp
-    mesh.hpp
+    index_mesh.hpp
     rendering.hpp
     skeleton.hpp
 )
 set(_SOURCES
     entity.cpp
     geometry.cpp
-    mesh.cpp
+    index_mesh.cpp
+    index_mesh_vertices.cpp
 )
 
 add_library(atrium ${_HEADERS} ${_SOURCES})

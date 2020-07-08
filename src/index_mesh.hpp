@@ -21,6 +21,9 @@ void build_triangulations(Meshes const&, Trins&, Comaps&);
 template <class Trins, class Index>
 void index_triangles(Trins const&, Index&);
 
+template <class Query, class Index>
+auto vertex_query(Query, Index&, unsigned);
+
 // Struct for geometric mesh data with spatially indexed triangulations
 // w/ faces mapped back to source mesh faces
 template <class Mesh>
@@ -35,10 +38,11 @@ struct indexed_mesh_vector
     using source_face_descriptor = typename boost::graph_traits<source_mesh>::face_descriptor;
     using face_descriptor = std::pair<key_type, source_face_descriptor>;
 
+    using K = typename CGAL::Kernel_traits<typename Rxt::mesh_traits<triangle_mesh>::point>::Kernel;
     using mesh_transformer = Rxt::transform_comap_faces<source_mesh, triangle_mesh>;
+
     using triangle_comaps = std::map<key_type, typename mesh_transformer::face_comap>;
     using triangle_primitive = Rxt::triangle_primitive<triangulated_meshes>;
-    using K = typename CGAL::Kernel_traits<typename Rxt::mesh_traits<triangle_mesh>::point>::Kernel;
     using triangle_aabb_tree = CGAL::AABB_tree<CGAL::AABB_traits<K, triangle_primitive>>;
 
     source_meshes sources;
@@ -60,13 +64,13 @@ struct indexed_mesh_vector
     }
 
     template <class Query>
-    auto face_query(Query query) const
+    friend auto face_query(Query query, indexed_mesh_vector const& ix)
     {
         std::optional<face_descriptor> ret;
 
-        if (auto opt = this->triangle_tree.first_intersected_primitive(query)) {
+        if (auto opt = ix.triangle_tree.first_intersected_primitive(query)) {
             auto [index, fd] = *opt;
-            ret.emplace(index, this->face_comaps.at(index).at(fd));
+            ret.emplace(index, ix.face_comaps.at(index).at(fd));
         }
         return ret;
     }
