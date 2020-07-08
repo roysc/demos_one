@@ -29,12 +29,8 @@ struct basic_viewport
     basic_viewport(Size max, Size scale = Size(1))
         : max_scale{max}, scale_factor{scale}
     {
-        auto gt_zero = [](auto p) {
-            Size zero{0};
-            return (p[0] > zero[0] && p[1] > zero[1]);
-        };
-        assert(gt_zero(scale));
-        assert(gt_zero(max));
+        assert(all(lessThan(Size(0), scale)));
+        assert(all(lessThan(Size(0), max)));
     }
 
     virtual void position(P pos) { _position = pos; }
@@ -60,22 +56,6 @@ struct basic_viewport
         return scale_factor;
     }
 
-    // scale, adjusting to maintain position
-    void scale_to(Size coef, P focw)
-    {
-        ivec max {max_scale};
-        auto coefr = fvec(coef) / fvec(max);
-        P newpos = P(coefr * fvec(position() - focw)) + focw;
-        position(newpos);
-        set_scale(coef);
-        // PZ_debug("coef = {}, rel. = {}\n", coef, coefr);
-    }
-
-    void move(P d)
-    {
-        position(position() + d);
-    }
-
     // size in number of cells
     Size size_cells() const
     {
@@ -83,28 +63,6 @@ struct basic_viewport
     }
 
     Size size_pixels() const { return size_px; }
-
-    bool edge_scroll(P cursor_position, int speed)
-    {
-        // (0,0) is center-screen, so offset it to the corner
-        auto vpsize = size_cells();
-        auto offset_pos = to_nds(cursor_position + P(vpsize / 2u));
-        P dv {0};
-
-        for (unsigned i = 0; i < dv.length(); ++i) {
-            if (offset_pos[i] < margin_size) {
-                dv[i] = -speed;
-                // dv[dv.offset_pos < margin_size] = -speed;
-            } else if (offset_pos[i] + margin_size >= 2) {
-                dv[i] = +speed;
-            }
-        }
-        if (dv != P{0}) {
-            move(dv);
-            return true;
-        }
-        return false;
-    }
 
     auto from_nds(float x, float y) const
     {
@@ -125,10 +83,56 @@ struct basic_viewport
         return view_matrix;
     }
 
+    glm::mat4 projection_matrix() const
+    {
+        // L R B T N F
+        auto pos = position();
+        auto corner = position() + size_cells();
+        return glm::ortho(pos.x, corner.x, pos.y, corner.y);
+    }
+
     glm::mat4 model_matrix() const
     {
         // return glm::translate(glm::vec3(.5, .5, 0)); // offset to center of cell
         return glm::mat4{1};
+    }
+
+    void translate(P d)
+    {
+        position(position() + d);
+    }
+
+    // scale, adjusting to maintain position
+    void scale_to(Size coef, P focw)
+    {
+        ivec max {max_scale};
+        auto coefr = fvec(coef) / fvec(max);
+        P newpos = P(coefr * fvec(position() - focw)) + focw;
+        position(newpos);
+        set_scale(coef);
+        // PZ_debug("coef = {}, rel. = {}\n", coef, coefr);
+    }
+
+    bool edge_scroll(P cursor_position, int speed)
+    {
+        // (0,0) is center-screen, so offset it to the corner
+        auto vpsize = size_cells();
+        auto offset_pos = to_nds(cursor_position + P(vpsize / 2u));
+        P dv {0};
+
+        for (unsigned i = 0; i < dv.length(); ++i) {
+            if (offset_pos[i] < margin_size) {
+                dv[i] = -speed;
+                // dv[dv.offset_pos < margin_size] = -speed;
+            } else if (offset_pos[i] + margin_size >= 2) {
+                dv[i] = +speed;
+            }
+        }
+        if (dv != P(0)) {
+            translate(dv);
+            return true;
+        }
+        return false;
     }
 
     template <class P>
