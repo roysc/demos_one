@@ -1,14 +1,18 @@
 # Plaza source root CMakeLists.txt
 
+include(CMakeFindDependencyMacro)
+
 set(OpenGL_GL_PREFERENCE GLVND)
-find_package(Rxt 0.2 REQUIRED
+find_dependency(Rxt 0.2 REQUIRED
     COMPONENTS Graphics Geometry
-    NO_CMAKE_FIND_ROOT_PATH)
-find_package(EnTT REQUIRED)
+    NO_CMAKE_FIND_ROOT_PATH
+)
+find_dependency(EnTT REQUIRED)
+# if(NOT glm_DIR) #FIXME why do I need this? what's the point of find_dependency? fuck.
+#     find_dependency(glm CONFIG REQUIRED)
+# endif()
 
 include(RxtEmscriptenHelpers)
-# include(CMakePrintHelpers)
-# cmake_print_variables(CMAKE_PREFIX_PATH)
 
 if(EMSCRIPTEN)
     add_compile_options(-fno-diagnostics-color)

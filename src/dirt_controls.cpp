@@ -13,7 +13,8 @@ void dirt_app::_init_controls()
         auto focus = camera.focus;
         auto pos = focus + relpos;
         auto up = fvec3(0,0,1);
-        if (focus - pos == -up)
+        auto fwdxup = cross(focus - pos, -up);
+        if (all(glm::epsilonEqual(fwdxup, fvec3(0), 0.001f)))
             up = fvec3(0,1,0);
         camera.emplace(pos, focus, up);
     };
@@ -36,9 +37,9 @@ void dirt_app::_init_controls()
     keys.on_press["C-W"] = [this] { quit = true; };
     keys.on_press["D"] = on_debug;
     keys.on_press["R"] = reset_camera;
-    keys.on_press["X"] = std::bind(put_camera, Rxt::basis3<fvec3>(Rxt::axis3::x));
-    keys.on_press["Y"] = std::bind(put_camera, Rxt::basis3<fvec3>(Rxt::axis3::y));
-    keys.on_press["Z"] = std::bind(put_camera, Rxt::basis3<fvec3>(Rxt::axis3::z));
+    keys.on_press["X"] = std::bind(put_camera, 10.f*Rxt::basis3<fvec3>(Rxt::axis3::x));
+    keys.on_press["Y"] = std::bind(put_camera, 10.f*Rxt::basis3<fvec3>(Rxt::axis3::y));
+    keys.on_press["Z"] = std::bind(put_camera, 10.f*Rxt::basis3<fvec3>(Rxt::axis3::z));
 
     PZ_observe(input.on_quit) { quit = true; };
     PZ_observe(input.on_key_down, SDL_Keysym k) { keys.press(k); };
