@@ -1,6 +1,6 @@
 #pragma once
 
-#include "space.hpp"
+#include "spatial.hpp"
 #include "skeleton.hpp"
 
 #include <entt/entt.hpp>

@@ -1,7 +1,7 @@
 #include "controls.hpp"
 #include "map.hpp"
 #include "input.hpp"
-#include "space.hpp"
+#include "spatial.hpp"
 #include "palette.hpp"
 
 #include "entity.hpp"

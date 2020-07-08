@@ -25,7 +25,7 @@ set(_HEADERS
     controls.hpp
     noise.hpp
     entity.hpp
-    space.hpp
+    spatial.hpp
     geometry.hpp
     index_mesh.hpp
     rendering.hpp
