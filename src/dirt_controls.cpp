@@ -56,11 +56,16 @@ void dirt_app::_init_controls()
     };
 
     PZ_observe(input.on_mouse_down, SDL_MouseButtonEvent button) {
+        auto paint = [this](ivec2 pos)
+        {
+            skeleton plant = build_plant();
+            put_entity(entities, pos, plant);
+        };
+
         switch (button.button) {
         case SDL_BUTTON_LEFT: {
             if (auto pos = selected_space()) {
-                put_body(entities, *pos, build_plant());
-                ent_update();
+                paint(*pos);
             }
             break;
         }
@@ -69,8 +74,7 @@ void dirt_app::_init_controls()
             break;
         case SDL_BUTTON_RIGHT:
             if (auto pos = selected_space()) {
-                put_body(entities, *pos, build_man());
-                ent_update();
+                // remove_entity(*pos);
             }
             break;
         }
