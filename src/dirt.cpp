@@ -20,6 +20,7 @@ dirt_app::dirt_app(uvec2 size)
     , camera(initial_camera)
     , palette(default_palette())
     // , metronome(Rxt::duration_fps<30>(1), [this] { return !is_stopped(); })
+    , ui_viewport(uvec2(20))
 {
     _init_signals_ui();
     _init_signals_model();

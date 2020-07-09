@@ -104,7 +104,7 @@ void canvas::_init_observers()
 
 void canvas::_init_controls()
 {
-    auto move = [this] (int dx, int dy) { viewport.move(ivec(dx, dy)); };
+    auto move = [this] (int dx, int dy) { viewport.translate(ivec(dx, dy)); };
     auto scale_center = [this] (int a) { viewport.set_scale(viewport.scale_pow(a)); };
     auto set_tool = [this] (auto t) { tool = t; router.enable(t); };
     auto paint = [this](auto p, int) { paint_layer.put(p, 1); };

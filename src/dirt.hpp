@@ -7,6 +7,7 @@
 #include "entity.hpp"
 #include "geometry.hpp"
 #include "index_mesh.hpp"
+#include "viewport.hpp"
 
 #include <Rxt/graphics/shader/colored_triangle_3D.hpp>
 #include <Rxt/graphics/shader/solid_color_3D.hpp>
@@ -39,6 +40,10 @@ using camera_state = Rxt::focused_camera;
 using camera_type = adapt_reactive_crt<reactive_cam, Rxt::hooks<>, camera_state>;
 struct drag_state { cursor_traits::position_type pos; camera_state cam; };
 
+using panel_traits = spatial_traits<ivec, uvec>;
+using panel_viewport = basic_viewport<panel_traits>;
+// using panel_layer = indexed_boxes<ivec>;
+using panel_layer = std::vector<std::pair<ivec, ivec>>;
 
 using mesh3 = geometry::surface_mesh;
 using mesh_data = indexed_mesh_vector<mesh3>;
@@ -51,6 +56,8 @@ using optional_face = adapt_reactive<std::optional<mesh_face>>;
 
 using uint8_grid = adapt_reactive<dense_grid<std::uint8_t>>;
 using terrain_map = uint8_grid;
+// using heat_map = uint8_grid;
+
 // map back to terrain grid for face selection
 using face_to_space = std::map<mesh_data::source_face_descriptor, terrain_map::key_type>;
 
@@ -68,6 +75,8 @@ struct dirt_app : public sdl::simple_gui
     cursor_type cursor;
     std::optional<drag_state> drag_origin;
 
+    panel_viewport ui_viewport;
+    panel_layer ui_objects;
 
     color_palette palette;
     terrain_map terrain;
