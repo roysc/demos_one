@@ -24,7 +24,6 @@ void dirt_app::_init_signals_ui()
             auto threshold = 0.001f;
             if (!all(glm::epsilonEqual(drag, fvec2(0), threshold)))
                 handle_drag(drag, cam);
-            // else print("ignoring degenerate drag\n");
         }        
     };
 

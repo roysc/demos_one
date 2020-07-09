@@ -61,14 +61,14 @@ void dirt_app::_init_signals_model()
     };
 
     PZ_observe(ent_update) {
-        auto render_grid = [this](auto pos, auto& bod)
+        auto render_grid = [this](auto pos, auto& skel)
         {
             auto elev = normalize_int(terrain.at(pos.r));
-            bod.render(b_lines, fvec3(pos.r, elev) + fvec3(.5,.5,0));
+            skel.render(b_lines, fvec3(pos.r, elev) + fvec3(.5,.5,0));
         };
-        auto render_free = [this](auto pos, auto& bod)
+        auto render_free = [this](auto pos, auto& skel)
         {
-            bod.render(b_lines, pos.r);
+            skel.render(b_lines, pos.r);
         };
         b_lines.clear();
         entities.view<cpt::zpos, cpt::skel>().each(render_grid);

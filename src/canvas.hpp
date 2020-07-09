@@ -112,7 +112,7 @@ struct canvas
     line_buffers b_lines_cursor{p_lines};
 
     // interesting stuff
-    using grid_map = dense_map<int>;
+    using grid_map = dense_grid<int>;
     grid_map paint_layer;
 
     template <class V>

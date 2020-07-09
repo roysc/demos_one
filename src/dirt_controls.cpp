@@ -65,12 +65,7 @@ void dirt_app::_init_controls()
             break;
         }
         case SDL_BUTTON_MIDDLE:
-            // drag_origin = cursor.position();
-            drag_origin = {
-                .pos = cursor.position(),
-                .cam = camera
-            };
-            // if (drag_origin) print("drag_origin = {}\n", *drag_origin); 
+            drag_origin = {cursor.position(), camera};
             break;
         case SDL_BUTTON_RIGHT:
             if (auto pos = selected_space()) {
@@ -83,7 +78,6 @@ void dirt_app::_init_controls()
     PZ_observe(input.on_mouse_up, SDL_MouseButtonEvent button) {
         switch (button.button) {
         case SDL_BUTTON_MIDDLE:
-            // drag_origin = controls.cursor_position_world();
             drag_origin = {};
             break;
         }        
