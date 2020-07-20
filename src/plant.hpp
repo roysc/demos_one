@@ -44,11 +44,11 @@ struct plant_app : atrium_app
     entity_registry entities;
     entity_id e_debug;
 
-    mesh_data geom;
-    mesh_data ephem;
+    mesh_data geom;             // spatially indexed geometry
+    mesh_data ephem;            // ephemeral geometry
     mesh_colors colors, ephem_colors;
-    foreign_face_map face_ephem;
-    std::map<mesh_key, face_to_space> face_spaces;
+    foreign_face_map face_ephem; // geom. faces to ephemeral dependencies
+    std::map<mesh_key, face_to_space> face_spaces; // each mesh's faces -> grid spaces
 
     Rxt::adapt_reactive<face_set> highlighted_faces;
     Rxt::adapt_reactive<vertex_set> highlighted_vertices;
