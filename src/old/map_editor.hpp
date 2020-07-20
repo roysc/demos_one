@@ -56,7 +56,7 @@ struct map_editor
 
     texture_display background;
     interface_display interface;
-    interface_display::grid_program::data b_features {interface.quad_prog}; // static
+    interface_display::grid_program::buffers b_features {interface.quad_prog}; // static
 
     Rxt::sdl::key_dispatcher keys;
     Rxt::sdl::metronome metronome{tick_duration{1}, [this] { return !_quit; }};

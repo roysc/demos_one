@@ -14,8 +14,8 @@ struct interface_display
     const Rxt::rgba selection_color {Rxt::colors::hot_pink, 0.5};
 
     grid_program quad_prog;
-    grid_program::data b_quads {quad_prog};
-    grid_program::data b_quads_sticky {quad_prog}; // for cursor
+    grid_program::buffers b_quads {quad_prog};
+    grid_program::buffers b_quads_sticky {quad_prog}; // for cursor
 
     interface_display() {}
 

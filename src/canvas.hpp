@@ -55,7 +55,7 @@ using glm::fvec2;
 using line_program = Rxt::shader_programs::solid_color_3D<GL_LINES>;
 using Rxt::rgba;
 
-struct model_buffers : grid_program::data
+struct model_buffers : grid_program::buffers
 {
     const rgba select_color {0, 0, 1, 1};
 
@@ -65,7 +65,7 @@ struct model_buffers : grid_program::data
     }
 };
 
-struct ui_buffers : grid_program::data
+struct ui_buffers : grid_program::buffers
 {
     void set_cursor(position_vec p, size_vec s, rgba color)
     {
@@ -76,7 +76,7 @@ struct ui_buffers : grid_program::data
 };
 
 struct line_buffers
-    : line_program::data
+    : line_program::buffers
 {
     void add_line(ivec a, ivec b, rgba color)
     {
