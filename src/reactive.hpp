@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include <optional>
+#include <array>
 
 namespace Rxt
 {
@@ -82,22 +83,19 @@ struct adapt_reactive : T
         on_update();
         return *this;
     }
-};
 
-// template <template <class...> class Crt, class Hook, class... T>
-// struct adapt_reactive_crt
-//     : adapt_reactive<Crt<adapt_reactive_crt<Crt, Hook, T...>, T...>, Hook>
-// {
-//     using super_type = adapt_reactive<Crt<adapt_reactive_crt<Crt, Hook, T...>, T...>, Hook>;
-//     using super_type::super_type;
-// };
+    // static constexpr auto members()
+    // {
+    //     return std::array{ (&on_update) };
+    // }
+};
 
 template <class Der>
 struct reactive_base
 {
     void do_update() { static_cast<Der&>(*this).on_update(); };
 };
-    
+
 template <template <class...> class Crt, class Hook, class... T>
 struct adapt_reactive_crt
     : Crt<adapt_reactive_crt<Crt, Hook, T...>, T...>
@@ -105,7 +103,7 @@ struct adapt_reactive_crt
     using value_type = Crt<adapt_reactive_crt<Crt, Hook, T...>, T...>;
     using super_type = value_type;
     using super_type::super_type;
-    
+
     using hook_type = Hook;
     hook_type on_update;
 
@@ -119,25 +117,27 @@ struct adapt_reactive_crt
     }
 };
 
-struct no_hook { void on_update() {} };
+struct _hookless { void on_update() {} };
 
 template <class Rh>
 int flush_all(Rh& r)
-// int flush_all(range_of<hooks<>&> auto r)
 {
     int ret = 0;
     for (auto& h: r) ret += h->flush();
     return ret;
 }
 
+struct toggle_hooks
+{
+    hooks<> on_enable, on_disable;
+};
 
 // Router hooks dispatch to active item
 // Attaches per-item enable/disable hooks, which also dispatch back to router
 template <class T, class H>
 struct hook_router
 {
-    struct hook_type : H { hooks<> on_enable, on_disable; };
-
+    struct hook_type : H, toggle_hooks {};
     using map_type = std::map<T, hook_type>;
 
     hook_type _dispatch;
@@ -182,8 +182,13 @@ struct hook_router
     void enable(T k)
     {
         disable();
-        _switch = k;
+        _switch.emplace(k);
         _map[*_switch].on_enable();
     }
 };
+
+// struct _empty { static constexpr auto members() {}};
+// template <class H>
+// using optional_hook = hook_router<_empty, H>;
+// using hook_switch = hook_router<bool, H>;
 }
