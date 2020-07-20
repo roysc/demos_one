@@ -185,3 +185,41 @@ void plant_app::_init_model()
         b.update();
     };
 }
+
+Rxt::reactive_handle plant_app::model_updates()
+{
+    return {
+        &_model_update,
+        &highlighted_faces.on_update,
+        // &RXT_hook(highlighted_faces, on_update),
+    };
+}
+
+std::optional<ivec2> plant_app::highlighted_space() const
+{
+    if (highlighted_faces) {
+        auto [oi, fd] = *highlighted_faces;
+        ivec2 pos = face_spaces.at(oi).at(fd);
+        assert(Rxt::point_within(pos, terrain.shape()));
+        return pos;
+    }
+    return std::nullopt;
+}
+
+mesh_key plant_app::add_mesh(mesh3 mesh, Rxt::rgba color)
+{
+    auto ix = geom.insert(mesh);
+    geom.build();
+    colors.emplace(ix, color);
+    _model_update();
+    return ix;
+}
+
+mesh_key plant_app::add_ephemeral(mesh3 mesh, Rxt::rgba color)
+{
+    auto ix = ephem.insert(mesh);
+    ephem.build();
+    ephem_colors.emplace(ix, color);
+    _model_update();
+    return ix;
+}

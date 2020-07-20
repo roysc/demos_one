@@ -62,40 +62,8 @@ struct plant_app : atrium_app
     void _init_ui();
     void draw();
 
-    Rxt::reactive_handle model_updates() override
-    {
-        return {
-            &_model_update,
-            &highlighted_faces.on_update,
-        };
-    }
-
-    std::optional<ivec2> highlighted_space() const
-    {
-        if (highlighted_faces) {
-            auto [oi, fd] = *highlighted_faces;
-            ivec2 pos = face_spaces.at(oi).at(fd);
-            assert(Rxt::point_within(pos, terrain.shape()));
-            return pos;
-        }
-        return std::nullopt;
-    }
-
-    auto add_mesh(mesh3 mesh, Rxt::rgba color)
-    {
-        auto ix = geom.insert(mesh);
-        geom.build();
-        colors.emplace(ix, color);
-        _model_update();
-        return ix;
-    }
-
-    auto add_ephemeral(mesh3 mesh, Rxt::rgba color)
-    {
-        auto ix = ephem.insert(mesh);
-        ephem.build();
-        ephem_colors.emplace(ix, color);
-        _model_update();
-        return ix;
-    }
+    Rxt::reactive_handle model_updates() override;
+    std::optional<ivec2> highlighted_space() const;
+    mesh_key add_mesh(mesh3, Rxt::rgba);
+    mesh_key add_ephemeral(mesh3, Rxt::rgba);
 };
