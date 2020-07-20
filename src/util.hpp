@@ -25,4 +25,12 @@ auto orbit_cam = [](auto& cam, auto axis, float d)
     auto about = Rxt::basis3<glm::vec3>(axis);
     cam->orbit(glm::angleAxis(d, about));
 };
+
+// Return inserted value, whether or not it existed
+template <class C, class... Ts>
+auto& get_or_emplace(C& c, Ts&&... a)
+{
+    auto [it, did] = c.emplace(std::forward<Ts>(a)...);
+    return it->second;
+}
 }
