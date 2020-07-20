@@ -13,6 +13,12 @@ static float normalize_int(I t)
 
 void dirt_app::_init_signals_model()
 {
+    // auto& b_uilines = buf("uilines", ui_line_prog);
+    auto& b_lines = buf("lines", line_prog);
+    auto& b_overlines = buf("overlines", line_prog);
+    auto& b_triangles = buf("triangles", triangle_prog);
+    auto& b_tris_txp = buf("tris_txp", triangle_prog);
+
     PZ_observe(model_update) {
         b_triangles.clear();
         render_triangles(geom, colors, b_triangles);
@@ -32,7 +38,7 @@ void dirt_app::_init_signals_model()
         terrain.for_each([&](auto pos, auto& cell) {
             auto _quad = [pos](float elev, auto& m) {
                 auto x = pos.x, y = pos.y;
-                geometry::point corners[4] = {
+                plaza_geom::point corners[4] = {
                     {  x,   y, elev},
                     {x+1,   y, elev},
                     {x+1, y+1, elev},
@@ -61,18 +67,19 @@ void dirt_app::_init_signals_model()
     };
 
     PZ_observe(ent_update) {
-        auto render_grid = [this](auto pos, auto& skel)
+        auto render_grid = [&](auto pos, auto& skel)
         {
             auto elev = normalize_int(terrain.at(pos.r));
             skel.render(b_lines, fvec3(pos.r, elev) + fvec3(.5,.5,0));
         };
-        auto render_free = [this](auto pos, auto& skel)
+        auto render_free = [&](auto pos, auto& skel)
         {
             skel.render(b_lines, pos.r);
         };
         b_lines.clear();
-        entities.view<cpt::zpos, cpt::skel>().each(render_grid);
-        entities.view<cpt::fpos, cpt::skel>().each(render_free);
+        using namespace _cpt;
+        entities.view<zpos, skel>().each(render_grid);
+        entities.view<fpos, skel>().each(render_free);
         b_lines.update();
     };
 }

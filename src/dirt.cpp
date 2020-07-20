@@ -25,8 +25,12 @@ dirt_app::dirt_app(uvec2 size)
     _init_signals_ui();
     _init_signals_model();
     _init_controls();
+
     set(ui_line_prog->mvp_matrix, glm::mat4(1));
     camera.on_update();
+
+    // opts["highlight_face"].enable();
+    opts["highlight_vertex"].enable();
 
     terrain_map tm(map_size);
     auto scale = 0xFF;
@@ -43,10 +47,10 @@ dirt_app::dirt_app(uvec2 size)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
-std::optional<ivec2> dirt_app::selected_space() const
+std::optional<ivec2> dirt_app::highlighted_space() const
 {
-    if (selected) {
-        auto [oi, fd] = *selected;
+    if (highlighted_faces) {
+        auto [oi, fd] = *highlighted_faces;
         ivec2 pos = face_spaces.at(oi).at(fd);
         assert(Rxt::point_within(pos, terrain.shape()));
         return pos;
@@ -76,7 +80,7 @@ void dirt_app::advance(SDL_Event event)
     auto updates = {
         &cursor.on_update,
         &camera.on_update,
-        &selected.on_update,
+        &highlighted_faces.on_update,
         &model_update,
     };
     auto dirty = flush_all(updates);
@@ -85,27 +89,32 @@ void dirt_app::advance(SDL_Event event)
 
 void dirt_app::draw()
 {
+    auto draw_buf = [this] (std::string n, auto& p) {
+        if (auto b = buf.get(n, p)) b->draw();
+    };
+
     auto bg = palette.at("bg");
     glClearColor(bg.r, bg.g, bg.b, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    b_triangles.draw();
-    b_lines.draw();
+    draw_buf("triangles", triangle_prog);
+    draw_buf("lines", line_prog);
 
     {
     glEnable(GL_BLEND);
     glDisable(GL_CULL_FACE);
         // gl::enable_guard _blend{GL_BLEND};
         // gl::disable_guard _cull{GL_CULL};
-        b_tris_txp.draw();
+        draw_buf("tris_txp", triangle_prog);
     glDisable(GL_BLEND);
     glEnable(GL_CULL_FACE);
     }
 
     // Draw indicator lines over model
     glClear(GL_DEPTH_BUFFER_BIT);
-    b_overlines.draw();
-    b_uilines.draw();
+    draw_buf("over_lines_axes", line_prog);
+    draw_buf("over_lines_hl", line_prog);
+    draw_buf("points", point_prog);
 
     SDL_GL_SwapWindow(window.get());
 }
