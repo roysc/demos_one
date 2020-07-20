@@ -6,3 +6,9 @@
 ** acceleration
 * interface
 ** TODO drag
+
+* cleanup
+
+** move reactive to Rxt
+
+
