@@ -57,10 +57,10 @@ void atrium_app::advance(SDL_Event event)
         &cursor.on_update,
         &camera.on_update,
     };
-    auto atriumy =
+    auto dirty =
         flush_all(updates) +
         flush_all(model_updates());
-    if (atriumy) draw();
+    if (dirty) draw();
 }
 
 void atrium_app::draw()
