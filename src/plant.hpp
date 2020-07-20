@@ -1,6 +1,6 @@
 #pragma once
 
-#include "dirt.hpp"
+#include "atrium.hpp"
 #include "palette.hpp"
 #include "entity.hpp"
 
@@ -21,9 +21,9 @@ using terrain_map = uint8_grid;
 // map back to terrain grid for face selection
 using face_to_space = std::map<mesh_data::source_face_descriptor, terrain_map::key_type>;
 
-struct plant_app : dirt_app
+struct plant_app : atrium_app
 {
-    using super_type = dirt_app;
+    using super_type = atrium_app;
 
     color_palette palette;
     terrain_map terrain;

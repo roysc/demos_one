@@ -29,22 +29,6 @@ namespace sdl = Rxt::sdl;
 using Rxt::adapt_reactive_crt;
 using Rxt::adapt_reactive;
 
-using triangle_program = Rxt::shader_programs::colored_triangle_3D;
-using line_program = Rxt::shader_programs::solid_color_3D<GL_LINES>;
-using point_program = Rxt::shader_programs::solid_color_3D<GL_POINTS>;
-
-struct cursor_traits
-{
-    using position_type = fvec2;
-    // using size_type = uvec2;
-};
-
-using cursor_type = adapt_reactive_crt<reactive_cursor, Rxt::hooks<>, cursor_traits>;
-
-using camera_state = Rxt::focused_camera;
-using camera_type = adapt_reactive_crt<reactive_cam, Rxt::hooks<>, camera_state>;
-struct drag_state { cursor_traits::position_type pos; camera_state cam; };
-
 // using panel_traits = spatial_traits<ivec, uvec>;
 // using panel_viewport = basic_viewport<panel_traits>;
 // using panel_layer = std::vector<std::pair<ivec, ivec>>; // todo index
@@ -83,8 +67,24 @@ struct permissive_map
 
 using toggle_map = permissive_map<std::string, reactive_toggle>;
 
-struct dirt_app : public sdl::simple_gui
+struct atrium_app : public sdl::simple_gui
 {
+    using triangle_program = Rxt::shader_programs::colored_triangle_3D;
+    using line_program = Rxt::shader_programs::solid_color_3D<GL_LINES>;
+    using point_program = Rxt::shader_programs::solid_color_3D<GL_POINTS>;
+
+    struct cursor_traits
+    {
+        using position_type = fvec2;
+        // using size_type = uvec2;
+    };
+
+    using cursor_type = adapt_reactive_crt<reactive_cursor, Rxt::hooks<>, cursor_traits>;
+
+    using camera_state = Rxt::focused_camera;
+    using camera_type = adapt_reactive_crt<reactive_cam, Rxt::hooks<>, camera_state>;
+    struct drag_state { cursor_traits::position_type pos; camera_state cam; };
+
     bool quit = false;
     input_hooks input;
     sdl::key_dispatcher keys;
@@ -104,7 +104,7 @@ struct dirt_app : public sdl::simple_gui
 
     Rxt::hooks<> on_debug;
 
-    dirt_app(const char*, uvec2);
+    atrium_app(const char*, uvec2);
     void advance(SDL_Event);
     bool is_stopped() const { return quit; }
     void draw();

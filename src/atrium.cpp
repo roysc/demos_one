@@ -1,4 +1,4 @@
-#include "dirt.hpp"
+#include "atrium.hpp"
 
 #include <Rxt/math.hpp>
 #include <Rxt/time.hpp>
@@ -12,7 +12,7 @@
 
 using glm::ivec2;
 
-dirt_app::dirt_app(const char* title, uvec2 size)
+atrium_app::atrium_app(const char* title, uvec2 size)
     : simple_gui(title, size)
     , map_size(16)
     , initial_camera(fvec3(8), fvec3(fvec2(map_size) / 4.f, 0))
@@ -34,7 +34,7 @@ dirt_app::dirt_app(const char* title, uvec2 size)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
-void dirt_app::handle_drag(fvec2 dist_nds, camera_state cam_start)
+void atrium_app::handle_drag(fvec2 dist_nds, camera_state cam_start)
 {
     float mag = length(dist_nds);
     assert(dist_nds != fvec2(0));// degenerate
@@ -46,7 +46,7 @@ void dirt_app::handle_drag(fvec2 dist_nds, camera_state cam_start)
     camera.emplace(cam_start);
 }
 
-void dirt_app::advance(SDL_Event event)
+void atrium_app::advance(SDL_Event event)
 {
     do {
         input.handle_input(event);
@@ -57,13 +57,13 @@ void dirt_app::advance(SDL_Event event)
         &cursor.on_update,
         &camera.on_update,
     };
-    auto dirty =
+    auto atriumy =
         flush_all(updates) +
         flush_all(model_updates());
-    if (dirty) draw();
+    if (atriumy) draw();
 }
 
-void dirt_app::draw()
+void atrium_app::draw()
 {
     auto draw_buf = [this] (std::string n, auto& p) {
         if (auto b = p.buf.ptr(n))

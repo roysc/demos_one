@@ -32,15 +32,15 @@ set(_HEADERS
     index_mesh.hpp
     rendering.hpp
     sprite.hpp
-    dirt.hpp
+    atrium.hpp
 )
 set(_SOURCES
     entity.cpp
     geometry.cpp
     index_mesh.cpp
-    dirt_ui.cpp
-    dirt_controls.cpp
-    dirt.cpp
+    atrium_ui.cpp
+    atrium_controls.cpp
+    atrium.cpp
 )
 
 add_library(atrium ${_HEADERS} ${_SOURCES})

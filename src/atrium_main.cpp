@@ -1,8 +1,8 @@
-#include "dirt.hpp"
+#include "atrium.hpp"
 
 extern "C" void step_state(void* c)
 {
-    sdl::em_advance<dirt_app>(c);
+    sdl::em_advance<atrium_app>(c);
 }
 
 int main(int argc, char* argv[])
@@ -12,7 +12,7 @@ int main(int argc, char* argv[])
         seed = std::stoi(argv[1]);
     }
 
-    auto loop = sdl::make_looper(new dirt_app(uvec2(800)), step_state);
+    auto loop = sdl::make_looper(new atrium_app(uvec2(800)), step_state);
     loop();
     return 0;
 }

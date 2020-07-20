@@ -1,7 +1,7 @@
-#include "dirt.hpp"
+#include "atrium.hpp"
 #include "util.hpp"
 
-void dirt_app::_init_controls()
+void atrium_app::_init_controls()
 {
     using Rxt::print;
     using Ax = Rxt::axis3;
