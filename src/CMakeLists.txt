@@ -33,6 +33,8 @@ set(_HEADERS
     geometry.hpp
     index_mesh.hpp
     rendering.hpp
+
+    matter.hpp
     skeleton.hpp
 )
 set(_SOURCES
