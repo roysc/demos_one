@@ -3,7 +3,7 @@
 #include <CGAL/Simple_cartesian.h>
 #include <CGAL/Surface_mesh.h>
 
-namespace geometry
+namespace plaza_geom
 {
 namespace cgal
 {

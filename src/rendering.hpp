@@ -9,8 +9,8 @@
 #include <CGAL/boost/graph/helpers.h>
 #include <boost/property_map/property_map.hpp>
 
-inline glm::vec3 to_glm(geometry::point p) { return {p.x(), p.y(), p.z()}; }
-inline glm::vec3 to_glm(geometry::vector v) { return {v.x(), v.y(), v.z()}; }
+inline glm::vec3 to_glm(plaza_geom::point p) { return {p.x(), p.y(), p.z()}; }
+inline glm::vec3 to_glm(plaza_geom::vector v) { return {v.x(), v.y(), v.z()}; }
 
 template <class Trin, class Normals, class Color, class Bufs>
 void render_mesh(Trin const& trin,
@@ -35,7 +35,7 @@ void render_triangles(Index const& geom,
 {
     using TriMesh = typename Index::triangle_mesh;
     using TriFace = boost::graph_traits<TriMesh>::face_descriptor;
-    using NormalMap = std::map<TriFace, geometry::vector>;
+    using NormalMap = std::map<TriFace, plaza_geom::vector>;
 
     for (unsigned i = 0; i < geom.sources.size(); ++i) {
         auto& mesh = geom.sources.at(i);
