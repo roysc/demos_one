@@ -56,26 +56,9 @@ void dirt_app::_init_controls()
     };
 
     PZ_observe(input.on_mouse_down, SDL_MouseButtonEvent button) {
-        auto paint = [this](ivec2 pos)
-        {
-            auto plant = build_plant();
-            put_entity(entities, pos, plant);
-        };
-
         switch (button.button) {
-        case SDL_BUTTON_LEFT: {
-            if (auto pos = highlighted_space()) {
-                paint(*pos);
-            }
-            break;
-        }
         case SDL_BUTTON_MIDDLE:
             drag_origin = {cursor.position(), camera};
-            break;
-        case SDL_BUTTON_RIGHT:
-            if (auto pos = highlighted_space()) {
-                // remove_entity(*pos);
-            }
             break;
         }
     };

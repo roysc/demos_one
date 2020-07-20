@@ -118,12 +118,15 @@ struct adapt_reactive_crt
 };
 
 struct _hookless { void on_update() {} };
+using reactive_handle = std::vector<hooks<>*>;
 
-template <class Rh>
-int flush_all(Rh& r)
+inline
+int flush_all(reactive_handle r)
 {
     int ret = 0;
-    for (auto& h: r) ret += h->flush();
+    for (auto h: r) {
+        if (h) ret += h->flush();
+    }
     return ret;
 }
 

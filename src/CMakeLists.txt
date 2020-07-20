@@ -27,21 +27,20 @@ set(_HEADERS
     mouse_core.hpp
     viewport.hpp
     controls.hpp
-    noise.hpp
-    entity.hpp
     spatial.hpp
     geometry.hpp
     index_mesh.hpp
     rendering.hpp
-
-    matter.hpp
-    skeleton.hpp
+    sprite.hpp
+    dirt.hpp
 )
 set(_SOURCES
     entity.cpp
     geometry.cpp
     index_mesh.cpp
-    # index_mesh_vertices.cpp
+    dirt_ui.cpp
+    dirt_controls.cpp
+    dirt.cpp
 )
 
 add_library(atrium ${_HEADERS} ${_SOURCES})
@@ -52,7 +51,7 @@ target_link_libraries(atrium
     EnTT::EnTT
 )
 
-add_executable(map_editor ${_HEADERS} ${_SOURCES}
+add_executable(map_editor ${_HEADERS}
     old/interface_display.hpp
     old/texture_display.cpp
     old/texture_display.hpp
@@ -65,15 +64,11 @@ Rxt_emscripten_use_boost(map_editor)
 add_executable(canvas ${_HEADERS} canvas.hpp canvas.cpp)
 target_link_libraries(canvas PUBLIC atrium)
 
-add_executable(dirt ${_HEADERS}
-    dirt.hpp
-    dirt_signals_ui.cpp
-    dirt_signals_model.cpp
-    dirt_controls.cpp
-    dirt.cpp
-    dirt_main.cpp
+add_executable(plant ${_HEADERS}
+    plant.cpp
+    plant_main.cpp
 )
-target_link_libraries(dirt PUBLIC atrium)
+target_link_libraries(plant PUBLIC atrium)
 
 function(_configure_emscripten _TARGET)
     set_target_properties(${_TARGET} PROPERTIES SUFFIX ".html")
