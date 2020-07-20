@@ -1,19 +1,19 @@
 #include "entity.hpp"
+#include "matter.hpp"
+
 #include <Rxt/geometry/shapes.hpp>
 #include <Rxt/io.hpp>
 
-skeleton build_plant()
+skel build_plant()
 {
-    skeleton::graph_type g;
+    skel::graph_type g;
     auto root = add_vertex(fvec3(0), g);
-    auto top = add_vertex(fvec3(0,0,.25), g);
-    add_edge(root, top, Rxt::colors::green, g);
-    return skeleton(g);
+    return skel(g);
 }
 
-skeleton build_kord()
+skel build_kord()
 {
-    skeleton::graph_type g;
+    skel::graph_type g;
     using namespace Rxt;
     rgb limb_clr = colors::hot_pink,
         head_clr = colors::red;
@@ -32,12 +32,12 @@ skeleton build_kord()
     // auto legs ;
     // auto arms ;
 
-    return skeleton(g);
+    return skel(g);
 }
 
 mesh3 build_tetroid()
 {
-    using namespace geometry;
+    using namespace plaza_geom;
     surface_mesh m;
     make_tetrahedron(
         point(), point(), point(), point(),
@@ -47,29 +47,11 @@ mesh3 build_tetroid()
 
 mesh3 build_house()
 {
-    using namespace geometry;
+    using namespace plaza_geom;
     surface_mesh g;
     point min{-.4, -.4, 0}, max{.4, .4, .4};
     auto hd = Rxt::make_cuboid(min, max, g);
     // delete floor & roof
 
     return g;
-}
-
-template <>
-entity_id put_entity(entity_registry& r, ivec2 pos, skeleton b)
-{
-    auto e = r.create();
-    r.emplace<cpt::zpos>(e, pos);
-    r.emplace<skeleton>(e, b);
-    return e;
-}
-
-template <>
-entity_id put_entity(entity_registry& r, ivec2 pos, cpt::mesh b)
-{
-    auto e = r.create();
-    r.emplace<cpt::zpos>(e, pos);
-    r.emplace<cpt::mesh>(e, b);
-    return e;
 }
