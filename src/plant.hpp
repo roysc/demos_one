@@ -60,9 +60,10 @@ struct plant_app : atrium_app
     plant_app(uvec2);
     void _init_model();
     void _init_ui();
-    void draw();
 
-    Rxt::reactive_handle model_updates() override;
+    void advance(SDL_Event);
+    void draw_clear();
+
     std::optional<ivec2> highlighted_space() const;
     mesh_key add_mesh(mesh3, Rxt::rgba);
     mesh_key add_ephemeral(mesh3, Rxt::rgba);

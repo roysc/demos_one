@@ -46,21 +46,17 @@ void atrium_app::handle_drag(fvec2 dist_nds, camera_state cam_start)
     camera.emplace(cam_start);
 }
 
-void atrium_app::advance(SDL_Event event)
+Rxt::reactive_handle atrium_app::_update(SDL_Event event)
 {
     do {
         input.handle_input(event);
     } while (SDL_PollEvent(&event));
     keys.scan();
 
-    auto updates = {
+    return {
         &cursor.on_update,
         &camera.on_update,
     };
-    auto dirty =
-        flush_all(updates) +
-        flush_all(model_updates());
-    if (dirty) draw();
 }
 
 void atrium_app::draw()

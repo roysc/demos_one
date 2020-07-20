@@ -51,11 +51,11 @@ plant_app::plant_app(uvec2 size)
     // opts["highlight_vertex"].enable();
 }
 
-void plant_app::draw()
+void plant_app::draw_clear()
 {
     auto bg = palette.at("bg");
     glClearColor(bg.r, bg.g, bg.b, 1);
-    super_type::draw();
+    // super_type::draw();
 }
 
 void plant_app::_init_ui()
@@ -186,13 +186,19 @@ void plant_app::_init_model()
     };
 }
 
-Rxt::reactive_handle plant_app::model_updates()
+void plant_app::advance(SDL_Event event)
 {
-    return {
+    auto up1 = super_type::_update(event);
+    auto up2 = {
         &_model_update,
         &highlighted_faces.on_update,
-        // &RXT_hook(highlighted_faces, on_update),
     };
+    auto dirty = flush_all(up1) + flush_all(up2);
+    if (dirty) {
+        draw_clear();
+        super_type::draw();
+        // draw();
+    }
 }
 
 std::optional<ivec2> plant_app::highlighted_space() const

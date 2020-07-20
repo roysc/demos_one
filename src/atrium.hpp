@@ -54,7 +54,7 @@ struct atrium_app : public sdl::simple_gui
     Rxt::hooks<> on_debug;
 
     atrium_app(const char*, uvec2);
-    void advance(SDL_Event);
+    Rxt::reactive_handle _update(SDL_Event);
     bool is_stopped() const { return quit; }
     void draw();
 
@@ -62,6 +62,4 @@ struct atrium_app : public sdl::simple_gui
     void _init_ui();
 
     void handle_drag(fvec2, camera_state);
-
-    virtual Rxt::reactive_handle model_updates() { return {}; }
 };
