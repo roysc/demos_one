@@ -5,8 +5,8 @@
 
 namespace {
 // Specialize for a vector of meshes
-using Source = geometry::surface_mesh;
-using Trin = geometry::surface_mesh;
+using Source = plaza_geom::surface_mesh;
+using Trin = plaza_geom::surface_mesh;
 using Sources = std::vector<Source>;
 using Trins = std::vector<Trin>;
 using Source_key = std::size_t;
@@ -15,9 +15,11 @@ using Mesh_transformer = Rxt::transform_comap_faces<Source, Trin>;
 using Triangle_comaps = std::map<Source_key, typename Mesh_transformer::face_comap>;
 
 using Triangle_primitive = Rxt::triangle_primitive<Trins>;
-using Triangle_aabb_tree = CGAL::AABB_tree<CGAL::AABB_traits<geometry::kernel, Triangle_primitive>>;
+using Triangle_aabb_tree = CGAL::AABB_tree<CGAL::AABB_traits<plaza_geom::kernel, Triangle_primitive>>;
 }
 
+namespace plaza_geom
+{
 template <>
 void build_triangulations(Sources const& meshes, Trins& triangulations)
 {
@@ -39,9 +41,6 @@ void build_triangulations(Sources const& sources,
 {
     Mesh_transformer transformer{CGAL::Polygon_mesh_processing::triangulate_faces<Trin>};
 
-    triangulations.clear();
-    face_comaps.clear();
-
     unsigned i = 0;
     for (auto& mesh: sources) {
         face_comaps.emplace(i, transformer(mesh, triangulations.emplace_back()));
@@ -59,4 +58,5 @@ void index_triangles(Trins const& triangulations, Triangle_aabb_tree& tree)
         }
     }
     tree.build(&triangulations);
+}
 }

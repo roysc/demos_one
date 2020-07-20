@@ -39,7 +39,7 @@ set(_SOURCES
     entity.cpp
     geometry.cpp
     index_mesh.cpp
-    index_mesh_vertices.cpp
+    # index_mesh_vertices.cpp
 )
 
 add_library(atrium ${_HEADERS} ${_SOURCES})
