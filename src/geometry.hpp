@@ -27,6 +27,11 @@ template <class T>
 point to_point(T);
 }
 
+namespace plaza
+{
+using namespace plaza_geom;
+}
+
 namespace props
 {
 using CGAL::vertex_point;

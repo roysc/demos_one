@@ -92,16 +92,3 @@ struct controls_2d : cursor_port<ST>
     P cursor_viewspace() const override { return _cursor.position(); }
     P viewport_worldspace() const override { return _viewport.position(); }
 };
-
-// template <class ST>
-// struct camera_controls : controls<ST>
-// {
-//     using cursor_type = basic_cursor<ST>;
-//     using camera_type = Rxt::focus_cam;
-
-//     cursor_type& _cursor;
-//     camera_type& _camera;
-
-//     P cursor_position() const override { return _cursor.position(); }
-//     P viewport_worldspace() const override { return _camera.position(); }
-// };

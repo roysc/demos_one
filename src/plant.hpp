@@ -1,8 +1,20 @@
 #pragma once
+#include "map.hpp"
+#include "geometry.hpp"
+#include "index_mesh.hpp"
+#include "util.hpp"
+#include "reactive.hpp"
 
 #include "atrium.hpp"
 #include "palette.hpp"
 #include "entity.hpp"
+
+#include <string>
+#include <vector>
+#include <optional>
+#include <map>
+#include <cstddef>
+
 
 using mesh3 = plaza::surface_mesh;
 using mesh_data = plaza::indexed_mesh_vector<mesh3>;
@@ -14,12 +26,14 @@ using foreign_face_map = std::map<mesh_face, mesh_face>;
 using face_set = std::optional<mesh_face>;
 using vertex_set = std::vector<mesh_data::vertex_descriptor>;
 
-using uint8_grid = adapt_reactive<dense_grid<std::uint8_t>>;
+using uint8_grid = Rxt::adapt_reactive<dense_grid<std::uint8_t>>;
 using terrain_map = uint8_grid;
 // using heat_map = uint8_grid;
 
 // map back to terrain grid for face selection
 using face_to_space = std::map<mesh_data::source_face_descriptor, terrain_map::key_type>;
+
+using toggle_map = permissive_map<std::string, Rxt::reactive_toggle>;
 
 struct plant_app : atrium_app
 {
@@ -36,8 +50,8 @@ struct plant_app : atrium_app
     foreign_face_map face_ephem;
     std::map<mesh_key, face_to_space> face_spaces;
 
-    adapt_reactive<face_set> highlighted_faces;
-    adapt_reactive<vertex_set> highlighted_vertices;
+    Rxt::adapt_reactive<face_set> highlighted_faces;
+    Rxt::adapt_reactive<vertex_set> highlighted_vertices;
 
     toggle_map opts;
 

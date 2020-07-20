@@ -5,8 +5,6 @@
 #include <Rxt/math.hpp>
 #include <SDL2/SDL.h>
 
-namespace
-{
 template <unsigned ix, class Vec>
 Vec invert(Vec v) { v[ix] = -v[ix]; return v; }
 
@@ -33,4 +31,16 @@ auto& get_or_emplace(C& c, Ts&&... a)
     auto [it, did] = c.emplace(std::forward<Ts>(a)...);
     return it->second;
 }
-}
+
+template <class K, class V>
+struct permissive_map
+{
+    using key_type = K;
+    using value_type = V;
+    std::map<K, V> _map;
+
+    value_type& operator[](key_type k)
+    {
+        return get_or_emplace(_map, k, V{});
+    }
+};

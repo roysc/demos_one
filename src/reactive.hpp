@@ -135,6 +135,25 @@ struct toggle_hooks
     hooks<> on_enable, on_disable;
 };
 
+struct reactive_toggle : toggle_hooks
+{
+    bool state = false;
+    reactive_toggle() {}
+    operator bool() const { return state; }
+
+    void disable()
+    {
+        state = false;
+        this->on_disable();
+    }
+
+    void enable()
+    {
+        state = true;
+        this->on_enable();
+    }
+};
+
 // Router hooks dispatch to active item
 // Attaches per-item enable/disable hooks, which also dispatch back to router
 template <class T, class H>

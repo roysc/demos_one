@@ -1,71 +1,21 @@
 #include "controls.hpp"
-#include "map.hpp"
 #include "input.hpp"
 #include "spatial.hpp"
-#include "geometry.hpp"
-#include "index_mesh.hpp"
-#include "util.hpp"
-
 // #include "viewport.hpp"
 
+#include "reactive.hpp"
 #include <Rxt/graphics/shader/colored_triangle_3D.hpp>
 #include <Rxt/graphics/shader/solid_color_3D.hpp>
 #include <Rxt/graphics/sdl.hpp>
 #include <Rxt/graphics/camera.hpp>
-#include "reactive.hpp"
 
-#include <map>
 #include <optional>
-#include <cstdint>
 
-namespace plaza
-{
-using namespace plaza_geom;
-}
-
-// using std::chrono::steady_clock;
-// using time_point = steady_clock::time_point;
 namespace sdl = Rxt::sdl;
-using Rxt::adapt_reactive_crt;
-using Rxt::adapt_reactive;
 
 // using panel_traits = spatial_traits<ivec, uvec>;
 // using panel_viewport = basic_viewport<panel_traits>;
 // using panel_layer = std::vector<std::pair<ivec, ivec>>; // todo index
-
-struct reactive_toggle : Rxt::toggle_hooks
-{
-    bool state = false;
-    reactive_toggle() {}
-    operator bool() const { return state; }
-
-    void disable()
-    {
-        state = false;
-        this->on_disable();
-    }
-
-    void enable()
-    {
-        state = true;
-        this->on_enable();
-    }
-};
-
-template <class K, class V>
-struct permissive_map
-{
-    using key_type = K;
-    using value_type = V;
-    std::map<K, V> _map;
-
-    value_type& operator[](key_type k)
-    {
-        return get_or_emplace(_map, k, V{});
-    }
-};
-
-using toggle_map = permissive_map<std::string, reactive_toggle>;
 
 struct atrium_app : public sdl::simple_gui
 {
@@ -78,11 +28,10 @@ struct atrium_app : public sdl::simple_gui
         using position_type = fvec2;
         // using size_type = uvec2;
     };
-
-    using cursor_type = adapt_reactive_crt<reactive_cursor, Rxt::hooks<>, cursor_traits>;
+    using cursor_type = Rxt::adapt_reactive_crt<reactive_cursor, Rxt::hooks<>, cursor_traits>;
 
     using camera_state = Rxt::focused_camera;
-    using camera_type = adapt_reactive_crt<reactive_cam, Rxt::hooks<>, camera_state>;
+    using camera_type = Rxt::adapt_reactive_crt<reactive_cam, Rxt::hooks<>, camera_state>;
     struct drag_state { cursor_traits::position_type pos; camera_state cam; };
 
     bool quit = false;
