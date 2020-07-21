@@ -19,7 +19,7 @@ if(EMSCRIPTEN)
     add_link_options(-fno-diagnostics-color)
 endif()
 
-set(_HEADERS
+set(_HEADERS_BASE
     map.hpp
     tiles.hpp
     util.hpp
@@ -28,43 +28,56 @@ set(_HEADERS
     viewport.hpp
     controls.hpp
     spatial.hpp
-    geometry.hpp
-    index_mesh.hpp
-    rendering.hpp
-    sprite.hpp
     atrium.hpp
 )
-set(_SOURCES
-    entity.cpp
-    geometry.cpp
-    index_mesh.cpp
+set(_SOURCES_BASE
     atrium_ui.cpp
     atrium_controls.cpp
     atrium.cpp
 )
 
-add_library(atrium ${_HEADERS} ${_SOURCES})
+set(_HEADERS_ATRIUM
+    geometry.hpp
+    index_mesh.hpp
+    rendering.hpp
+    sprite.hpp
+)
+set(_SOURCES_ATRIUM
+    entity.cpp
+    geometry.cpp
+    index_mesh.cpp
+)
+
+add_library(atrium_base ${_HEADERS_BASE} ${_SOURCES_BASE})
+target_link_libraries(atrium_base
+    Rxt::Graphics
+    glm::glm
+)
+
+add_library(atrium ${_HEADERS_ATRIUM} ${_SOURCES_ATRIUM})
 target_include_directories(atrium PUBLIC ${PROJECT_SOURCE_DIR}/external)
 target_link_libraries(atrium
-    Rxt::Graphics Rxt::Geometry
-    glm::glm
+    atrium_base
+    Rxt::Geometry
     EnTT::EnTT
 )
 
-add_executable(map_editor ${_HEADERS}
+add_executable(map_editor
     old/interface_display.hpp
     old/texture_display.cpp
     old/texture_display.hpp
     old/map_editor.hpp
     old/map_editor.cpp
 )
-target_link_libraries(map_editor PUBLIC atrium)
+target_link_libraries(map_editor PUBLIC atrium_base)
+target_include_directories(atrium_base PUBLIC ${PROJECT_SOURCE_DIR}/external)
 Rxt_emscripten_use_boost(map_editor)
 
-add_executable(canvas ${_HEADERS} canvas.hpp canvas.cpp)
-target_link_libraries(canvas PUBLIC atrium)
+add_executable(canvas canvas.hpp canvas.cpp)
+target_link_libraries(canvas PUBLIC atrium_base)
 
-add_executable(plant ${_HEADERS}
+add_executable(plant
+    plant.hpp
     plant.cpp
     plant_main.cpp
 )
