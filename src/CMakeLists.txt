@@ -38,14 +38,14 @@ set(_SOURCES_BASE
 
 set(_HEADERS_ATRIUM
     geometry.hpp
-    index_mesh.hpp
+    geometry_index.hpp
     rendering.hpp
     sprite.hpp
 )
 set(_SOURCES_ATRIUM
     entity.cpp
     geometry.cpp
-    index_mesh.cpp
+    geometry_index.cpp
 )
 
 add_library(atrium_base ${_HEADERS_BASE} ${_SOURCES_BASE})

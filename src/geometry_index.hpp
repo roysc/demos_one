@@ -1,5 +1,4 @@
 #pragma once
-#include "index_mesh.hpp"
 #include "geometry.hpp"
 
 #include <Rxt/geometry/mesh_traits.hpp>
