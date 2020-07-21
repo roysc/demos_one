@@ -31,10 +31,11 @@ plant_app::plant_app(uvec2 size)
     PZ_observe(input.on_mouse_down, SDL_MouseButtonEvent button) {
         auto paint = [this](ivec2 pos)
         {
-            auto plant = build_plant();
-            auto id = (std::size_t)put_entity(entities, pos, plant);
+            // auto thing = build_plant();
+            auto thing = build_house();
+            auto ent = put_entity(entities, pos, thing);
             _ent_update();
-            print("put({}): plant({})\n", pos, id);
+            print("put({}): {}({})\n", pos, entity_name(entities, ent), (std::size_t)ent);
         };
 
         switch (button.button) {
