@@ -1,4 +1,4 @@
-#include "geometry_index.hpp"
+#include "geometry_mesh.hpp"
 #include "geometry.hpp"
 
 #include <CGAL/Polygon_mesh_processing/triangulate_faces.h>
