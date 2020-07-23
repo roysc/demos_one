@@ -1,5 +1,4 @@
 #pragma once
-#include "geometry.hpp"
 
 #include <Rxt/geometry/mesh_traits.hpp>
 #include <Rxt/geometry/mesh_transform.hpp>
@@ -45,6 +44,7 @@ struct indexed_mesh_vector
     using source_meshes = std::vector<Mesh>;
     using triangulated_meshes = std::vector<triangle_mesh>;
     using key_type = std::size_t;
+    // using point_type = typename Rxt::mesh_traits<source_mesh>::point;
 
     using SourceTraits = boost::graph_traits<source_mesh>;
     using source_face_descriptor = typename SourceTraits::face_descriptor;
@@ -59,7 +59,8 @@ struct indexed_mesh_vector
         CGAL::AABB_traits<mesh_kernel_t<triangle_mesh>, triangle_primitive>>;
 
     // Vertex indexing
-    using ray_distance = Rxt::ray_distance<point, vertex_descriptor>;
+    using triangle_point = typename Rxt::mesh_traits<triangle_mesh>::point;
+    using ray_distance = Rxt::ray_distance<triangle_point, vertex_descriptor>;
     using ray_search_point = typename ray_distance::Point_d;
     using ray_search_traits = CGAL::Search_traits_adapter<
         ray_search_point,
@@ -67,6 +68,9 @@ struct indexed_mesh_vector
         CGAL::Search_traits_3<mesh_kernel_t<source_mesh>>>;
     using ray_search = CGAL::K_neighbor_search<ray_search_traits, ray_distance>;
     using ray_search_tree = typename CGAL::K_neighbor_search<ray_search_traits, ray_distance>::Tree;
+
+    // Edge indexing
+    
 
     source_meshes sources;
     triangulated_meshes triangulations;
