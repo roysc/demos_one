@@ -1,8 +1,8 @@
 #include "atrium.hpp"
-#include "rendering.hpp"
 
 #include <Rxt/math.hpp>
 #include <Rxt/io.hpp>
+#include <Rxt/graphics/color.hpp>
 
 #include <glm/gtc/epsilon.hpp>
 

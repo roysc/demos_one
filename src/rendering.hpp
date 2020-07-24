@@ -28,25 +28,25 @@ void render_mesh(Trin const& trin,
     }
 }
 
-template <class Index, class Colors, class Bufs>
-void render_triangles(Index const& geom,
-                      Colors const& colors,
-                      Bufs& bufs)
+// todo - what is Mesh
+template <class Mesh, class Bufs>
+auto render_triangles(Mesh& m, Bufs& bufs)
 {
+    using Index = typename Mesh::index_type;
     using TriMesh = typename Index::triangle_mesh;
     using TriFace = boost::graph_traits<TriMesh>::face_descriptor;
     using NormalMap = std::map<TriFace, plaza_geom::vector>;
 
-    for (unsigned i = 0; i < geom.sources.size(); ++i) {
-        auto& mesh = geom.sources.at(i);
-        auto& trin = geom.triangulations.at(i);
+    auto i = m.key;
+    Index& geom = *m.data;
+    auto& mesh = geom.sources.at(i);
+    auto& trin = geom.triangulations.at(i);
 
-        NormalMap normals;
-        Rxt::calculate_face_normals(mesh, boost::make_assoc_property_map(normals));
-        auto get_normal = [&, i] (auto fd) { return normals.at(geom.face_comaps.at(i).at(fd)); };
+    NormalMap normals;
+    Rxt::calculate_face_normals(mesh, boost::make_assoc_property_map(normals));
+    auto get_normal = [&, i] (auto fd) { return normals.at(geom.face_comaps.at(i).at(fd)); };
 
-        render_mesh(trin, get_normal, colors.at(i), bufs);
-    }
+    render_mesh(trin, get_normal, m.color, bufs);
 }
 
 template <class Index, class LineBufs>

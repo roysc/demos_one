@@ -1,16 +1,21 @@
-#include "models.hpp"
+#include "plant_models.hpp"
 #include "geometry_mesh.hpp"
+#include <Rxt/geometry/shapes.hpp>
 
-skel build_plant()
+namespace plant_model
 {
-    skel::graph_type g;
+using glm::fvec3;
+
+skel3 build_plant()
+{
+    skel3 g;
     auto root = add_vertex(fvec3(0), g);
-    return skel(g);
+    return g;
 }
 
-skel build_kord()
+skel3 build_kord()
 {
-    skel::graph_type g;
+    skel3 g;
     using namespace Rxt;
     rgb limb_clr = colors::hot_pink,
         head_clr = colors::red;
@@ -29,7 +34,7 @@ skel build_kord()
     // auto legs ;
     // auto arms ;
 
-    return skel(g);
+    return g;
 }
 
 mesh3 build_tetroid()
@@ -51,4 +56,6 @@ mesh3 build_house()
     // delete floor & roof
 
     return g;
+}
+
 }

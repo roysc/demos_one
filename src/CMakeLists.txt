@@ -76,11 +76,17 @@ Rxt_emscripten_use_boost(map_editor)
 add_executable(canvas canvas.hpp canvas.cpp)
 target_link_libraries(canvas PUBLIC atrium_base)
 
-add_executable(plant
+set(_PLANT_HEADERS
+    plant_models.hpp
     plant.hpp
+)
+set(_PLANT_SOURCES
+    plant_models.cpp
     plant.cpp
+    plant_init.cpp
     plant_main.cpp
 )
+add_executable(plant ${_PLANT_HEADERS} ${_PLANT_SOURCES})
 target_link_libraries(plant PUBLIC atrium)
 
 function(_configure_emscripten _TARGET)

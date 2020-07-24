@@ -33,7 +33,7 @@ void index_triangles(Trins const&, Index&);
 template <class M>
 using mesh_kernel_t = typename CGAL::Kernel_traits<typename Rxt::mesh_traits<M>::point>::Kernel;
 
-// Struct for geometric mesh data with spatially indexed triangulations
+// Geometric mesh data with spatially indexed triangulations
 // w/ faces mapped back to source mesh faces
 template <class Mesh>
 struct indexed_mesh_vector
@@ -70,7 +70,6 @@ struct indexed_mesh_vector
     using ray_search_tree = typename CGAL::K_neighbor_search<ray_search_traits, ray_distance>::Tree;
 
     // Edge indexing
-    
 
     source_meshes sources;
     triangulated_meshes triangulations;
