@@ -5,6 +5,10 @@
 #include <Rxt/math.hpp>
 #include <SDL2/SDL.h>
 
+#include <vector>
+#include <stdexcept>
+#include <utility>
+
 template <unsigned ix, class Vec>
 Vec invert(Vec v) { v[ix] = -v[ix]; return v; }
 
@@ -44,3 +48,28 @@ struct permissive_map
         return get_or_emplace(_map, k, V{});
     }
 };
+
+template <class M>
+struct map_chain
+{
+    using key_type = typename M::key_type;
+    using value_type = typename M::value_type;
+
+    std::vector<M*> list;
+
+    auto at(key_type key)
+    {
+        for (auto& head: list) {
+            auto it = head.find(key);
+            if (it != end(head))
+                return it->second;
+        }
+        throw std::out_of_range(key);
+    }
+};
+
+template <class M>
+map_chain<M> chain_map(M const& head, M const& next)
+{
+    return {{head, next}};
+}

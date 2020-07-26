@@ -1,8 +1,6 @@
 #pragma once
 
 #include "spatial.hpp"
-#include "geometry.hpp"
-#include "geometry_skel.hpp"
 
 #include <entt/entt.hpp>
 #include <Rxt/demangle.hpp>

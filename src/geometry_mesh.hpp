@@ -39,17 +39,20 @@ template <class Mesh>
 struct indexed_mesh_vector
 {
     using self_type = indexed_mesh_vector;
-    using source_mesh = Mesh;
-    using triangle_mesh = Mesh;
-    using source_meshes = std::vector<Mesh>;
-    using triangulated_meshes = std::vector<triangle_mesh>;
     using key_type = std::size_t;
-    // using point_type = typename Rxt::mesh_traits<source_mesh>::point;
+    using source_mesh = Mesh;
+    using point_type = typename Rxt::mesh_traits<source_mesh>::point;
 
+    using source_meshes = std::vector<Mesh>;
     using SourceTraits = boost::graph_traits<source_mesh>;
+
     using source_face_descriptor = typename SourceTraits::face_descriptor;
     using face_descriptor = std::pair<key_type, source_face_descriptor>;
     using vertex_descriptor = std::pair<key_type, typename SourceTraits::vertex_descriptor>;
+
+    // Ephemeral triangulation layer
+    using triangle_mesh = Mesh;
+    using triangulated_meshes = std::vector<triangle_mesh>;
 
     // Face indexing
     using mesh_transformer = Rxt::transform_comap_faces<source_mesh, triangle_mesh>;
@@ -69,13 +72,12 @@ struct indexed_mesh_vector
     using ray_search = CGAL::K_neighbor_search<ray_search_traits, ray_distance>;
     using ray_search_tree = typename CGAL::K_neighbor_search<ray_search_traits, ray_distance>::Tree;
 
-    // Edge indexing
+    // Edge indexing :todo
 
     source_meshes sources;
     triangulated_meshes triangulations;
     triangle_comaps face_comaps;
     triangle_aabb_tree triangle_tree;
-
     ray_search_tree point_tree;
 
     auto insert(source_mesh mesh)
@@ -86,6 +88,11 @@ struct indexed_mesh_vector
             point_tree.insert({get(CGAL::vertex_point, mesh, v), {ix, v}});
         }
         return ix;
+    }
+
+    auto& get_source(key_type k)
+    {
+        return sources.at(k);
     }
 
     void build()

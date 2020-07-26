@@ -16,13 +16,16 @@ template <class Trin, class Normals, class Color, class Bufs>
 void render_mesh(Trin const& trin,
                  Normals get_normal,
                  Color color,
-                 Bufs& bufs)
+                 Bufs& bufs,
+                 glm::mat4 tmat = glm::mat4(1))
 {
     for (auto fd: faces(trin)) {
         auto normal = get_normal(fd);
         for (auto point: Rxt::face_vertex_points<3>(trin, fd)) {
             auto p = to_glm(point);
             auto n = to_glm(normal);
+            using namespace glm;
+            p = vec3(tmat * vec4(p, 1));
             bufs.push(p, n, color);
         }
     }
@@ -30,7 +33,7 @@ void render_mesh(Trin const& trin,
 
 // todo - what is Mesh
 template <class Mesh, class Bufs>
-auto render_triangles(Mesh& m, Bufs& bufs)
+auto render_triangles(Mesh& m, Bufs& bufs, glm::mat4 tmat = glm::mat4(1))
 {
     using Index = typename Mesh::index_type;
     using TriMesh = typename Index::triangle_mesh;
@@ -46,7 +49,7 @@ auto render_triangles(Mesh& m, Bufs& bufs)
     Rxt::calculate_face_normals(mesh, boost::make_assoc_property_map(normals));
     auto get_normal = [&, i] (auto fd) { return normals.at(geom.face_comaps.at(i).at(fd)); };
 
-    render_mesh(trin, get_normal, m.color, bufs);
+    render_mesh(trin, get_normal, m.color, bufs, tmat);
 }
 
 template <class Index, class LineBufs>
