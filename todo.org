@@ -5,7 +5,7 @@
 ** velocity
 ** acceleration
 * interface
-** TODO drag
+** TODO mouse pan
 
 * cleanup
 
