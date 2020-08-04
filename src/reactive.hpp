@@ -23,10 +23,11 @@ struct hooks
         return observers.size() - 1;
     }
 
-    void dispatch(Ts... t)
+    template <class... Us>
+    void operator()(Us&&... a)
     {
         for (auto& obs: observers)
-            obs(t...);
+            obs(std::forward<Us...>(a)...);
         count = 1;
     }
 
@@ -38,8 +39,6 @@ struct hooks
     }
 
     auto size() const { return observers.size(); }
-
-    void operator()(Ts... t) { dispatch(t...); }
 
     template <class F>
     auto& operator+=(F&& h) { add(h); return *this; }
@@ -208,6 +207,22 @@ struct hook_router
         _switch.emplace(k);
         _map[*_switch].on_enable();
     }
+};
+
+template <class T>
+struct reactive_pointer
+{
+    using element_type = T;
+    element_type* self = nullptr;
+    element_type* operator->() { return self; }
+    element_type const* operator->() const { return self; }
+    element_type& operator *() { return *self; };
+    element_type const& operator *() const { return *self; };
+
+    Rxt::hooks<element_type*> on_update;
+    reactive_pointer(element_type* a) : self{a} { }
+    reactive_pointer() {}
+    auto& emplace(element_type* a) { self = a; on_update(a); return self; }
 };
 
 // struct _empty { static constexpr auto members() {}};

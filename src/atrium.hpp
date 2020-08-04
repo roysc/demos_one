@@ -60,5 +60,6 @@ struct atrium_app : public sdl::simple_gui
     void _init_controls();
     void _init_ui();
 
+    void reset_camera();
     void handle_drag(cursor_fvec, camera_state);
 };

@@ -8,7 +8,6 @@ void atrium_app::_init_controls()
     using Ax = Rxt::axis3;
     float speed = 0.04;
 
-    auto reset_camera = [this] { camera.emplace(initial_camera); };
     auto put_camera = [this] (fvec3 relpos)
     {
         auto focus = camera.focus;
@@ -29,15 +28,15 @@ void atrium_app::_init_controls()
         }
     };
 
+    keys.on_press["D"] = on_debug;
+    keys.on_press["C-W"] = [this] { quit = true; };
     keys.on_scan["Right"] = std::bind(orbit_cam, &camera, Ax::z, +speed);
     keys.on_scan["Left"] = std::bind(orbit_cam, &camera, Ax::z, -speed);
     keys.on_scan["Up"] = std::bind(orbit_cam, &camera, Ax::y, +speed);
     keys.on_scan["Down"] = std::bind(orbit_cam, &camera, Ax::y, -speed);
     keys.on_scan[","] = std::bind(camera_forward, +speed);
     keys.on_scan["."] = std::bind(camera_forward, -speed);
-    keys.on_press["C-W"] = [this] { quit = true; };
-    keys.on_press["D"] = on_debug;
-    keys.on_press["R"] = reset_camera;
+    keys.on_press["R"] = std::bind(&atrium_app::reset_camera, this);
     keys.on_press["X"] = std::bind(put_camera, 10.f*Rxt::basis3<fvec3>(Rxt::axis3::x));
     keys.on_press["Y"] = std::bind(put_camera, 10.f*Rxt::basis3<fvec3>(Rxt::axis3::y));
     keys.on_press["Z"] = std::bind(put_camera, 10.f*Rxt::basis3<fvec3>(Rxt::axis3::z));
@@ -68,6 +67,6 @@ void atrium_app::_init_controls()
         case SDL_BUTTON_MIDDLE:
             drag_origin = {};
             break;
-        }        
+        }
     };
 }

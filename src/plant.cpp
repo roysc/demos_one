@@ -15,8 +15,8 @@ plant_app::plant_app(viewport_uvec size)
     opts["highlight_face"].enable();
     // opts["highlight_vertex"].enable();
 
-    // z2_stage(gen);
-
+    active_stage.emplace(universe.root());
+    reset_camera();
     // auto unitbounds = Rxt::box(fvec2(-.5), fvec2(.5));
     // auto normbounds = Rxt::box(fvec2(-1), fvec2(1));
     // stage_cache.emplace_back(entities, normbounds);
@@ -70,7 +70,7 @@ bool plant_app::highlighted_space(position_ivec& out) const
     if (highlighted_faces) {
         auto [oi, fd] = *highlighted_faces;
         auto pos = face_spaces.at(oi).at(fd);
-        assert(Rxt::point_within(pos, terrain.shape()));
+        assert(Rxt::point_within(pos, active_stage->size()));
         out = pos;
         return true;
     }

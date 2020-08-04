@@ -32,6 +32,8 @@ atrium_app::atrium_app(const char* title, viewport_uvec size)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
+void atrium_app::reset_camera() { camera.emplace(initial_camera); };
+
 void atrium_app::handle_drag(cursor_fvec dist_nds, camera_state cam_start)
 {
     float mag = length(dist_nds);

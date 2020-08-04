@@ -71,6 +71,45 @@ void plant_app::_init_ui()
     };
 }
 
+void plant_app::load_stage(stage_type& stage)
+{
+    using Sfd = mesh_data::source_face_descriptor;
+    mesh_type mesh, eph;
+    face_to_space f2s;
+    std::map<Sfd, Sfd> f2f;
+
+    stage.grid().for_each([&](auto pos, auto& cell) {
+        auto _quad = [pos](float elev, auto& m) {
+            auto x = pos.x, y = pos.y;
+            plaza_geom::point corners[4] = {
+                {  x,   y, elev},
+                {x+1,   y, elev},
+                {x+1, y+1, elev},
+                {  x, y+1, elev}
+            };
+            return make_quad(corners[0], corners[1], corners[2], corners[3], m);
+        };
+        auto elev = normalize_int(cell);
+        auto hd = _quad(elev, mesh);
+        auto fd = face(hd, mesh);
+        f2s[fd] = pos;
+
+        if (elev < .5) {
+            auto hdw = _quad(.5, eph);
+            f2f[fd] = face(hdw, eph);
+        }
+    });
+
+    auto i = put_mesh(mesh, palette.at("sand"));
+    face_spaces[i] = f2s;
+
+    auto ei = put_ephemeral(eph, to_rgba(palette.at("water"), .7));
+    for (auto [f, ef]: f2f) {
+        face_ephem[mesh_face(i, f)] = mesh_face(ei, ef);
+    }
+    _model_update();
+}
+
 void plant_app::_init_model()
 {
     auto& b_triangles = triangle_prog.buf["triangles"];
@@ -78,42 +117,8 @@ void plant_app::_init_model()
     auto& b_lines = line_prog.buf["lines"];
     auto& b_overlines = line_prog.buf["overlines"];
 
-    PZ_observe(terrain.on_update) {
-        using Sfd = mesh_data::source_face_descriptor;
-        mesh_type mesh, eph;
-        face_to_space f2s;
-        std::map<Sfd, Sfd> f2f;
-
-        terrain.for_each([&](auto pos, auto& cell) {
-            auto _quad = [pos](float elev, auto& m) {
-                auto x = pos.x, y = pos.y;
-                plaza_geom::point corners[4] = {
-                    {  x,   y, elev},
-                    {x+1,   y, elev},
-                    {x+1, y+1, elev},
-                    {  x, y+1, elev}
-                };
-                return make_quad(corners[0], corners[1], corners[2], corners[3], m);
-            };
-            auto elev = normalize_int(cell);
-            auto hd = _quad(elev, mesh);
-            auto fd = face(hd, mesh);
-            f2s[fd] = pos;
-
-            if (elev < .5) {
-                auto hdw = _quad(.5, eph);
-                f2f[fd] = face(hdw, eph);
-            }
-        });
-
-        auto i = put_mesh(mesh, palette.at("sand"));
-        face_spaces[i] = f2s;
-
-        auto ei = put_ephemeral(eph, to_rgba(palette.at("water"), .7));
-        for (auto [f, ef]: f2f) {
-            face_ephem[mesh_face(i, f)] = mesh_face(ei, ef);
-        }
-        _model_update();
+    PZ_observe(active_stage.on_update, auto stage) {
+        load_stage(*stage);
     };
 
     PZ_observe(_model_update) {
@@ -132,7 +137,7 @@ void plant_app::_init_model()
 
         auto each_skel = [&](auto pos, auto& skel)
         {
-            auto elev = normalize_int(terrain.at(pos.r));
+            auto elev = normalize_int(active_stage->grid().at(pos.r));
             auto offset = position_fvec(pos.r, elev) + position_fvec(.5,.5,0);
             plaza::render_skel(skel.g, b_lines, offset);
         };

@@ -20,15 +20,20 @@ struct z2_generator
 };
 
 struct z2_universe;
+
 struct z2_stage
 {
-    // const size_type _size;
+    using cell_value = std::uint8_t;
+    using terrain_grid = dense_grid<cell_value>;
+    // using terrain_map = Rxt::adapt_reactive<geog_grid>;
+
     z2_universe* _universe;
-    dense_grid<float> _grid;
+    terrain_grid _grid;
     // z-order coord?
 
     size_type size() const;
     auto& grid() { return _grid; }
+
     z2_stage(z2_universe&);
 };
 
@@ -51,8 +56,6 @@ struct deep_stage
 
 struct z2_universe
 {
-    // using stage_index = std::list<Rxt::ivec2>;
-
     const unsigned max_stage_depth = 2;
     const size_type _stage_size;
     const size_type _full_size = _stage_size << max_stage_depth;
