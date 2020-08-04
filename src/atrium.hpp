@@ -1,6 +1,5 @@
 #include "controls.hpp"
 #include "input.hpp"
-#include "spatial.hpp"
 // #include "viewport.hpp"
 
 #include "reactive.hpp"
@@ -25,10 +24,11 @@ struct atrium_app : public sdl::simple_gui
 
     struct cursor_traits
     {
-        using position_type = fvec2;
-        // using size_type = uvec2;
+        using position_type = Rxt::fvec2;
     };
     using cursor_type = Rxt::adapt_reactive_crt<reactive_cursor, Rxt::hooks<>, cursor_traits>;
+    using cursor_fvec = cursor_traits::position_type;
+    using viewport_uvec = Rxt::uvec2;
 
     using camera_state = Rxt::focused_camera;
     using camera_type = Rxt::adapt_reactive_crt<reactive_cam, Rxt::hooks<>, camera_state>;
@@ -37,7 +37,6 @@ struct atrium_app : public sdl::simple_gui
     bool quit = false;
     input_hooks input;
     sdl::key_dispatcher keys;
-    uvec2 map_size;
 
     camera_state initial_camera;
     camera_type camera;
@@ -53,7 +52,7 @@ struct atrium_app : public sdl::simple_gui
 
     Rxt::hooks<> on_debug;
 
-    atrium_app(const char*, uvec2);
+    atrium_app(const char*, viewport_uvec);
     Rxt::reactive_handle _update(SDL_Event);
     bool is_stopped() const { return quit; }
     void draw();
@@ -61,5 +60,5 @@ struct atrium_app : public sdl::simple_gui
     void _init_controls();
     void _init_ui();
 
-    void handle_drag(fvec2, camera_state);
+    void handle_drag(cursor_fvec, camera_state);
 };

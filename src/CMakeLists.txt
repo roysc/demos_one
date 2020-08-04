@@ -27,13 +27,14 @@ set(_HEADERS_BASE
     mouse_core.hpp
     viewport.hpp
     controls.hpp
-    spatial.hpp
+    space.hpp
     atrium.hpp
 )
 set(_SOURCES_BASE
     atrium_ui.cpp
     atrium_controls.cpp
     atrium.cpp
+    space.cpp
 )
 
 set(_HEADERS_ATRIUM

@@ -1,23 +1,42 @@
 #include "plant.hpp"
-#include "noise.hpp"
+
 #include <Rxt/math.hpp>
 
-plant_app::plant_app(uvec2 size)
+plant_app::plant_app(viewport_uvec size)
     : super_type("plaza: plant", size)
     , palette(default_palette())
+    , universe(zspace2::size_type(8), 42)
 {
+    initial_camera = default_camera(universe.stage_size());
+
     _init_ui();
     _init_model();
-
-    terrain_map tm(map_size);
-    auto scale = 0xFF;
-    fill_noise(map_size, 42, [&](int x, int y, auto a) { tm.put({x, y}, a * scale / 2); });
-    terrain.emplace(tm);
-
-    e_debug = entities.create();
-
+    // e_debug = entities.create();
     opts["highlight_face"].enable();
     // opts["highlight_vertex"].enable();
+
+    // z2_stage(gen);
+
+    // auto unitbounds = Rxt::box(fvec2(-.5), fvec2(.5));
+    // auto normbounds = Rxt::box(fvec2(-1), fvec2(1));
+    // stage_cache.emplace_back(entities, normbounds);
+    // active_stage = &stage_cache[0];
+
+    // plant stage
+    // auto e1 = put_entity(entities, ivec2(0), board_unit);
+    // entities.emplace<mesh>(e1, make_thing(geom, e1));
+    // put_mesh(thing_mesh(), idk, &e1);
+    // active_stage->add(e1);
+
+    // set active stage
+    // allow to zoom to substages
+    // stage size / zoom factor ctc?
+    // stationary objects in quadtree
+    // + walls
+    // mobile objects in hash?
+
+    // https://ourmachinery.com/post/syncing-a-data-oriented-ecs/
+    // changing<component> for update?
 }
 
 void plant_app::draw_clear()
@@ -29,11 +48,15 @@ void plant_app::draw_clear()
 
 void plant_app::advance(SDL_Event event)
 {
+    // if (active_stage)
+    //     active_stage->run();
+
     auto up1 = super_type::_update(event);
     auto up2 = {
         &_model_update,
         &highlighted_faces.on_update,
     };
+
     auto dirty = flush_all(up1) + flush_all(up2);
     if (dirty) {
         draw_clear();
@@ -42,35 +65,42 @@ void plant_app::advance(SDL_Event event)
     }
 }
 
-std::optional<ivec2> plant_app::highlighted_space() const
+bool plant_app::highlighted_space(position_ivec& out) const
 {
     if (highlighted_faces) {
         auto [oi, fd] = *highlighted_faces;
-        ivec2 pos = face_spaces.at(oi).at(fd);
+        auto pos = face_spaces.at(oi).at(fd);
         assert(Rxt::point_within(pos, terrain.shape()));
-        return pos;
+        out = pos;
+        return true;
     }
-    return std::nullopt;
+    return false;
 }
 
-mesh_key plant_app::put_mesh(mesh_type mesh, mesh_color color, entity_id ent)
+mesh_key plant_app::put_mesh(mesh_type mesh, mesh_color color, entity_id* entp)
 {
     auto ix = geom.insert(mesh);
     geom.build();
 
-    if (!entities.valid(ent))
-        ent = entities.create();
-    entities.emplace<cpt::mesh>(ent, &geom, ix, color);
+    auto ent = nullent;
+    auto* entr = entp? entp : &ent;
+
+    if(!entities.valid(*entr))
+        *entr = entities.create();
+    entities.emplace<cpt::mesh>(*entr, &geom, ix, color);
     return ix;
 }
 
-mesh_key plant_app::put_ephemeral(mesh_type mesh, mesh_color color, entity_id ent)
+mesh_key plant_app::put_ephemeral(mesh_type mesh, mesh_color color, entity_id* entp)
 {
     auto ix = ephem.insert(mesh);
     ephem.build();
 
-    if (!entities.valid(ent))
-        ent = entities.create();
-    entities.emplace<cpt::mesh>(ent, &ephem, ix, color, true);
+    auto ent = nullent;
+    auto* entr = entp? entp : &ent;
+
+    if (!entities.valid(*entr))
+        *entr = entities.create();
+    entities.emplace<cpt::mesh>(*entr, &ephem, ix, color, true);
     return ix;
 }

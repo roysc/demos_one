@@ -4,20 +4,21 @@
 
 #include <Rxt/geometry/helper.hpp>
 #include <Rxt/graphics/color.hpp>
-#include <Rxt/graphics/glm.hpp>
+#include <Rxt/data/graph.hpp>
+#include <Rxt/vec.hpp>
 
 #include <CGAL/boost/graph/helpers.h>
 #include <boost/property_map/property_map.hpp>
 
-inline glm::vec3 to_glm(plaza_geom::point p) { return {p.x(), p.y(), p.z()}; }
-inline glm::vec3 to_glm(plaza_geom::vector v) { return {v.x(), v.y(), v.z()}; }
+inline Rxt::fvec3 to_glm(plaza_geom::point p) { return {p.x(), p.y(), p.z()}; }
+inline Rxt::fvec3 to_glm(plaza_geom::vector v) { return {v.x(), v.y(), v.z()}; }
 
 template <class Trin, class Normals, class Color, class Bufs>
 void render_mesh(Trin const& trin,
                  Normals get_normal,
                  Color color,
                  Bufs& bufs,
-                 glm::mat4 tmat = glm::mat4(1))
+                 Rxt::fmat4 tmat)
 {
     for (auto fd: faces(trin)) {
         auto normal = get_normal(fd);
@@ -25,7 +26,7 @@ void render_mesh(Trin const& trin,
             auto p = to_glm(point);
             auto n = to_glm(normal);
             using namespace glm;
-            p = vec3(tmat * vec4(p, 1));
+            p = Rxt::fvec3(tmat * Rxt::fvec4(p, 1));
             bufs.push(p, n, color);
         }
     }
@@ -33,11 +34,13 @@ void render_mesh(Trin const& trin,
 
 // todo - what is Mesh
 template <class Mesh, class Bufs>
-auto render_triangles(Mesh& m, Bufs& bufs, glm::mat4 tmat = glm::mat4(1))
+auto render_triangles(Mesh& m,
+                      Bufs& bufs,
+                      Rxt::fmat4 tmat = Rxt::fmat4(1))
 {
     using Index = typename Mesh::index_type;
     using TriMesh = typename Index::triangle_mesh;
-    using TriFace = boost::graph_traits<TriMesh>::face_descriptor;
+    using TriFace = Rxt::graph_traits<TriMesh>::face_descriptor;
     using NormalMap = std::map<TriFace, plaza_geom::vector>;
 
     auto i = m.key;

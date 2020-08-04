@@ -29,10 +29,15 @@ using vertex_set = std::vector<mesh_data::vertex_descriptor>;
 namespace plant_cpt
 {
 using namespace _cpt;
-struct zpos { ivec2 r; };
-struct fpos { fvec3 r; };
+struct zpos { Rxt::ivec2 r; };
+struct zmove { enum { n, s, e, w } dir; };
+// struct zvel { };
+struct fpos3 { Rxt::fvec3 r; };
+
+struct fbox2 { Rxt::bounding_box<float> b; };
+
+
 struct skel { plant_model::skel3 g; };
-struct hitbox { Rxt::bounding_box<float> b; };
 
 struct mesh
 {
@@ -42,6 +47,8 @@ struct mesh
     mesh_color color;
     bool transparent = false;
 };
+
+// struct input { input_event ; };
 }
 
 namespace plant_model

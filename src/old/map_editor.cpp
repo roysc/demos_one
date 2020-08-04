@@ -3,15 +3,16 @@
 #include <Rxt/range.hpp>
 #include <Rxt/io.hpp>
 #include <Rxt/graphics/color.hpp>
-#include <Rxt/graphics/glm.hpp>
 #include <Rxt/math.hpp>
+#include <Rxt/vec.hpp>
+#include <Rxt/vec_io.hpp>
 
 #include "OpenSimplexNoise.hh"
 
 #include <string>
 #include <iostream>
 
-using Vec4u8 = glm::tvec4<unsigned char, glm::highp>;
+using Vec4u8 = glm::tvec4<unsigned char>;
 using image_data = boost::multi_array<Vec4u8, 2>;
 
 inline

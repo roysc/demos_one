@@ -2,11 +2,12 @@
 #include "geometry_mesh.hpp"
 #include <Rxt/geometry/shapes.hpp>
 
+
 namespace plant_model
 {
-using glm::fvec3;
+using Rxt::fvec3;
 
-skel3 build_plant()
+skel3 build_plant(entity_registry)
 {
     skel3 g;
     auto root = add_vertex(fvec3(0), g);

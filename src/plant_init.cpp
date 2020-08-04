@@ -1,6 +1,7 @@
 #include "plant.hpp"
 #include "rendering.hpp"
 #include <Rxt/graphics/color.hpp>
+#include <Rxt/vec_io.hpp>
 
 using Rxt::print;
 using Rxt::to_rgba;
@@ -47,13 +48,13 @@ void plant_app::_init_ui()
     };
 
     PZ_observe(input.on_mouse_down, SDL_MouseButtonEvent button) {
-        auto paint = [this](ivec2 pos)
+        auto paint = [this](zspace2::position_type pos)
         {
             auto ent = entities.create();
             entities.emplace<cpt::zpos>(ent, pos);
             entities.emplace<cpt::nam>(ent, "house");
             auto thing = plant_model::build_house();
-            put_mesh(thing, to_rgba(Rxt::colors::gray), ent);
+            put_mesh(thing, to_rgba(Rxt::colors::gray), &ent);
 
             _model_update();
             print("put({}): {}({})\n", pos, entity_name(entities, ent), (std::size_t)ent);
@@ -61,8 +62,8 @@ void plant_app::_init_ui()
 
         switch (button.button) {
         case SDL_BUTTON_LEFT: {
-            if (auto pos = highlighted_space()) {
-                paint(*pos);
+            if (position_ivec pos; highlighted_space(pos)) {
+                paint(pos);
             }
             break;
         }
@@ -132,7 +133,8 @@ void plant_app::_init_model()
         auto each_skel = [&](auto pos, auto& skel)
         {
             auto elev = normalize_int(terrain.at(pos.r));
-            plaza::render_skel(skel.g, b_lines, fvec3(pos.r, elev) + fvec3(.5,.5,0));
+            auto offset = position_fvec(pos.r, elev) + position_fvec(.5,.5,0);
+            plaza::render_skel(skel.g, b_lines, offset);
         };
         b_lines.clear();
         entities.view<cpt::zpos, cpt::skel>().each(each_skel);

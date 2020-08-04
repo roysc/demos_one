@@ -4,6 +4,8 @@
 #include <Rxt/graphics/gl_handy.hpp>
 #include <Rxt/range.hpp>
 #include <Rxt/log.hpp>
+#include <Rxt/vec_io.hpp>
+
 #include <iostream>
 
 namespace gl = Rxt::gl;

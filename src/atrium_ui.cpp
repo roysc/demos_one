@@ -1,14 +1,19 @@
 #include "atrium.hpp"
 
-#include <Rxt/math.hpp>
-#include <Rxt/io.hpp>
 #include <Rxt/graphics/color.hpp>
+#include <Rxt/math.hpp>
+#include <Rxt/vec.hpp>
+#include <Rxt/io.hpp>
+#include <Rxt/vec_io.hpp>
 
 #include <glm/gtc/epsilon.hpp>
 
 void atrium_app::_init_ui()
 {
     using Rxt::print;
+    using Rxt::fvec3;
+
+    set(ui_line_prog->mvp_matrix, glm::mat4(1));
 
     PZ_observe(cursor.on_update) {
         // if (enable_drag_around)
@@ -16,7 +21,7 @@ void atrium_app::_init_ui()
             auto [pos, cam] = *drag_origin;
             auto drag = cursor.position() - pos;
             auto threshold = 0.001f;
-            if (!all(glm::epsilonEqual(drag, fvec2(0), threshold)))
+            if (!all(glm::epsilonEqual(drag, cursor_fvec(0), threshold)))
                 handle_drag(drag, cam);
         }
     };
@@ -48,6 +53,8 @@ void atrium_app::_init_ui()
     };
 
     PZ_observe(on_debug) {
+        // using namespace Rxt::operators;
+        // using Rxt::operators::operator<<;
         print("camera.pos={} .focus={} .up={}\n", camera.position(), camera.focus, camera.up);
         if (drag_origin) print("drag_origin = {}\n", drag_origin->pos);
     };

@@ -4,6 +4,7 @@
 void atrium_app::_init_controls()
 {
     using Rxt::print;
+    using Rxt::fvec3;
     using Ax = Rxt::axis3;
     float speed = 0.04;
 

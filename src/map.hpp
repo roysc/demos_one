@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Rxt/graphics/glm.hpp>
+#include <Rxt/vec.hpp>
 #include <boost/multi_array.hpp>
 
 template <class T>
@@ -8,13 +8,15 @@ struct dense_grid
 {
     using value_type = T;
     using data_type = boost::multi_array<T, 2>;
-    using key_type = glm::uvec2;
+    using key_type = Rxt::uvec2;
     using shape_type = key_type;
 
     data_type _data;
 
     dense_grid() {}
-    dense_grid(shape_type shape) { resize(shape); }
+    dense_grid(shape_type shape)
+        : _data(boost::extents[shape.x][shape.y])
+    {}
 
     shape_type shape() const
     {

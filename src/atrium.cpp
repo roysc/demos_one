@@ -10,21 +10,19 @@
 #include <string>
 #include <iomanip>
 
-using glm::ivec2;
+using Rxt::ivec2;
+using Rxt::fvec3;
+using Rxt::fvec4;
 
-atrium_app::atrium_app(const char* title, uvec2 size)
+atrium_app::atrium_app(const char* title, viewport_uvec size)
     : simple_gui(title, size)
-    , map_size(16)
-    , initial_camera(fvec3(8), fvec3(fvec2(map_size) / 4.f, 0))
+    , initial_camera(fvec3{1}, fvec3{0})
     , camera(initial_camera)
     // , metronome(Rxt::duration_fps<30>(1), [this] { return !is_stopped(); })
     // , ui_viewport(uvec2(20))
 {
     _init_ui();
     _init_controls();
-
-    set(ui_line_prog->mvp_matrix, glm::mat4(1));
-    camera.on_update();
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
@@ -34,11 +32,11 @@ atrium_app::atrium_app(const char* title, uvec2 size)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
-void atrium_app::handle_drag(fvec2 dist_nds, camera_state cam_start)
+void atrium_app::handle_drag(cursor_fvec dist_nds, camera_state cam_start)
 {
     float mag = length(dist_nds);
-    assert(dist_nds != fvec2(0));// degenerate
-    auto perp_nds = fvec2(-dist_nds.y, dist_nds.x); // ccw
+    assert(dist_nds != cursor_fvec(0));// degenerate
+    auto perp_nds = cursor_fvec(-dist_nds.y, dist_nds.x); // ccw
     auto perp_vs = fvec4(perp_nds, 0, 0);
     auto about_ms = normalize(Rxt::unview(perp_vs, cam_start));
     auto q_drag_ms = glm::angleAxis(-(mag) * Rxt::tau, about_ms);

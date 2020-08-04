@@ -1,13 +1,13 @@
 #pragma once
 #include <Rxt/graphics/color.hpp>
-#include <Rxt/graphics/glm.hpp>
+#include <Rxt/vec.hpp>
 #include <Rxt/data/graph.hpp>
 #include <Rxt/range.hpp>
 
 namespace plaza_geom
 {
 // Wireframe object
-template <class E, class Pos=glm::fvec3>
+template <class E, class Pos=Rxt::fvec3>
 struct skel_traits
 {
     struct vertex_t { using kind = Rxt::vertex_property_tag; };

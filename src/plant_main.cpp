@@ -12,7 +12,8 @@ int main(int argc, char* argv[])
         seed = std::stoi(argv[1]);
     }
 
-    auto loop = sdl::make_looper(new plant_app(uvec2(800)), step_state);
+    auto vpsize = plant_app::viewport_uvec{800};
+    auto loop = sdl::make_looper(new plant_app(vpsize), step_state);
     loop();
     return 0;
 }
