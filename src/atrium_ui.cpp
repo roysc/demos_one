@@ -1,6 +1,6 @@
 #include "atrium.hpp"
 
-#include <Rxt/graphics/color.hpp>
+#include <Rxt/color.hpp>
 #include <Rxt/math.hpp>
 #include <Rxt/vec.hpp>
 #include <Rxt/io.hpp>

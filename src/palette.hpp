@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Rxt/graphics/color.hpp>
+#include <Rxt/color.hpp>
 
 #include <map>
 #include <string>

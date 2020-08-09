@@ -1,6 +1,6 @@
 #include "plant.hpp"
 #include "rendering.hpp"
-#include <Rxt/graphics/color.hpp>
+#include <Rxt/color.hpp>
 #include <Rxt/vec.hpp>
 #include <Rxt/vec_io.hpp>
 

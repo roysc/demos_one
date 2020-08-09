@@ -4,7 +4,7 @@
 // #include "geometry_skel.hpp"
 
 #include <Rxt/geometry/helper.hpp>
-#include <Rxt/graphics/color.hpp>
+#include <Rxt/color.hpp>
 #include <Rxt/data/graph.hpp>
 #include <Rxt/vec.hpp>
 #include <Rxt/range.hpp>

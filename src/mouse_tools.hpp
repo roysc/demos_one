@@ -6,7 +6,7 @@
 #include "util.hpp"
 #include "reactive.hpp"
 
-#include <Rxt/graphics/color.hpp>
+#include <Rxt/color.hpp>
 #include <Rxt/range.hpp>
 #include <Rxt/util.hpp>
 #include <Rxt/log.hpp>
