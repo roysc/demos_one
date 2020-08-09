@@ -38,7 +38,7 @@ void render_mesh(
 
 // todo - what is Mesh
 template <class Mesh, class Bufs>
-auto render_triangles(
+void render_triangles(
     Mesh& m
     , Bufs& bufs
     , transform3 tmat = Rxt::fmat4(1)
@@ -50,7 +50,7 @@ auto render_triangles(
     using NormalMap = std::map<TriFace, plaza_geom::vector>;
 
     auto i = m.key;
-    Index& geom = *m.data;
+    Index& geom = *m.index;
     auto& mesh = geom.sources.at(i);
     auto& trin = geom.triangulations.at(i);
 
@@ -77,14 +77,13 @@ void render_hl(typename Index::face_descriptor fk,
     }
 }
 
-// using color_graph_traits = skel_traits<Rxt::rgb>;
-// using skel_graph = color_graph_traits::graph_type;
-
 // Can later use P as tmat for model or instance
-template <class G, class Lines, class P>
+template <class G, class Lines>
 void render_skel(G const& g, Lines& lines, transform3 tm)
 {
-    using Tr = color_graph_traits;
+    using Tr = plaza::skel_traits<Rxt::rgb, Rxt::fvec3>;
+    // using skel_graph = color_graph_traits::graph_type;
+
     auto vp = get(Tr::vertex, g);
     auto ep = get(Tr::edge, g);
     for (auto e: Rxt::to_range(edges(g))) {

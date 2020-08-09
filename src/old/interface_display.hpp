@@ -3,7 +3,7 @@
 #include "grid_viewport.hpp"
 
 #include <Rxt/graphics/sdl.hpp>
-#include <Rxt/graphics/color.hpp>
+#include <Rxt/color.hpp>
 #include <Rxt/graphics/shader/grid_quad_2D.hpp>
 
 struct interface_display

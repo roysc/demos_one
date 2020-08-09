@@ -222,6 +222,7 @@ struct reactive_pointer
 
     auto& emplace(element_type* a) { self = a; on_update(a); return self; }
     auto get() {return self;}
+    operator bool() const {return self;}
     element_type* operator->() { return self; }
     element_type const* operator->() const { return self; }
     element_type& operator *() { return *self; };

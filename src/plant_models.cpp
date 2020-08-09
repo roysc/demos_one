@@ -3,20 +3,20 @@
 #include <Rxt/geometry/shapes.hpp>
 
 
-namespace planty::_models
+namespace planty
 {
 using Rxt::fvec3;
 
-skel3 build_plant(entity_registry)
+skel_type build_plant(entity_registry)
 {
-    skel3 g;
+    skel_type g;
     auto root = add_vertex(fvec3(0), g);
     return g;
 }
 
-skel3 build_kord()
+skel_type build_kord()
 {
-    skel3 g;
+    skel_type g;
     using namespace Rxt;
     rgb limb_clr = colors::hot_pink,
         head_clr = colors::red;
@@ -38,7 +38,7 @@ skel3 build_kord()
     return g;
 }
 
-mesh3 build_tetroid()
+mesh_type build_tetroid()
 {
     using namespace plaza_geom;
     surface_mesh m;
@@ -48,7 +48,7 @@ mesh3 build_tetroid()
     return m;
 }
 
-mesh3 build_house()
+mesh_type build_house()
 {
     using namespace plaza_geom;
     surface_mesh g;

@@ -6,7 +6,8 @@
 #include <memory>
 
 using transform3 = Rxt::fmat4;
-Rxt::fvec3 apply(transform3 m, Rxt::fvec3 v)
+
+inline Rxt::fvec3 apply(transform3 m, Rxt::fvec3 v)
 {
     return Rxt::fvec3(m * Rxt::fvec4(v, 1));
 }

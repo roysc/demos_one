@@ -2,7 +2,7 @@
 
 #include <Rxt/range.hpp>
 #include <Rxt/io.hpp>
-#include <Rxt/graphics/color.hpp>
+#include <Rxt/color.hpp>
 #include <Rxt/math.hpp>
 #include <Rxt/vec.hpp>
 #include <Rxt/vec_io.hpp>

@@ -95,10 +95,10 @@ struct indexed_mesh_vector
         return sources.at(k);
     }
 
-    auto& get(key_type k)
-    {
-        return get_source(k);
-    }
+    // auto& get(key_type k) const
+    // {
+    //     return get_source(k);
+    // }
 
     void build()
     {

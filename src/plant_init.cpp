@@ -33,6 +33,7 @@ void plant_app::_init_ui()
     PZ_observe(cursor.on_update) {
         using namespace plaza_geom;
         auto [source, dir] = Rxt::cast_ray(cursor.position(), camera);
+        auto& geom = _mesh_index();
 
         if (opts["highlight_face"]) {
             auto newhl = face_query(ray(to_point(source), to_point(source + dir)), geom);
@@ -49,7 +50,7 @@ void plant_app::_init_ui()
     };
 
     PZ_observe(input.on_mouse_down, SDL_MouseButtonEvent button) {
-        auto paint = [this](position_ivec pos)
+        auto paint = [this](cell_position pos)
         {
             if (!active_stage) {
                 print("error: No active stage\n");
@@ -57,7 +58,7 @@ void plant_app::_init_ui()
             }
 
             auto thing = planty::build_house();
-            auto ent = put_mesh(thing, to_rgba(Rxt::colors::gray));
+            auto ent = put_mesh(thing, to_rgba(Rxt::colors::gray), false);
             entities.emplace<cpt::cell>(ent, *active_stage, pos);
             entities.emplace<cpt::nam>(ent, "house");
 
@@ -67,7 +68,7 @@ void plant_app::_init_ui()
 
         switch (button.button) {
         case SDL_BUTTON_LEFT: {
-            if (position_ivec pos; highlighted_space(pos)) {
+            if (cell_position pos; highlighted_space(pos)) {
                 paint(pos);
             }
             break;
@@ -78,7 +79,7 @@ void plant_app::_init_ui()
 
 void plant_app::load_stage(stage_type& stage)
 {
-    using Sfd = mesh_data::source_face_descriptor;
+    using Sfd = mesh_index::source_face_descriptor;
     mesh_type mesh, eph;
     face_to_space f2s;
     std::map<Sfd, Sfd> f2f;
@@ -107,9 +108,9 @@ void plant_app::load_stage(stage_type& stage)
 
     auto entity_mesh = [&] (auto e) { return entities.get<cpt::mesh>(e); };
 
-    auto ent = put_mesh(mesh, palette.at("sand"));
+    auto ent = put_mesh(mesh, palette.at("sand"), false);
     auto meshid = entity_mesh(ent).key;
-    auto ephent = put_mesh(eph, to_rgba(palette.at("water"), .7), true);
+    auto ephent = put_mesh(eph, to_rgba(palette.at("water"), .7), true, mesh_kind::ephemeral);
     auto ephid = entity_mesh(ephent).key;
     set_parent_entity(entities, ent, ephent);
 
@@ -130,12 +131,11 @@ void plant_app::_init_model()
     auto& b_overlines = line_prog.buf["overlines"];
 
     PZ_observe(active_stage.on_update, auto stage) {
-
         load_stage(*stage);
     };
 
     PZ_observe(_model_update) {
-        auto free_mesh = [&] (auto& g, cpt::fpos pos)
+        auto free_mesh = [&] (auto& g, cpt::fpos3 pos)
         {
             auto tm = Rxt::translate(pos.r);
             g.render(g.transparent ? b_tris_txp : b_triangles, tm);
@@ -144,7 +144,7 @@ void plant_app::_init_model()
         {
             g.render(
                 g.transparent ? b_tris_txp : b_triangles,
-                Rxt::translate(cell.offset<position_fvec>())
+                Rxt::translate(cell.offset<free_position>())
             );
         };
 
@@ -158,7 +158,8 @@ void plant_app::_init_model()
 
         auto cell_skel = [&](auto cell, auto& g)
         {
-            g.render(b_lines, Rxt::translate(cell.offset<position_fvec>()));
+            auto tm = Rxt::translate(cell.template offset<free_position>());
+            g.render(b_lines, tm);
         };
         b_lines.clear();
         entities.view<cpt::cell, cpt::skel>().each(cell_skel);
@@ -169,9 +170,12 @@ void plant_app::_init_model()
         auto& b_overlines = line_prog.buf["over_lines_hl"];
         b_overlines.clear();
         if (highlighted_faces) {
-            render_hl(*highlighted_faces, geom, b_overlines, palette.at("hl"));
+            render_hl(*highlighted_faces, _mesh_index(), b_overlines, palette.at("hl"));
             if (auto others = face_ephem.find(*highlighted_faces); others != end(face_ephem))
-                render_hl(others->second, ephem, b_overlines, palette.at("hl_water"));
+                render_hl(others->second,
+                          _mesh_index(mesh_kind::ephemeral),
+                          b_overlines,
+                          palette.at("hl_water"));
         }
         b_overlines.update();
     };
@@ -180,7 +184,7 @@ void plant_app::_init_model()
         auto& b = point_prog.buf["points"];
         b.clear();
         for (auto [oi, vd]: highlighted_vertices) {
-            auto pos = get(CGAL::vertex_point, geom.sources[oi], vd);
+            auto pos = get(CGAL::vertex_point, _mesh_index().sources[oi], vd);
             b.push(to_glm(pos), Rxt::colors::white);
         }
         b.update();

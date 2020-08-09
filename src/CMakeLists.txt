@@ -29,6 +29,7 @@ set(_HEADERS_BASE
     controls.hpp
     space.hpp
     atrium.hpp
+    palette.hpp
 )
 set(_SOURCES_BASE
     atrium_ui.cpp

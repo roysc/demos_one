@@ -5,7 +5,7 @@
 plant_app::plant_app(viewport_uvec size)
     : super_type("plaza: plant", size)
     , palette(default_palette())
-    , universe(zspace2::size_type(8), 42)
+    , universe(Rxt::uvec2(8), 42)
 {
     initial_camera = default_camera(universe.stage_size());
 
@@ -65,7 +65,7 @@ void plant_app::advance(SDL_Event event)
     }
 }
 
-bool plant_app::highlighted_space(position_ivec& out) const
+bool plant_app::highlighted_space(cell_position& out) const
 {
     if (highlighted_faces) {
         auto [oi, fd] = *highlighted_faces;
@@ -77,13 +77,13 @@ bool plant_app::highlighted_space(position_ivec& out) const
     return false;
 }
 
-entity_id plant_app::put_mesh(mesh_type mesh, mesh_color color, bool kind) // kind=is_ephem
+entity_id plant_app::put_mesh(mesh_type mesh, mesh_color color, bool transparent, mesh_kind kind)
 {
     auto* meshes = _geom[kind];
     auto ix = meshes->insert(mesh);
     meshes->build();
 
     auto ent = entities.create();
-    entities.emplace<cpt::mesh>(ent, meshes, ix, color, kind);
+    entities.emplace<cpt::mesh>(ent, meshes, ix, color, transparent);
     return ent;
 }

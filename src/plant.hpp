@@ -20,24 +20,35 @@
 #include <cstddef>
 
 using togopt_map = permissive_map<std::string, Rxt::reactive_toggle>;
-namespace cpt = planty::_cpts;
+namespace cpt = planty::_cpt;
 using Rxt::adapt_reactive;
 
-using geog_cell = std::uint8_t;
-using geog_grid = dense_grid<geog_cell>;
-using terrain_map = adapt_reactive<geog_grid>;
+// using geog_cell = std::uint8_t;
+// using geog_grid = dense_grid<geog_cell>;
+// using terrain_map = adapt_reactive<geog_grid>;
+
+using stage_type = zspace2::z2_stage;
+using universe_type = zspace2::z2_universe;
+using cell_position = stage_type::position_type;
+using free_position = Rxt::fvec3;
+    
+using mesh_index = planty::mesh_data;
+
+// map to dependent faces
+using mesh_face = mesh_index::face_descriptor;
+using foreign_face_map = std::map<mesh_face, mesh_face>;
+using face_set = std::optional<mesh_face>;
+using vertex_set = std::vector<mesh_index::vertex_descriptor>;
 
 // map back to terrain grid for face selection
-using face_to_space = std::map<mesh_data::source_face_descriptor, terrain_map::key_type>;
+using face_to_space = std::map<mesh_index::source_face_descriptor, cell_position>;
+using mesh_face_to_space = std::map<mesh_index::key_type, face_to_space>;
 
 struct plant_app : atrium_app
 {
     using super_type = atrium_app;
-
-    using stage_type = zspace2::z2_stage;
-    using universe_type = zspace2::z2_universe;
-    using position_ivec = stage_type::position_type;
-    using position_fvec = Rxt::fvec3;
+    using mesh_type = mesh_index::source_mesh;
+    using mesh_color = planty::mesh_color;
 
     togopt_map opts;
     color_palette palette;
@@ -48,11 +59,10 @@ struct plant_app : atrium_app
     entity_id e_debug;
 
     // geometry: 0 - spatially indexed, 1 - ephemeral
-    mesh_data geom;
-    mesh_data ephem;
-    mesh_data* _geom[2] = {&geom, &ephem};
+    mesh_index geom_, ephem_;
+    mesh_index* _geom[2] = {&geom_, &ephem_};
     foreign_face_map face_ephem; // geom. faces to ephemeral dependencies
-    std::map<mesh_key, face_to_space> face_spaces; // each mesh's faces -> grid spaces
+    mesh_face_to_space face_spaces; // each mesh's faces -> grid spaces
     adapt_reactive<face_set> highlighted_faces;
     adapt_reactive<vertex_set> highlighted_vertices;
 
@@ -65,13 +75,16 @@ struct plant_app : atrium_app
     void advance(SDL_Event);
     void draw_clear();
 
-    bool highlighted_space(position_ivec&) const;
-    entity_id put_mesh(mesh_type, mesh_color, bool = false);
+    bool highlighted_space(cell_position&) const;
+
+    enum mesh_kind : bool { tangible = 0, ephemeral = 1 };
+    mesh_index& _mesh_index(mesh_kind mk = mesh_kind::tangible) { return *_geom[mk]; }
+    entity_id put_mesh(mesh_type, mesh_color, bool, mesh_kind = mesh_kind::tangible);
 
     static auto default_camera(Rxt::fvec2 map_size)
     {
-        auto pos = position_fvec(map_size.x + map_size.y) / 2.f; // todo
-        return super_type::camera_type(pos, position_fvec(Rxt::fvec2(map_size) / 4.f, 0));
+        auto pos = free_position(map_size.x + map_size.y) / 2.f; // todo
+        return super_type::camera_type(pos, free_position(Rxt::fvec2(map_size) / 4.f, 0));
     }
 
     void load_stage(stage_type&);
