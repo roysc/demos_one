@@ -26,12 +26,6 @@ struct dense_grid
         return ret;
     }
 
-    auto& operator=(dense_grid const& that)
-    {
-        new(&_data) data_type(that._data);
-        return *this;
-    }
-
     void resize(shape_type shape)
     {
         _data.resize(boost::extents[shape.x][shape.y]);
