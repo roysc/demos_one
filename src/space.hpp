@@ -5,14 +5,24 @@
 
 #include <memory>
 
+using transform3 = Rxt::fmat4;
+Rxt::fvec3 apply(transform3 m, Rxt::fvec3 v)
+{
+    return Rxt::fvec3(m * Rxt::fvec4(v, 1));
+}
+
+#define PZ_use_traits(_traits_t)                                \
+    using position_type = typename _traits_t::position_type;    \
+    using size_type = typename _traits_t::size_type
+
 // index integer-positions ie. grid objects
 namespace zspace2
 {
-// struct zspace2_traits
-// {
+struct z2_traits
+{
 using position_type = Rxt::ivec2;
 using size_type = Rxt::uvec2;
-// };
+};
 
 struct z2_generator
 {
@@ -23,13 +33,13 @@ struct z2_universe;
 
 struct z2_stage
 {
+    PZ_use_traits(z2_traits);
+
     using cell_value = std::uint8_t;
     using terrain_grid = dense_grid<cell_value>;
-    // using terrain_map = Rxt::adapt_reactive<geog_grid>;
 
     z2_universe* _universe;
     terrain_grid _grid;
-    // z-order coord?
 
     size_type size() const;
     auto& grid() { return _grid; }
@@ -47,6 +57,7 @@ struct deep_stage
     using super_type = Stage;
     using pointer = std::unique_ptr<deep_stage>;
     dense_grid<pointer> substages;
+
     template <class U>
     deep_stage(U& uni)
         : super_type(uni)
@@ -56,12 +67,14 @@ struct deep_stage
 
 struct z2_universe
 {
+    PZ_use_traits(z2_traits);
+
     const unsigned max_stage_depth = 2;
     const size_type _stage_size;
     const size_type _full_size = _stage_size << max_stage_depth;
 
     z2_generator _generator;
-    // std::vector<z2_stage> _stage_cache;
+    // index w/ morton code?
     deep_stage<z2_stage> _root;
 
     z2_universe(size_type, int);

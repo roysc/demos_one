@@ -11,7 +11,7 @@ z2_stage::z2_stage(z2_universe& uni)
     uni.generate_stage(*this);
 }
 
-size_type z2_stage::size() const
+z2_stage::size_type z2_stage::size() const
 {
     // return _universe->_stage_size;
     return _grid.shape();
@@ -26,7 +26,7 @@ z2_universe::z2_universe(size_type ss, int seed)
     if (depth > max_stage_depth)
         throw std::invalid_argument("depth > max_stage_depth");
     // generate_stage(_stage_size.emplace_back(*this));
-    generate_stage(_root);
+    // generate_stage(_root);
 }
 
 void z2_universe::generate_stage(z2_stage& out)

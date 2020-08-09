@@ -1,11 +1,13 @@
 #pragma once
 
 #include "geometry.hpp"
+// #include "geometry_skel.hpp"
 
 #include <Rxt/geometry/helper.hpp>
 #include <Rxt/graphics/color.hpp>
 #include <Rxt/data/graph.hpp>
 #include <Rxt/vec.hpp>
+#include <Rxt/range.hpp>
 
 #include <CGAL/boost/graph/helpers.h>
 #include <boost/property_map/property_map.hpp>
@@ -14,19 +16,21 @@ inline Rxt::fvec3 to_glm(plaza_geom::point p) { return {p.x(), p.y(), p.z()}; }
 inline Rxt::fvec3 to_glm(plaza_geom::vector v) { return {v.x(), v.y(), v.z()}; }
 
 template <class Trin, class Normals, class Color, class Bufs>
-void render_mesh(Trin const& trin,
-                 Normals get_normal,
-                 Color color,
-                 Bufs& bufs,
-                 Rxt::fmat4 tmat)
+void render_mesh(
+    Trin const& trin
+    , Normals get_normal
+    , Color color
+    , Bufs& bufs
+    , transform3 tmat
+)
 {
     for (auto fd: faces(trin)) {
         auto normal = get_normal(fd);
         for (auto point: Rxt::face_vertex_points<3>(trin, fd)) {
             auto p = to_glm(point);
             auto n = to_glm(normal);
-            using namespace glm;
-            p = Rxt::fvec3(tmat * Rxt::fvec4(p, 1));
+
+            p = apply(tmat, p);
             bufs.push(p, n, color);
         }
     }
@@ -34,9 +38,11 @@ void render_mesh(Trin const& trin,
 
 // todo - what is Mesh
 template <class Mesh, class Bufs>
-auto render_triangles(Mesh& m,
-                      Bufs& bufs,
-                      Rxt::fmat4 tmat = Rxt::fmat4(1))
+auto render_triangles(
+    Mesh& m
+    , Bufs& bufs
+    , transform3 tmat = Rxt::fmat4(1)
+)
 {
     using Index = typename Mesh::index_type;
     using TriMesh = typename Index::triangle_mesh;
@@ -68,5 +74,22 @@ void render_hl(typename Index::face_descriptor fk,
     for (auto h: halfedges_around_face(halfedge(fd, mesh), mesh)) {
         lines.push(to_glm(points[source(h, mesh)]), color);
         lines.push(to_glm(points[target(h, mesh)]), color);
+    }
+}
+
+// using color_graph_traits = skel_traits<Rxt::rgb>;
+// using skel_graph = color_graph_traits::graph_type;
+
+// Can later use P as tmat for model or instance
+template <class G, class Lines, class P>
+void render_skel(G const& g, Lines& lines, transform3 tm)
+{
+    using Tr = color_graph_traits;
+    auto vp = get(Tr::vertex, g);
+    auto ep = get(Tr::edge, g);
+    for (auto e: Rxt::to_range(edges(g))) {
+        auto color = ep[e];
+        lines.push(apply(tm, vp[source(e, g)]), color);
+        lines.push(apply(tm, vp[target(e, g)]), color);
     }
 }

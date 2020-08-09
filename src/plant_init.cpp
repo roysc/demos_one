@@ -1,6 +1,7 @@
 #include "plant.hpp"
 #include "rendering.hpp"
 #include <Rxt/graphics/color.hpp>
+#include <Rxt/vec.hpp>
 #include <Rxt/vec_io.hpp>
 
 using Rxt::print;
@@ -48,13 +49,17 @@ void plant_app::_init_ui()
     };
 
     PZ_observe(input.on_mouse_down, SDL_MouseButtonEvent button) {
-        auto paint = [this](zspace2::position_type pos)
+        auto paint = [this](position_ivec pos)
         {
-            auto ent = entities.create();
-            entities.emplace<cpt::zpos>(ent, pos);
+            if (!active_stage) {
+                print("error: No active stage\n");
+                return;
+            }
+
+            auto thing = planty::build_house();
+            auto ent = put_mesh(thing, to_rgba(Rxt::colors::gray));
+            entities.emplace<cpt::cell>(ent, *active_stage, pos);
             entities.emplace<cpt::nam>(ent, "house");
-            auto thing = plant_model::build_house();
-            put_mesh(thing, to_rgba(Rxt::colors::gray), &ent);
 
             _model_update();
             print("put({}): {}({})\n", pos, entity_name(entities, ent), (std::size_t)ent);
@@ -100,12 +105,19 @@ void plant_app::load_stage(stage_type& stage)
         }
     });
 
-    auto i = put_mesh(mesh, palette.at("sand"));
-    face_spaces[i] = f2s;
+    auto entity_mesh = [&] (auto e) { return entities.get<cpt::mesh>(e); };
 
-    auto ei = put_ephemeral(eph, to_rgba(palette.at("water"), .7));
-    for (auto [f, ef]: f2f) {
-        face_ephem[mesh_face(i, f)] = mesh_face(ei, ef);
+    auto ent = put_mesh(mesh, palette.at("sand"));
+    auto meshid = entity_mesh(ent).key;
+    auto ephent = put_mesh(eph, to_rgba(palette.at("water"), .7), true);
+    auto ephid = entity_mesh(ephent).key;
+    set_parent_entity(entities, ent, ephent);
+
+    // map tangible face to stage position
+    face_spaces[meshid] = f2s;
+    // map each tangible face to a child's ephemeral face
+    for (auto [mf, ef]: f2f) {
+        face_ephem[mesh_face(meshid, mf)] = mesh_face(ephid, ef);
     }
     _model_update();
 }
@@ -118,31 +130,38 @@ void plant_app::_init_model()
     auto& b_overlines = line_prog.buf["overlines"];
 
     PZ_observe(active_stage.on_update, auto stage) {
+
         load_stage(*stage);
     };
 
     PZ_observe(_model_update) {
-        auto each = [&] (cpt::mesh& m)
+        auto free_mesh = [&] (auto& g, cpt::fpos pos)
         {
-            if (m.transparent)
-                render_triangles(m, b_tris_txp);
-            else
-                render_triangles(m, b_triangles);
+            auto tm = Rxt::translate(pos.r);
+            g.render(g.transparent ? b_tris_txp : b_triangles, tm);
         };
+        auto cell_mesh = [&] (cpt::cell cell, auto& g)
+        {
+            g.render(
+                g.transparent ? b_tris_txp : b_triangles,
+                Rxt::translate(cell.offset<position_fvec>())
+            );
+        };
+
         b_triangles.clear();
         b_tris_txp.clear();
-        entities.view<cpt::mesh>().each(each);
+        entities.view<cpt::mesh>().each([&] (auto& geom) { free_mesh(geom, cpt::fpos3()); });
+        // entities.view<cpt::fpos, cpt::mesh>().each(free_mesh);
+        entities.view<cpt::cell, cpt::mesh>().each(cell_mesh);
         b_triangles.update();
         b_tris_txp.update();
 
-        auto each_skel = [&](auto pos, auto& skel)
+        auto cell_skel = [&](auto cell, auto& g)
         {
-            auto elev = normalize_int(active_stage->grid().at(pos.r));
-            auto offset = position_fvec(pos.r, elev) + position_fvec(.5,.5,0);
-            plaza::render_skel(skel.g, b_lines, offset);
+            g.render(b_lines, Rxt::translate(cell.offset<position_fvec>()));
         };
         b_lines.clear();
-        entities.view<cpt::zpos, cpt::skel>().each(each_skel);
+        entities.view<cpt::cell, cpt::skel>().each(cell_skel);
         b_lines.update();
     };
 

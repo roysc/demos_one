@@ -20,7 +20,7 @@
 #include <cstddef>
 
 using togopt_map = permissive_map<std::string, Rxt::reactive_toggle>;
-namespace cpt = plant_cpt;
+namespace cpt = planty::_cpts;
 using Rxt::adapt_reactive;
 
 using geog_cell = std::uint8_t;
@@ -36,8 +36,8 @@ struct plant_app : atrium_app
 
     using stage_type = zspace2::z2_stage;
     using universe_type = zspace2::z2_universe;
+    using position_ivec = stage_type::position_type;
     using position_fvec = Rxt::fvec3;
-    using position_ivec = zspace2::position_type;
 
     togopt_map opts;
     color_palette palette;
@@ -47,8 +47,10 @@ struct plant_app : atrium_app
     entity_registry entities;
     entity_id e_debug;
 
-    mesh_data geom;             // spatially indexed geometry
-    mesh_data ephem;            // ephemeral geometry
+    // geometry: 0 - spatially indexed, 1 - ephemeral
+    mesh_data geom;
+    mesh_data ephem;
+    mesh_data* _geom[2] = {&geom, &ephem};
     foreign_face_map face_ephem; // geom. faces to ephemeral dependencies
     std::map<mesh_key, face_to_space> face_spaces; // each mesh's faces -> grid spaces
     adapt_reactive<face_set> highlighted_faces;
@@ -64,8 +66,7 @@ struct plant_app : atrium_app
     void draw_clear();
 
     bool highlighted_space(position_ivec&) const;
-    mesh_key put_mesh(mesh_type, mesh_color, entity_id* = nullptr);
-    mesh_key put_ephemeral(mesh_type, mesh_color, entity_id* = nullptr);
+    entity_id put_mesh(mesh_type, mesh_color, bool = false);
 
     static auto default_camera(Rxt::fvec2 map_size)
     {

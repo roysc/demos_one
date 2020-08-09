@@ -213,16 +213,19 @@ template <class T>
 struct reactive_pointer
 {
     using element_type = T;
+
     element_type* self = nullptr;
+    Rxt::hooks<element_type*> on_update;
+
+    reactive_pointer(element_type* a) : self{a} { }
+    reactive_pointer() {}
+
+    auto& emplace(element_type* a) { self = a; on_update(a); return self; }
+    auto get() {return self;}
     element_type* operator->() { return self; }
     element_type const* operator->() const { return self; }
     element_type& operator *() { return *self; };
     element_type const& operator *() const { return *self; };
-
-    Rxt::hooks<element_type*> on_update;
-    reactive_pointer(element_type* a) : self{a} { }
-    reactive_pointer() {}
-    auto& emplace(element_type* a) { self = a; on_update(a); return self; }
 };
 
 // struct _empty { static constexpr auto members() {}};

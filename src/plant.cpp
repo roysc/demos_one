@@ -77,30 +77,13 @@ bool plant_app::highlighted_space(position_ivec& out) const
     return false;
 }
 
-mesh_key plant_app::put_mesh(mesh_type mesh, mesh_color color, entity_id* entp)
+entity_id plant_app::put_mesh(mesh_type mesh, mesh_color color, bool kind) // kind=is_ephem
 {
-    auto ix = geom.insert(mesh);
-    geom.build();
+    auto* meshes = _geom[kind];
+    auto ix = meshes->insert(mesh);
+    meshes->build();
 
-    auto ent = nullent;
-    auto* entr = entp? entp : &ent;
-
-    if(!entities.valid(*entr))
-        *entr = entities.create();
-    entities.emplace<cpt::mesh>(*entr, &geom, ix, color);
-    return ix;
-}
-
-mesh_key plant_app::put_ephemeral(mesh_type mesh, mesh_color color, entity_id* entp)
-{
-    auto ix = ephem.insert(mesh);
-    ephem.build();
-
-    auto ent = nullent;
-    auto* entr = entp? entp : &ent;
-
-    if (!entities.valid(*entr))
-        *entr = entities.create();
-    entities.emplace<cpt::mesh>(*entr, &ephem, ix, color, true);
-    return ix;
+    auto ent = entities.create();
+    entities.emplace<cpt::mesh>(ent, meshes, ix, color, kind);
+    return ent;
 }

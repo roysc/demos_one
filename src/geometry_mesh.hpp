@@ -95,11 +95,17 @@ struct indexed_mesh_vector
         return sources.at(k);
     }
 
+    auto& get(key_type k)
+    {
+        return get_source(k);
+    }
+
     void build()
     {
         triangulations.clear();
         face_comaps.clear();
         build_triangulations(sources, triangulations, face_comaps);
+        // if constexpr (no_index) return;
         triangle_tree.clear();
         index_triangles(triangulations, triangle_tree);
     }
@@ -109,6 +115,7 @@ struct indexed_mesh_vector
     template <class Query>
     friend auto face_query(Query query, self_type const& ix)
     {
+        // static_assert(!no_index);
         std::optional<face_descriptor> ret;
         if (auto opt = ix.triangle_tree.first_intersected_primitive(query)) {
             auto [index, fd] = *opt;
@@ -120,6 +127,7 @@ struct indexed_mesh_vector
     template <class Q>
     friend auto vertex_query(Q q, self_type const& i, unsigned n)
     {
+        // static_assert(!no_index);
         ray_distance dist;
         return ray_search(i.point_tree, q, n, 0, true, dist);
     }

@@ -3,7 +3,7 @@
 #include <Rxt/geometry/shapes.hpp>
 
 
-namespace plant_model
+namespace planty::_models
 {
 using Rxt::fvec3;
 

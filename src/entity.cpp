@@ -6,6 +6,22 @@
 
 std::string entity_name(entity_registry& r, entity_id e)
 {
-    auto n = r.get<_cpt::nam>(e);
+    auto n = r.get<plaza_ecs::nam>(e);
     return n.s;
+}
+
+// parent-child relationship
+// return previous parent or nullent
+entity_id set_parent_entity(entity_registry& r, entity_id par, entity_id child)
+{
+    namespace _cpt = plaza_ecs;
+    auto& pc = r.get_or_emplace<_cpt::children>(par, _cpt::children{});
+    pc.ids.insert(child);
+    // just use two-way pointers
+    entity_id ret = nullent;
+    if (r.has<_cpt::parent>(child)) {
+        ret = r.get<_cpt::parent>(child).id;
+    }
+    r.emplace<_cpt::parent>(child, par);
+    return ret;
 }
