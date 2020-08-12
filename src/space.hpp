@@ -1,9 +1,11 @@
 #pragma once
 
 #include "map.hpp"
-#include <Rxt/vec.hpp>
+#include "stage.hpp"
 
+#include <Rxt/vec.hpp>
 #include <memory>
+#include <random>
 
 using transform3 = Rxt::fmat4;
 
@@ -13,28 +15,42 @@ inline Rxt::fvec3 apply(transform3 m, Rxt::fvec3 v)
 }
 
 #define PZ_use_traits(_traits_t)                                \
-    using position_type = typename _traits_t::position_type;    \
-    using size_type = typename _traits_t::size_type
+    using position_type = typename _traits_t::position;    \
+    using size_type = typename _traits_t::size
 
 // index integer-positions ie. grid objects
 namespace zspace2
 {
-struct z2_traits
+struct spatial_traits
 {
-using position_type = Rxt::ivec2;
-using size_type = Rxt::uvec2;
+    using position = Rxt::ivec2; // could be unsigned (torus)
+    using velocity = Rxt::ivec2;
+    using size = Rxt::uvec2;
+
+    enum direction : unsigned char { w, e, n, s };
+    static constexpr auto to_velocity(direction dir)
+    {
+        velocity _deltas[4] = {
+            {-1, 0}, 
+            {+1, 0}, 
+            {0, -1}, 
+            {0, +1},
+        };
+        return _deltas[static_cast<unsigned>(dir)];
+    }
 };
 
 struct z2_generator
 {
-    int seed;
+    unsigned seed;
+    std::default_random_engine gen{seed};
 };
 
 struct z2_universe;
 
 struct z2_stage
 {
-    PZ_use_traits(z2_traits);
+    PZ_use_traits(spatial_traits);
 
     using cell_value = std::uint8_t;
     using terrain_grid = dense_grid<cell_value>;
@@ -42,33 +58,16 @@ struct z2_stage
     z2_universe* _universe;
     terrain_grid _grid;
 
+    z2_universe& universe() { return *_universe; }
     size_type size() const;
     auto& grid() { return _grid; }
 
     z2_stage(z2_universe&);
 };
 
-template <class Stage>
-struct deep_stage;
-
-template <class Stage>
-struct deep_stage
-    : Stage
-{
-    using super_type = Stage;
-    using pointer = std::unique_ptr<deep_stage>;
-    dense_grid<pointer> substages;
-
-    template <class U>
-    deep_stage(U& uni)
-        : super_type(uni)
-        , substages{this->size()}
-    {}
-};
-
 struct z2_universe
 {
-    PZ_use_traits(z2_traits);
+    PZ_use_traits(spatial_traits);
 
     const unsigned max_stage_depth = 2;
     const size_type _stage_size;

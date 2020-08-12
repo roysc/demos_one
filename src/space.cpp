@@ -32,7 +32,10 @@ z2_universe::z2_universe(size_type ss, int seed)
 void z2_universe::generate_stage(z2_stage& out)
 {
     using noise_function = OSN::Noise<4>;
-    noise_function noise{_generator.seed};
+    // todo deterministic wrt. cell path?
+    std::uniform_int_distribution<int> dist{0, 64};
+    auto seed = dist(_generator.gen);
+    noise_function noise{seed};
     auto scale = 0xFF;
     auto put_2d = [&] (int x, int y, auto a)
     {

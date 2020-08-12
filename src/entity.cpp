@@ -6,7 +6,7 @@
 
 std::string entity_name(entity_registry& r, entity_id e)
 {
-    auto n = r.get<plaza_ecs::nam>(e);
+    auto n = r.get<plaza_ecs::name>(e);
     return n.s;
 }
 

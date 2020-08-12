@@ -6,25 +6,11 @@
 #include "entity.hpp"
 #include "space.hpp"
 #include "rendering.hpp"
+#include "stage.hpp"
 
 #include <Rxt/color.hpp>
+#include <optional>
 
-template <class S>
-struct stage_cell
-{
-    // grid / float?
-    // variant<ipos2, fpos3> r;
-    using vec_type = typename S::position_type;
-    S* env;
-    vec_type r;
-
-    stage_cell(S& e, vec_type v) : env(&e), r(v) {}
-
-    auto value() { return env->grid().at(r); }
-    template <class V>
-    V offset() { return V(r, value()) + V(.5,.5,0); }
-    // auto substage() {}
-};
 
 namespace planty
 {
@@ -75,16 +61,27 @@ struct skel_geom
 // using body_map = lagrangian_space<entity_id, float, 2>;
 // using line_data = std::vector<std::pair<fvec3, fvec3>>;
 
+using z2_traits = zspace2::spatial_traits;
+namespace _phys
+{
+struct motion { z2_traits::velocity v; };
+
+}
+
 namespace _cpt
 {
 using namespace plaza_ecs;
-// struct input { input_event ; };
+using namespace _phys;
+
+struct input {
+    std::optional<_phys::motion> _motion;
+};
 
 // struct zpos { Rxt::ivec2 r{0}; };
-// struct zmove { enum { n, s, e, w } dir; };
 // struct zvel { };
 // struct fbox2 { Rxt::bounding_box<float> b; };
-struct fpos3 { Rxt::fvec3 r{0}; };
+// struct fpos3 { Rxt::fvec3 r{0}; };
+struct fpos3 { Rxt::fvec3 r; };
 
 using skel = skel_geom;
 using mesh = mesh_geom;
@@ -93,6 +90,7 @@ using cell = stage_cell<zspace2::z2_stage>;
 
 skel_type build_plant();
 skel_type build_kord();
+
 mesh_type build_tetroid();
 mesh_type build_wall();
 mesh_type build_house();

@@ -4,11 +4,12 @@
 ** position
 ** velocity
 ** acceleration
-* interface
+* TODO interface
 ** TODO mouse pan
 
 * cleanup
 
 ** move reactive to Rxt
 
+* TODO render child entities with parent
 

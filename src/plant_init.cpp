@@ -60,7 +60,7 @@ void plant_app::_init_ui()
             auto thing = planty::build_house();
             auto ent = put_mesh(thing, to_rgba(Rxt::colors::gray), false);
             entities.emplace<cpt::cell>(ent, *active_stage, pos);
-            entities.emplace<cpt::nam>(ent, "house");
+            entities.emplace<cpt::name>(ent, "house");
 
             _model_update();
             print("put({}): {}({})\n", pos, entity_name(entities, ent), (std::size_t)ent);
@@ -142,25 +142,23 @@ void plant_app::_init_model()
         };
         auto cell_mesh = [&] (cpt::cell cell, auto& g)
         {
-            g.render(
-                g.transparent ? b_tris_txp : b_triangles,
-                Rxt::translate(cell.offset<free_position>())
-            );
+            auto tm = Rxt::translate(cell.offset<free_position>());
+            print("TM={}\n",tm);
+            g.render(g.transparent ? b_tris_txp : b_triangles, tm);
         };
-
-        b_triangles.clear();
-        b_tris_txp.clear();
-        entities.view<cpt::mesh>().each([&] (auto& geom) { free_mesh(geom, cpt::fpos3()); });
-        // entities.view<cpt::fpos, cpt::mesh>().each(free_mesh);
-        entities.view<cpt::cell, cpt::mesh>().each(cell_mesh);
-        b_triangles.update();
-        b_tris_txp.update();
-
         auto cell_skel = [&](auto cell, auto& g)
         {
             auto tm = Rxt::translate(cell.template offset<free_position>());
             g.render(b_lines, tm);
         };
+
+        b_triangles.clear();
+        b_tris_txp.clear();
+        entities.view<cpt::mesh>().each([&] (auto& m) { free_mesh(m, cpt::fpos3()); });
+        // entities.view<cpt::fpos, cpt::mesh>().each(free_mesh);
+        entities.view<cpt::cell, cpt::mesh>().each(cell_mesh);
+        b_triangles.update();
+        b_tris_txp.update();
         b_lines.clear();
         entities.view<cpt::cell, cpt::skel>().each(cell_skel);
         b_lines.update();

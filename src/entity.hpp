@@ -17,8 +17,18 @@ entity_id set_parent_entity(entity_registry&, entity_id, entity_id);
 
 namespace plaza_ecs
 {
-template <class C> struct changing {};
-struct nam { std::string s; };
+// template <class C> struct changing {};
+
+struct name { std::string s; };
 struct parent { entity_id id; };
 struct children { std::set<entity_id> ids; };
+
+// namespace input {
+// struct keyboard { };
+// struct intelligence {};
+// }
+
+// struct mouse
+// struct select {};
+// struct highlight {};
 }

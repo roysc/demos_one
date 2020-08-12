@@ -1,5 +1,6 @@
 #pragma once
 
+#include "_debug.hpp"
 #include "geometry.hpp"
 // #include "geometry_skel.hpp"
 
@@ -31,6 +32,7 @@ void render_mesh(
             auto n = to_glm(normal);
 
             p = apply(tmat, p);
+            // print_debug("pushin' {}\n", p);
             bufs.push(p, n, color);
         }
     }

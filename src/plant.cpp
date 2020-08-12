@@ -58,6 +58,15 @@ void plant_app::advance(SDL_Event event)
     };
 
     auto dirty = flush_all(up1) + flush_all(up2);
+
+    auto motion = [&] (auto& mot)
+    {
+        // auto ent = entity_for
+
+        dirty++;
+    };
+    entities.view<cpt::motion>().each(motion);
+
     if (dirty) {
         draw_clear();
         super_type::draw();
