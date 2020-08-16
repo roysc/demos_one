@@ -1,4 +1,4 @@
-#include "atrium.hpp"
+#include "basic3d.hpp"
 
 #include <Rxt/color.hpp>
 #include <Rxt/math.hpp>
@@ -8,7 +8,7 @@
 
 #include <glm/gtc/epsilon.hpp>
 
-void atrium_app::_init_ui()
+void basic3d_app::_init_ui()
 {
     using Rxt::print;
     using Rxt::fvec3;

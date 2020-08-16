@@ -4,7 +4,7 @@
 
 #include "space.hpp"
 #include "map.hpp"
-#include "atrium.hpp"
+#include "basic3d.hpp"
 #include "palette.hpp"
 #include "entity.hpp"
 #include "util.hpp"
@@ -43,9 +43,9 @@ using face_to_space = std::map<mesh_index::source_face_descriptor, cell_position
 // indexed with mesh + face
 using mesh_to_space = std::map<mesh_index::key_type, face_to_space>;
 
-struct plant_app : atrium_app
+struct plant_app : basic3d_app
 {
-    using super_type = atrium_app;
+    using super_type = basic3d_app;
     using mesh_type = mesh_index::source_mesh;
     using mesh_color = planty::mesh_color;
 

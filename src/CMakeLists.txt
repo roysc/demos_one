@@ -28,38 +28,38 @@ set(_HEADERS_BASE
     viewport.hpp
     controls.hpp
     space.hpp
-    atrium.hpp
+    basic3d.hpp
     palette.hpp
 )
 set(_SOURCES_BASE
-    atrium_ui.cpp
-    atrium_controls.cpp
-    atrium.cpp
+    basic3d_ui.cpp
+    basic3d_controls.cpp
+    basic3d.cpp
     space.cpp
 )
 
-set(_HEADERS_ATRIUM
+set(_HEADERS_BASIC3D
     geometry.hpp
     geometry_mesh.hpp
     rendering.hpp
     sprite.hpp
 )
-set(_SOURCES_ATRIUM
+set(_SOURCES_BASIC3D
     entity.cpp
     geometry.cpp
     geometry_mesh.cpp
 )
 
-add_library(atrium_base ${_HEADERS_BASE} ${_SOURCES_BASE})
-target_link_libraries(atrium_base
+add_library(basic3d_base ${_HEADERS_BASE} ${_SOURCES_BASE})
+target_link_libraries(basic3d_base
     Rxt::Graphics
     glm::glm
 )
 
-add_library(atrium ${_HEADERS_ATRIUM} ${_SOURCES_ATRIUM})
-target_include_directories(atrium PUBLIC ${PROJECT_SOURCE_DIR}/external)
-target_link_libraries(atrium
-    atrium_base
+add_library(basic3d ${_HEADERS_BASIC3D} ${_SOURCES_BASIC3D})
+target_include_directories(basic3d PUBLIC ${PROJECT_SOURCE_DIR}/external)
+target_link_libraries(basic3d
+    basic3d_base
     Rxt::Geometry
     EnTT::EnTT
 )
@@ -71,12 +71,12 @@ add_executable(map_editor
     old/map_editor.hpp
     old/map_editor.cpp
 )
-target_link_libraries(map_editor PUBLIC atrium_base)
-target_include_directories(atrium_base PUBLIC ${PROJECT_SOURCE_DIR}/external)
+target_link_libraries(map_editor PUBLIC basic3d_base)
+target_include_directories(basic3d_base PUBLIC ${PROJECT_SOURCE_DIR}/external)
 Rxt_emscripten_use_boost(map_editor)
 
 add_executable(canvas canvas.hpp canvas.cpp)
-target_link_libraries(canvas PUBLIC atrium_base)
+target_link_libraries(canvas PUBLIC basic3d_base)
 
 set(_PLANT_HEADERS
     plant_models.hpp
@@ -89,7 +89,7 @@ set(_PLANT_SOURCES
     plant_main.cpp
 )
 add_executable(plant ${_PLANT_HEADERS} ${_PLANT_SOURCES})
-target_link_libraries(plant PUBLIC atrium)
+target_link_libraries(plant PUBLIC basic3d)
 
 function(_configure_emscripten _TARGET)
     set_target_properties(${_TARGET} PROPERTIES SUFFIX ".html")
