@@ -19,13 +19,11 @@
 #include <map>
 #include <cstddef>
 
-using togopt_map = permissive_map<std::string, Rxt::reactive_toggle>;
 namespace cpt = planty::_cpt;
 using Rxt::adapt_reactive;
+// Toggleable options
+using options_map = permissive_map<std::string, Rxt::reactive_toggle>;
 
-// using geog_cell = std::uint8_t;
-// using geog_grid = dense_grid<geog_cell>;
-// using terrain_map = adapt_reactive<geog_grid>;
 
 using stage_type = zspace2::z2_stage;
 using universe_type = zspace2::z2_universe;
@@ -42,7 +40,8 @@ using vertex_set = std::vector<mesh_index::vertex_descriptor>;
 
 // map back to terrain grid for face selection
 using face_to_space = std::map<mesh_index::source_face_descriptor, cell_position>;
-using mesh_face_to_space = std::map<mesh_index::key_type, face_to_space>;
+// indexed with mesh + face
+using mesh_to_space = std::map<mesh_index::key_type, face_to_space>;
 
 struct plant_app : atrium_app
 {
@@ -50,7 +49,7 @@ struct plant_app : atrium_app
     using mesh_type = mesh_index::source_mesh;
     using mesh_color = planty::mesh_color;
 
-    togopt_map opts;
+    options_map opts;
     color_palette palette;
 
     universe_type universe;
@@ -62,7 +61,7 @@ struct plant_app : atrium_app
     mesh_index geom_, ephem_;
     mesh_index* _geom[2] = {&geom_, &ephem_};
     foreign_face_map face_ephem; // geom. faces to ephemeral dependencies
-    mesh_face_to_space face_spaces; // each mesh's faces -> grid spaces
+    mesh_to_space face_spaces; // each mesh's faces -> grid spaces
     adapt_reactive<face_set> highlighted_faces;
     adapt_reactive<vertex_set> highlighted_vertices;
 

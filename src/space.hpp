@@ -74,6 +74,7 @@ struct z2_universe
     const size_type _full_size = _stage_size << max_stage_depth;
 
     z2_generator _generator;
+    // PIMPL?
     // index w/ morton code?
     deep_stage<z2_stage> _root;
 

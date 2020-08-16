@@ -113,6 +113,8 @@ void plant_app::load_stage(stage_type& stage)
     auto ephent = put_mesh(eph, to_rgba(palette.at("water"), .7), true, mesh_kind::ephemeral);
     auto ephid = entity_mesh(ephent).key;
     set_parent_entity(entities, ent, ephent);
+    entities.emplace<cpt::fpos3>(ent, Rxt::fvec3(0));
+    entities.emplace<cpt::fpos3>(ephent, Rxt::fvec3(0));
 
     // map tangible face to stage position
     face_spaces[meshid] = f2s;
@@ -131,11 +133,11 @@ void plant_app::_init_model()
     auto& b_overlines = line_prog.buf["overlines"];
 
     PZ_observe(active_stage.on_update, auto stage) {
-        load_stage(*stage);
+        this->load_stage(*stage);
     };
 
     PZ_observe(_model_update) {
-        auto free_mesh = [&] (auto& g, cpt::fpos3 pos)
+        auto free_mesh = [&] (cpt::fpos3 pos, auto& g)
         {
             auto tm = Rxt::translate(pos.r);
             g.render(g.transparent ? b_tris_txp : b_triangles, tm);
@@ -143,7 +145,6 @@ void plant_app::_init_model()
         auto cell_mesh = [&] (cpt::cell cell, auto& g)
         {
             auto tm = Rxt::translate(cell.offset<free_position>());
-            print("TM={}\n",tm);
             g.render(g.transparent ? b_tris_txp : b_triangles, tm);
         };
         auto cell_skel = [&](auto cell, auto& g)
@@ -154,8 +155,8 @@ void plant_app::_init_model()
 
         b_triangles.clear();
         b_tris_txp.clear();
-        entities.view<cpt::mesh>().each([&] (auto& m) { free_mesh(m, cpt::fpos3()); });
-        // entities.view<cpt::fpos, cpt::mesh>().each(free_mesh);
+        // entities.view<cpt::mesh>().each([&] (auto& m) { free_mesh(m, cpt::fpos3()); });
+        entities.view<cpt::fpos3, cpt::mesh>().each(free_mesh);
         entities.view<cpt::cell, cpt::mesh>().each(cell_mesh);
         b_triangles.update();
         b_tris_txp.update();
@@ -165,17 +166,16 @@ void plant_app::_init_model()
     };
 
     PZ_observe(highlighted_faces.on_update) {
-        auto& b_overlines = line_prog.buf["over_lines_hl"];
-        b_overlines.clear();
+        auto& buf = line_prog.buf["over_lines_hl"];
+        buf.clear();
         if (highlighted_faces) {
-            render_hl(*highlighted_faces, _mesh_index(), b_overlines, palette.at("hl"));
+            render_hl(*highlighted_faces, _mesh_index(),
+                      buf, palette.at("hl"));
             if (auto others = face_ephem.find(*highlighted_faces); others != end(face_ephem))
-                render_hl(others->second,
-                          _mesh_index(mesh_kind::ephemeral),
-                          b_overlines,
-                          palette.at("hl_water"));
+                render_hl(others->second, _mesh_index(mesh_kind::ephemeral),
+                          buf, palette.at("hl_water"));
         }
-        b_overlines.update();
+        buf.update();
     };
 
     PZ_observe(highlighted_vertices.on_update) {

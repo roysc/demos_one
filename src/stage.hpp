@@ -14,19 +14,19 @@ struct stage_cell
     // variant<ipos2, fpos3> r;
     using vec_type = typename S::position_type;
     S* env;
-    vec_type r;
+    vec_type _pos;
 
-    stage_cell(S& e, vec_type v) : env(&e), r(v) {}
+    stage_cell(S& e, vec_type v) : env(&e), _pos(v) {}
 
     auto& stage() { return *env; }
-    auto position() const { return r; }
-    auto value() const { return env->grid().at(r); }
+    auto position() const { return _pos; }
+    auto value() const { return env->grid().at(_pos); }
 
     template <class Vec>
     Vec offset() const
     {
         auto elev = float(value()) / 0xFF; // todo
-        return Vec(r, elev) + Vec(.5,.5,0);
+        return Vec(_pos, elev) + Vec(.5,.5,0);
     }
     // auto substage() {}
 };
@@ -66,12 +66,12 @@ struct deep_stage
         , _address{super}
     {}
 
-    using address_path = std::list<position_type>;
+    using cell_path = std::list<position_type>;
 
     // return full cell path to this stage
-    address_path get_path(position_type pos)
+    cell_path get_path(position_type pos)
     {
-        address_path ret;
+        cell_path ret;
         if (_address) {
             ret = _address->stage().get_path();
             ret.push_back(_address->position());
@@ -91,12 +91,12 @@ struct deep_stage
 };
 
 // template <class Part>
-// struct address_path
+// struct cell_path
 // {
 //     using list = std::list<Path>;
 //     list path;
 
-//     auto& operator +=(address_path rest)
+//     auto& operator +=(cell_path rest)
 //     {
 //         path.insert(rest.path.begin(), rest.path.end());
 //     }
@@ -108,14 +108,8 @@ struct deep_stage
 // };
 
 // template <class Pt>
-// struct fmt::formatter<address_path<Pt>>
+// struct fmt::formatter<cell_path<Pt>>
 // {
-//     template <class PC>
-//     constexpr auto parse(PC& ctx)
-//     {
-//         return ctx.begin();
-//     }
-
 //     template <class FC>
 //     auto format(stage_cell<S> const& cell, FC& ctx)
 //     {
@@ -126,12 +120,6 @@ struct deep_stage
 template <class S>
 struct fmt::formatter<stage_cell<S>>
 {
-    template <class PC>
-    constexpr auto parse(PC& ctx)
-    {
-        return ctx.begin();
-    }
-
     template <class FC>
     auto format(stage_cell<S> const& cell, FC& ctx)
     {
