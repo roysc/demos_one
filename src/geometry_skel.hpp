@@ -1,7 +1,7 @@
 #pragma once
 #include <Rxt/data/graph.hpp>
 
-namespace plaza
+namespace atrium
 {
 // Wireframe object
 template <class E, class Pos> //=Rxt::fvec3>

@@ -117,7 +117,7 @@ struct canvas
 
     template <class V>
     canvas(V vp)
-        : simple_gui("plaza: canvas", vp.size_pixels())
+        : simple_gui("atrium: canvas", vp.size_pixels())
         , viewport(vp)
     {
         _init_observers();

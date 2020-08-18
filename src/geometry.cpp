@@ -1,7 +1,7 @@
 #include "geometry.hpp"
 #include <glm/glm.hpp>
 
-namespace plaza_geom
+namespace atrium_geom
 {
 template <>
 point to_point(glm::vec3 v) { return {v.x, v.y, v.z}; }

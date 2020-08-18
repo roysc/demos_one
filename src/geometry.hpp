@@ -3,7 +3,7 @@
 #include <CGAL/Simple_cartesian.h>
 #include <CGAL/Surface_mesh.h>
 
-namespace plaza_geom
+namespace atrium_geom
 {
 namespace cgal
 {
@@ -27,9 +27,9 @@ template <class T>
 point to_point(T);
 }
 
-namespace plaza
+namespace atrium
 {
-using namespace plaza_geom;
+using namespace atrium_geom;
 }
 
 namespace props

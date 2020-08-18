@@ -3,7 +3,7 @@
 #include <Rxt/math.hpp>
 
 plant_app::plant_app(viewport_uvec size)
-    : super_type("plaza: plant", size)
+    : super_type("atrium: plant", size)
     , palette(default_palette())
     , universe(Rxt::uvec2(8), 42)
 {

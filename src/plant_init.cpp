@@ -31,7 +31,7 @@ void plant_app::_init_ui()
     };
 
     PZ_observe(cursor.on_update) {
-        using namespace plaza_geom;
+        using namespace atrium_geom;
         auto [source, dir] = Rxt::cast_ray(cursor.position(), camera);
         auto& geom = _mesh_index();
 
@@ -87,7 +87,7 @@ void plant_app::load_stage(stage_type& stage)
     stage.grid().for_each([&](auto pos, auto& cell) {
         auto _quad = [pos](float elev, auto& m) {
             auto x = pos.x, y = pos.y;
-            plaza_geom::point corners[4] = {
+            atrium_geom::point corners[4] = {
                 {  x,   y, elev},
                 {x+1,   y, elev},
                 {x+1, y+1, elev},

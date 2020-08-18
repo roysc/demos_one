@@ -5,8 +5,8 @@
 
 namespace {
 // Specialize for a vector of meshes
-using Source = plaza_geom::surface_mesh;
-using Trin = plaza_geom::surface_mesh;
+using Source = atrium_geom::surface_mesh;
+using Trin = atrium_geom::surface_mesh;
 using Sources = std::vector<Source>;
 using Trins = std::vector<Trin>;
 using Source_key = std::size_t;
@@ -15,10 +15,10 @@ using Mesh_transformer = Rxt::transform_comap_faces<Source, Trin>;
 using Triangle_comaps = std::map<Source_key, typename Mesh_transformer::face_comap>;
 
 using Triangle_primitive = Rxt::triangle_primitive<Trins>;
-using Triangle_aabb_tree = CGAL::AABB_tree<CGAL::AABB_traits<plaza_geom::kernel, Triangle_primitive>>;
+using Triangle_aabb_tree = CGAL::AABB_tree<CGAL::AABB_traits<atrium_geom::kernel, Triangle_primitive>>;
 }
 
-namespace plaza_geom
+namespace atrium_geom
 {
 template <>
 void build_triangulations(Sources const& meshes, Trins& triangulations)

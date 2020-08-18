@@ -6,7 +6,7 @@
 
 std::string entity_name(entity_registry& r, entity_id e)
 {
-    auto n = r.get<plaza_ecs::name>(e);
+    auto n = r.get<atrium_ecs::name>(e);
     return n.s;
 }
 
@@ -14,7 +14,7 @@ std::string entity_name(entity_registry& r, entity_id e)
 // return previous parent or nullent
 entity_id set_parent_entity(entity_registry& r, entity_id par, entity_id child)
 {
-    namespace _cpt = plaza_ecs;
+    namespace _cpt = atrium_ecs;
     auto& pc = r.get_or_emplace<_cpt::children>(par, _cpt::children{});
     pc.ids.insert(child);
     // just use two-way pointers

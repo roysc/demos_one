@@ -15,7 +15,7 @@ std::string entity_name(entity_registry&, entity_id);
 // returns existing parent, or nullent
 entity_id set_parent_entity(entity_registry&, entity_id, entity_id);
 
-namespace plaza_ecs
+namespace atrium_ecs
 {
 // template <class C> struct changing {};
 

@@ -14,13 +14,13 @@
 
 namespace planty
 {
-using mesh_type = plaza::surface_mesh;
-using mesh_data = plaza::indexed_mesh_vector<mesh_type>;
+using mesh_type = atrium::surface_mesh;
+using mesh_data = atrium::indexed_mesh_vector<mesh_type>;
 using mesh_key = mesh_data::key_type;
 using mesh_color = Rxt::rgba;
 // using mesh_colors = std::map<mesh_key, mesh_color>;
 
-using skel_type = plaza::skel_traits<Rxt::rgb, Rxt::fvec3>::graph_type;
+using skel_type = atrium::skel_traits<Rxt::rgb, Rxt::fvec3>::graph_type;
 
 // Could:
 // - look up mesh from entity id
@@ -70,7 +70,7 @@ struct motion { z2_traits::velocity v; };
 
 namespace _cpt
 {
-using namespace plaza_ecs;
+using namespace atrium_ecs;
 using namespace _phys;
 
 struct input {

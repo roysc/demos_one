@@ -76,7 +76,7 @@ template <class F> void send(F&& f) { f(); } // todo wrapper for lazy updates/si
 ivec nds_to_grid(glm::vec2 nds, glm::vec2 scale) { return floor(nds * scale); }
 
 map_editor::map_editor(int seed, uvec size, grid_viewport vp)
-    : simple_gui{"plaza: map_editor", vp.size_pixels()} // fixme
+    : simple_gui{"atrium: map_editor", vp.size_pixels()} // fixme
     , grid_size{size}
     , viewport{vp}
     , background{size}

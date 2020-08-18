@@ -1,4 +1,4 @@
-# Plaza source root CMakeLists.txt
+# Atrium source root CMakeLists.txt
 
 include(CMakeFindDependencyMacro)
 

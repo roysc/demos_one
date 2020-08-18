@@ -40,7 +40,7 @@ skel_type build_kord()
 
 mesh_type build_tetroid()
 {
-    using namespace plaza_geom;
+    using namespace atrium_geom;
     surface_mesh m;
     make_tetrahedron(
         point(), point(), point(), point(),
@@ -50,7 +50,7 @@ mesh_type build_tetroid()
 
 mesh_type build_house()
 {
-    using namespace plaza_geom;
+    using namespace atrium_geom;
     surface_mesh g;
     point min{-.4, -.4, 0}, max{.4, .4, .4};
     auto hd = Rxt::make_cuboid(min, max, g);
