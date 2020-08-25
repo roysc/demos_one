@@ -16,7 +16,7 @@ namespace sdl = Rxt::sdl;
 // using panel_viewport = basic_viewport<panel_traits>;
 // using panel_layer = std::vector<std::pair<ivec, ivec>>; // todo index
 
-struct basic3d_app : public sdl::simple_gui
+struct basic_app3d : public sdl::simple_gui
 {
     using triangle_program = Rxt::shader_programs::colored_triangle_3D;
     using line_program = Rxt::shader_programs::solid_color_3D<GL_LINES>;
@@ -52,7 +52,7 @@ struct basic3d_app : public sdl::simple_gui
 
     Rxt::hooks<> on_debug;
 
-    basic3d_app(const char*, viewport_uvec);
+    basic_app3d(const char*, viewport_uvec);
     Rxt::reactive_handle _update(SDL_Event);
     bool is_stopped() const { return quit; }
     void draw();

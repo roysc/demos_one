@@ -1,4 +1,4 @@
-#include "basic3d.hpp"
+#include "app3d.hpp"
 
 #include <Rxt/math.hpp>
 #include <Rxt/time.hpp>
@@ -14,7 +14,7 @@ using Rxt::ivec2;
 using Rxt::fvec3;
 using Rxt::fvec4;
 
-basic3d_app::basic3d_app(const char* title, viewport_uvec size)
+basic_app3d::basic_app3d(const char* title, viewport_uvec size)
     : simple_gui(title, size)
     , initial_camera(fvec3{1}, fvec3{0})
     , camera(initial_camera)
@@ -32,9 +32,9 @@ basic3d_app::basic3d_app(const char* title, viewport_uvec size)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
-void basic3d_app::reset_camera() { camera.emplace(initial_camera); };
+void basic_app3d::reset_camera() { camera.emplace(initial_camera); };
 
-void basic3d_app::handle_drag(cursor_fvec dist_nds, camera_state cam_start)
+void basic_app3d::handle_drag(cursor_fvec dist_nds, camera_state cam_start)
 {
     float mag = length(dist_nds);
     assert(dist_nds != cursor_fvec(0));// degenerate
@@ -46,7 +46,7 @@ void basic3d_app::handle_drag(cursor_fvec dist_nds, camera_state cam_start)
     camera.emplace(cam_start);
 }
 
-Rxt::reactive_handle basic3d_app::_update(SDL_Event event)
+Rxt::reactive_handle basic_app3d::_update(SDL_Event event)
 {
     do {
         input.handle_input(event);
@@ -59,7 +59,7 @@ Rxt::reactive_handle basic3d_app::_update(SDL_Event event)
     };
 }
 
-void basic3d_app::draw()
+void basic_app3d::draw()
 {
     auto draw_buf = [this] (std::string n, auto& p) {
         if (auto b = p.buf.ptr(n))

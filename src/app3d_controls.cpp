@@ -1,7 +1,7 @@
-#include "basic3d.hpp"
+#include "app3d.hpp"
 #include "util.hpp"
 
-void basic3d_app::_init_controls()
+void basic_app3d::_init_controls()
 {
     using Rxt::print;
     using Rxt::fvec3;
@@ -36,7 +36,7 @@ void basic3d_app::_init_controls()
     keys.on_scan["Down"] = std::bind(orbit_cam, &camera, Ax::y, -speed);
     keys.on_scan[","] = std::bind(camera_forward, +speed);
     keys.on_scan["."] = std::bind(camera_forward, -speed);
-    keys.on_press["R"] = std::bind(&basic3d_app::reset_camera, this);
+    keys.on_press["R"] = std::bind(&basic_app3d::reset_camera, this);
     keys.on_press["X"] = std::bind(put_camera, 10.f*Rxt::basis3<fvec3>(Rxt::axis3::x));
     keys.on_press["Y"] = std::bind(put_camera, 10.f*Rxt::basis3<fvec3>(Rxt::axis3::y));
     keys.on_press["Z"] = std::bind(put_camera, 10.f*Rxt::basis3<fvec3>(Rxt::axis3::z));

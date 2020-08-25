@@ -1,4 +1,4 @@
-#include "basic3d.hpp"
+#include "app3d.hpp"
 
 #include <Rxt/color.hpp>
 #include <Rxt/math.hpp>
@@ -8,7 +8,7 @@
 
 #include <glm/gtc/epsilon.hpp>
 
-void basic3d_app::_init_ui()
+void basic_app3d::_init_ui()
 {
     using Rxt::print;
     using Rxt::fvec3;

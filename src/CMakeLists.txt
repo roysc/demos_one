@@ -28,38 +28,38 @@ set(_HEADERS_BASE
     viewport.hpp
     controls.hpp
     space.hpp
-    basic3d.hpp
+    app3d.hpp
     palette.hpp
 )
 set(_SOURCES_BASE
-    basic3d_ui.cpp
-    basic3d_controls.cpp
-    basic3d.cpp
+    app3d_ui.cpp
+    app3d_controls.cpp
+    app3d.cpp
     space.cpp
 )
 
-set(_HEADERS_BASIC3D
+set(_HEADERS_APP3D
     geometry.hpp
     geometry_mesh.hpp
     rendering.hpp
     sprite.hpp
 )
-set(_SOURCES_BASIC3D
+set(_SOURCES_APP3D
     entity.cpp
     geometry.cpp
     geometry_mesh.cpp
 )
 
-add_library(basic3d_base ${_HEADERS_BASE} ${_SOURCES_BASE})
-target_link_libraries(basic3d_base
+add_library(app3d_base ${_HEADERS_BASE} ${_SOURCES_BASE})
+target_link_libraries(app3d_base
     Rxt::Graphics
     glm::glm
 )
 
-add_library(basic3d ${_HEADERS_BASIC3D} ${_SOURCES_BASIC3D})
-target_include_directories(basic3d PUBLIC ${PROJECT_SOURCE_DIR}/external)
-target_link_libraries(basic3d
-    basic3d_base
+add_library(app3d ${_HEADERS_APP3D} ${_SOURCES_APP3D})
+target_include_directories(app3d PUBLIC ${PROJECT_SOURCE_DIR}/external)
+target_link_libraries(app3d
+    app3d_base
     Rxt::Geometry
     EnTT::EnTT
 )
@@ -71,12 +71,12 @@ add_executable(map_editor
     old/map_editor.hpp
     old/map_editor.cpp
 )
-target_link_libraries(map_editor PUBLIC basic3d_base)
-target_include_directories(basic3d_base PUBLIC ${PROJECT_SOURCE_DIR}/external)
+target_link_libraries(map_editor PUBLIC app3d_base)
+target_include_directories(app3d_base PUBLIC ${PROJECT_SOURCE_DIR}/external)
 Rxt_emscripten_use_boost(map_editor)
 
 add_executable(canvas canvas.hpp canvas.cpp)
-target_link_libraries(canvas PUBLIC basic3d_base)
+target_link_libraries(canvas PUBLIC app3d_base)
 
 set(_PLANT_HEADERS
     plant_models.hpp
@@ -89,7 +89,7 @@ set(_PLANT_SOURCES
     plant_main.cpp
 )
 add_executable(plant ${_PLANT_HEADERS} ${_PLANT_SOURCES})
-target_link_libraries(plant PUBLIC basic3d)
+target_link_libraries(plant PUBLIC app3d)
 
 function(_configure_emscripten _TARGET)
     set_target_properties(${_TARGET} PROPERTIES SUFFIX ".html")
