@@ -11,6 +11,16 @@
 #include <Rxt/color.hpp>
 #include <optional>
 
+using tick = int;
+using tick_delta = int;
+
+struct alive
+{
+    tick born_at;
+};
+
+// skeletal_animation
+
 
 namespace planty
 {

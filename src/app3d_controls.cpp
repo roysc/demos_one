@@ -28,21 +28,21 @@ void basic_app3d::_init_controls()
         }
     };
 
-    keys.on_press["D"] = on_debug;
-    keys.on_press["C-W"] = [this] { quit = true; };
-    keys.on_scan["Right"] = std::bind(orbit_cam, &camera, Ax::z, +speed);
-    keys.on_scan["Left"] = std::bind(orbit_cam, &camera, Ax::z, -speed);
-    keys.on_scan["Up"] = std::bind(orbit_cam, &camera, Ax::y, +speed);
-    keys.on_scan["Down"] = std::bind(orbit_cam, &camera, Ax::y, -speed);
-    keys.on_scan[","] = std::bind(camera_forward, +speed);
-    keys.on_scan["."] = std::bind(camera_forward, -speed);
-    keys.on_press["R"] = std::bind(&basic_app3d::reset_camera, this);
-    keys.on_press["X"] = std::bind(put_camera, 10.f*Rxt::basis3<fvec3>(Rxt::axis3::x));
-    keys.on_press["Y"] = std::bind(put_camera, 10.f*Rxt::basis3<fvec3>(Rxt::axis3::y));
-    keys.on_press["Z"] = std::bind(put_camera, 10.f*Rxt::basis3<fvec3>(Rxt::axis3::z));
+    _keys.on_press["D"] = on_debug;
+    _keys.on_press["C-W"] = [this] { quit = true; };
+    _keys.on_scan["Right"] = std::bind(orbit_cam, &camera, Ax::z, +speed);
+    _keys.on_scan["Left"] = std::bind(orbit_cam, &camera, Ax::z, -speed);
+    _keys.on_scan["Up"] = std::bind(orbit_cam, &camera, Ax::y, +speed);
+    _keys.on_scan["Down"] = std::bind(orbit_cam, &camera, Ax::y, -speed);
+    _keys.on_scan[","] = std::bind(camera_forward, +speed);
+    _keys.on_scan["."] = std::bind(camera_forward, -speed);
+    _keys.on_press["R"] = std::bind(&basic_app3d::reset_camera, this);
+    _keys.on_press["X"] = std::bind(put_camera, 10.f*Rxt::basis3<fvec3>(Rxt::axis3::x));
+    _keys.on_press["Y"] = std::bind(put_camera, 10.f*Rxt::basis3<fvec3>(Rxt::axis3::y));
+    _keys.on_press["Z"] = std::bind(put_camera, 10.f*Rxt::basis3<fvec3>(Rxt::axis3::z));
 
     PZ_observe(input.on_quit) { quit = true; };
-    PZ_observe(input.on_key_down, SDL_Keysym k) { keys.press(k); };
+    PZ_observe(input.on_key_down, SDL_Keysym k) { _keys.press(k); };
     PZ_observe(input.on_mouse_motion, SDL_MouseMotionEvent motion) {
         auto [x, y] = sdl::nds_coords(*window, motion.x, motion.y);
         cursor.position({x, y});

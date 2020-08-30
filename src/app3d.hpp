@@ -1,6 +1,5 @@
 #include "controls.hpp"
 #include "input.hpp"
-// #include "viewport.hpp"
 
 #include "reactive.hpp"
 #include <Rxt/graphics/shader/colored_triangle_3D.hpp>
@@ -36,7 +35,8 @@ struct basic_app3d : public sdl::simple_gui
 
     bool quit = false;
     input_hooks input;
-    sdl::key_dispatcher keys;
+    sdl::key_dispatcher _keys;
+    auto& keys() { return _keys; }
 
     camera_state initial_camera;
     camera_type camera;

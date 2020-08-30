@@ -49,35 +49,39 @@ void plant_app::_init_ui()
         }
     };
 
+    auto paint = [this] (auto&& creator)
+    {
+        cell_position pos;
+        if (!highlighted_space(pos)) return;
+
+        if (!active_stage) {
+            print("error: No active stage\n");
+            return;
+        }
+
+        auto thing = creator();
+        auto ent = put_mesh(thing, to_rgba(Rxt::colors::gray), false);
+        entities.emplace<cpt::cell>(ent, *active_stage, pos);
+        _model_update();
+        print("put({}): ({})\n", pos, (std::size_t)ent);
+        // entities.emplace<cpt::name>(ent, "house");
+        // print("put({}): {}({})\n", pos, entity_name(entities, ent), (std::size_t)ent);
+    };
+
     PZ_observe(input.on_mouse_down, SDL_MouseButtonEvent button) {
-        auto paint = [this](cell_position pos)
-        {
-            if (!active_stage) {
-                print("error: No active stage\n");
-                return;
-            }
-
-            auto thing = planty::build_house();
-            auto ent = put_mesh(thing, to_rgba(Rxt::colors::gray), false);
-            entities.emplace<cpt::cell>(ent, *active_stage, pos);
-            entities.emplace<cpt::name>(ent, "house");
-
-            _model_update();
-            print("put({}): {}({})\n", pos, entity_name(entities, ent), (std::size_t)ent);
-        };
-
         switch (button.button) {
         case SDL_BUTTON_LEFT: {
-            if (cell_position pos; highlighted_space(pos)) {
-                paint(pos);
-            }
-            break;
+            paint(&planty::build_house);
         }
         }
     };
+
+    keys().on_press["1"] = std::bind(paint, &planty::build_house);
+    keys().on_press["2"] = std::bind(paint, &planty::build_tetroid);
 }
 
-void plant_app::load_stage(stage_type& stage)
+// load stage with already transformed position
+entity_id plant_app::load_stage(stage_type& stage)
 {
     using Sfd = mesh_index::source_face_descriptor;
     mesh_type mesh, eph;
@@ -123,6 +127,7 @@ void plant_app::load_stage(stage_type& stage)
         face_ephem[mesh_face(meshid, mf)] = mesh_face(ephid, ef);
     }
     _model_update();
+    return ent;
 }
 
 void plant_app::_init_model()

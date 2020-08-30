@@ -30,6 +30,8 @@ set(_HEADERS_BASE
     space.hpp
     app3d.hpp
     palette.hpp
+    stage.hpp
+    reactive.hpp
 )
 set(_SOURCES_BASE
     app3d_ui.cpp

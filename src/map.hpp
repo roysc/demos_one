@@ -31,7 +31,9 @@ struct dense_grid
         _data.resize(boost::extents[shape.x][shape.y]);
     }
 
-    auto at(key_type i) { return _data[i.x][i.y]; }
+    value_type& at(key_type i) { return _data[i.x][i.y]; }
+    value_type const& at(key_type i) const { return _data[i.x][i.y]; }
+
     void put(key_type i, T a) { _data[i.x][i.y] = a; }
 
     template <class F>

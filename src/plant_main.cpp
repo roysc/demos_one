@@ -1,4 +1,5 @@
 #include "plant.hpp"
+#include <string>
 
 extern "C" void step_state(void* c)
 {

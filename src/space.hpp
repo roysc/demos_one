@@ -69,6 +69,8 @@ struct z2_universe
 {
     PZ_use_traits(spatial_traits);
 
+    using stage_type = z2_stage;
+    using node_type = deep_stage<stage_type>;
     const unsigned max_stage_depth = 2;
     const size_type _stage_size;
     const size_type _full_size = _stage_size << max_stage_depth;
@@ -76,15 +78,15 @@ struct z2_universe
     z2_generator _generator;
     // PIMPL?
     // index w/ morton code?
-    deep_stage<z2_stage> _root;
+    node_type _root;
 
     z2_universe(size_type, int);
-    z2_stage* root() { return &_root; }
+    node_type* root() { return &_root; }
     z2_generator& generator() { return _generator; }
     size_type full_size() const { return _full_size; }
     size_type stage_size() const { return _stage_size; }
 
-    // z2_stage* get_stage(stage_index);
-    void generate_stage(z2_stage&);
+    // stage_type* get_stage(stage_index);
+    void generate_stage(stage_type&);
 };
 }

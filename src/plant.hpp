@@ -3,21 +3,18 @@
 #include "plant_models.hpp"
 
 #include "space.hpp"
-#include "map.hpp"
 #include "app3d.hpp"
-#include "palette.hpp"
 #include "entity.hpp"
-#include "util.hpp"
 #include "reactive.hpp"
+#include "util.hpp"
+#include "palette.hpp"
 
 // #include <morton.h>
 
 #include <string>
 #include <vector>
-#include <functional>
 #include <optional>
 #include <map>
-#include <cstddef>
 
 namespace cpt = planty::_cpt;
 using Rxt::adapt_reactive;
@@ -53,7 +50,7 @@ struct plant_app : basic_app3d
     color_palette palette;
 
     universe_type universe;
-    Rxt::reactive_pointer<stage_type> active_stage;
+    Rxt::reactive_pointer<deep_stage<stage_type>> active_stage;
     entity_registry entities;
     entity_id e_debug;
 
@@ -86,5 +83,5 @@ struct plant_app : basic_app3d
         return super_type::camera_type(pos, free_position(Rxt::fvec2(map_size) / 4.f, 0));
     }
 
-    void load_stage(stage_type&);
+    entity_id load_stage(stage_type&);
 };

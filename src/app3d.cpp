@@ -51,7 +51,7 @@ Rxt::reactive_handle basic_app3d::_update(SDL_Event event)
     do {
         input.handle_input(event);
     } while (SDL_PollEvent(&event));
-    keys.scan();
+    keys().scan();
 
     return {
         &cursor.on_update,

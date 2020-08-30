@@ -27,6 +27,8 @@ z2_universe::z2_universe(size_type ss, int seed)
         throw std::invalid_argument("depth > max_stage_depth");
     // generate_stage(_stage_size.emplace_back(*this));
     // generate_stage(_root);
+
+    // _stages.emplace_back(*this);
 }
 
 void z2_universe::generate_stage(z2_stage& out)

@@ -37,6 +37,15 @@ plant_app::plant_app(viewport_uvec size)
 
     // https://ourmachinery.com/post/syncing-a-data-oriented-ecs/
     // changing<component> for update?
+
+    auto zoom = [&]
+    {
+        cell_position pos;
+        if (!highlighted_space(pos)) return;
+        auto substage = active_stage->get_substage(pos);
+        active_stage.emplace(substage);
+    };
+    keys().on_press["F"] = zoom;
 }
 
 void plant_app::draw_clear()
