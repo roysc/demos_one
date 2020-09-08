@@ -6,7 +6,6 @@
 #include "entity.hpp"
 #include "space.hpp"
 #include "rendering.hpp"
-#include "stage.hpp"
 
 #include <Rxt/color.hpp>
 #include <optional>
@@ -83,9 +82,13 @@ namespace _cpt
 using namespace atrium_ecs;
 using namespace _phys;
 
-struct input {
-    std::optional<_phys::motion> _motion;
-};
+// (asynchronous?) input component
+// -prompt
+// -generate
+// -rpc?
+template <class C>
+struct input
+{};
 
 // struct zpos { Rxt::ivec2 r{0}; };
 // struct zvel { };

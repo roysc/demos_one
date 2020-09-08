@@ -13,5 +13,5 @@
 
 ** move reactive to Rxt
 
-* TODO render child entities with parent
+* WIP render child entities with parent
 

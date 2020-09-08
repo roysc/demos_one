@@ -43,6 +43,7 @@ using mesh_to_space = std::map<mesh_index::key_type, face_to_space>;
 struct plant_app : basic_app3d
 {
     using super_type = basic_app3d;
+    using position_type = cell_position;
     using mesh_type = mesh_index::source_mesh;
     using mesh_color = planty::mesh_color;
 
@@ -71,7 +72,7 @@ struct plant_app : basic_app3d
     void advance(SDL_Event);
     void draw_clear();
 
-    bool highlighted_space(cell_position&) const;
+    bool highlighted_space(position_type&) const;
 
     enum mesh_kind : bool { tangible = 0, ephemeral = 1 };
     mesh_index& _mesh_index(mesh_kind mk = mesh_kind::tangible) { return *_geom[mk]; }
