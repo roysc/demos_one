@@ -1,9 +1,11 @@
 #pragma once
 #include "map.hpp"
 #include <Rxt/io.hpp>
+#include <Rxt/vec_io.hpp>
+
 #include <memory>
 #include <list>
-
+#include <string>
 
 // Fat pointer to a single cell
 template <class S>
@@ -47,6 +49,23 @@ struct cell_path
     }
 };
 
+template <class P>
+struct cell_path
+{
+    using list = std::list<P>;
+    list path;
+
+    void append(cell_path rest)
+    {
+        path.insert(rest.path.begin(), rest.path.end());
+    }
+
+    void append(P part)
+    {
+        path.push_back(part);
+    }
+};
+
 
 // Recursive data-owning stage wrapper (tree node)
 template <class Stage>
@@ -59,8 +78,7 @@ struct deep_stage
     using pointer = std::unique_ptr<deep_stage>; // tradeoffs v T*?
     using depth_t = unsigned char;
     using cell_type = stage_cell<deep_stage>;
-
-    dense_grid<pointer> _substages;
+    using path = cell_path<position_type>;
 
     // contains our position in the superstage
     struct superstage_cell
@@ -69,6 +87,8 @@ struct deep_stage
         position_type pos{0};
         operator bool() const { return stage; }
     };
+
+    dense_grid<pointer> _substages;
     superstage_cell _address;
 
     template <class U>
@@ -78,18 +98,17 @@ struct deep_stage
         , _address{super}
     {}
 
-    using cell_path = std::list<position_type>;
-
     // return full cell path to this stage
-    cell_path get_path()
+    path get_path()
     {
-        cell_path ret;
+        path ret;
         if (_address) {
-            ret = _address->stage().get_path();
-            ret.push_back(_address->position());
+            ret = _address.stage->get_path();
+            ret.append(_address.pos);
         }
         return ret;
     }
+
     auto depth() const { return get_path().size(); }
 
     deep_stage* get_substage(position_type pos, bool create = true)
@@ -103,32 +122,16 @@ struct deep_stage
 
 };
 
-// template <class Part>
-// struct cell_path
-// {
-//     using list = std::list<Path>;
-//     list path;
-
-//     auto& operator +=(cell_path rest)
-//     {
-//         path.insert(rest.path.begin(), rest.path.end());
-//     }
-
-//     auto& operator +=(Part part)
-//     {
-//         path.push_back(part);
-//     }
-// };
-
-// template <class Pt>
-// struct fmt::formatter<cell_path<Pt>>
-// {
-//     template <class FC>
-//     auto format(stage_cell<S> const& cell, FC& ctx)
-//     {
-//         return fmt::format_to(ctx.out(), "cell({1}, env={0})", (std::size_t)cell.env, cell.r);
-//     }
-// };
+template <class P>
+std::ostream& operator<<(std::ostream& o, cell_path<P> const& cp)
+{
+    unsigned i = 0;
+    for (auto p: cp.path) {
+        if (i++) o << '.';
+        o << p;
+    }
+    return o;
+}
 
 template <class S>
 struct fmt::formatter<stage_cell<S>>

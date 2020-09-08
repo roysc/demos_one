@@ -51,22 +51,22 @@ void plant_app::_init_ui()
         }
     };
 
-    auto paint = [this] (auto&& creator)
+    auto paint = [this] (auto factory)
     {
         cell_position pos;
         if (!highlighted_space(pos)) return;
-
         if (!active_stage) {
             print("error: No active stage\n");
             return;
         }
 
-        auto thing = creator();
+        auto thing = factory();
         auto ent = put_mesh(thing, to_rgba(Rxt::colors::gray), false);
         entities.emplace<cpt::cell>(ent, *active_stage, pos);
         _model_update();
         print("put({}): ({})\n", pos, (std::size_t)ent);
         // entities.emplace<cpt::name>(ent, "house");
+        // entities.emplace<cpt::input<cpt::name>>(ent);
         // print("put({}): {}({})\n", pos, entity_name(entities, ent), (std::size_t)ent);
     };
 
@@ -80,6 +80,10 @@ void plant_app::_init_ui()
 
     keys().on_press["1"] = std::bind(paint, &planty::build_house);
     keys().on_press["2"] = std::bind(paint, &planty::build_tetroid);
+    keys().on_press["T"] =  {
+        tick++;
+        _ent_update();
+    };
 }
 
 // load stage with already transformed position
@@ -156,7 +160,7 @@ void plant_app::_init_model()
         };
         auto cell_skel = [&](auto cell, auto& g)
         {
-            auto tm = Rxt::translate(cell.template offset<free_position>());
+            auto tm = Rxt::translate(offset<free_position>(cell));
             g.render(b_lines, tm);
         };
 
