@@ -20,14 +20,31 @@ struct stage_cell
     auto& stage() { return *env; }
     auto position() const { return _pos; }
     auto value() const { return env->grid().at(_pos); }
-
-    template <class Vec>
-    Vec offset() const
-    {
-        auto elev = float(value()) / 0xFF; // todo
-        return Vec(_pos, elev) + Vec(.5,.5,0);
-    }
     // auto substage() {}
+};
+
+template <class Vec, class S>
+Vec offset(stage_cell<S> const& c)
+{
+    auto elev = float(c.value()) / 0xFF; // todo
+    return Vec(c.position(), elev) + Vec(.5,.5,0);
+}
+
+template <class P>
+struct cell_path
+{
+    using list = std::list<P>;
+    list path;
+
+    void append(cell_path rest)
+    {
+        path.insert(rest.path.begin(), rest.path.end());
+    }
+
+    void append(P part)
+    {
+        path.push_back(part);
+    }
 };
 
 
@@ -79,7 +96,7 @@ struct deep_stage
     {
         auto& ptr = _substages.at(pos);
         if (!ptr && create) {
-            ptr.reset(new deep_stage(this->universe(), {.stage = this, .pos = pos}));
+            ptr.reset(new deep_stage(this->space(), {.stage = this, .pos = pos}));
         }
         return ptr.get();
     }

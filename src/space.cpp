@@ -4,20 +4,20 @@
 
 namespace zspace2
 {
-z2_stage::z2_stage(z2_universe& uni)
-    // : _universe(&uni)
-    : _grid(uni._stage_size)
+z2_stage::z2_stage(z2_space& uni)
+    : _space(&uni)
+    , _grid(uni._stage_size)
 {
     uni.generate_stage(*this);
 }
 
 z2_stage::size_type z2_stage::size() const
 {
-    // return _universe->_stage_size;
+    // return _space->_stage_size;
     return _grid.shape();
 }
 
-z2_universe::z2_universe(size_type ss, int seed)
+z2_space::z2_space(size_type ss, int seed)
     : _stage_size(ss)
     , _generator{seed}
     , _root{*this}
@@ -31,7 +31,7 @@ z2_universe::z2_universe(size_type ss, int seed)
     // _stages.emplace_back(*this);
 }
 
-void z2_universe::generate_stage(z2_stage& out)
+void z2_space::generate_stage(z2_stage& out)
 {
     using noise_function = OSN::Noise<4>;
     // todo deterministic wrt. cell path?
@@ -48,7 +48,7 @@ void z2_universe::generate_stage(z2_stage& out)
     fill_clifford_torus(noise_4d, sampler);
 }
 
-// z2_stage* z2_universe::get_stage(stage_index i)
+// z2_stage* z2_space::get_stage(stage_index i)
 // {
 //     return nullptr;
 // }

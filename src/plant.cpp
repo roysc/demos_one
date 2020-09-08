@@ -5,9 +5,9 @@
 plant_app::plant_app(viewport_uvec size)
     : super_type("atrium: plant", size)
     , palette(default_palette())
-    , universe(Rxt::uvec2(8), 42)
+    , space(Rxt::uvec2(8), 42)
 {
-    initial_camera = default_camera(universe.stage_size());
+    initial_camera = default_camera(space.stage_size());
 
     _init_ui();
     _init_model();
@@ -15,7 +15,7 @@ plant_app::plant_app(viewport_uvec size)
     opts["highlight_face"].enable();
     // opts["highlight_vertex"].enable();
 
-    active_stage.emplace(universe.root());
+    active_stage.emplace(space.root());
     reset_camera();
     // auto unitbounds = Rxt::box(fvec2(-.5), fvec2(.5));
     // auto normbounds = Rxt::box(fvec2(-1), fvec2(1));

@@ -46,7 +46,7 @@ struct z2_generator
     std::default_random_engine gen{seed};
 };
 
-struct z2_universe;
+struct z2_space;
 
 struct z2_stage
 {
@@ -55,17 +55,17 @@ struct z2_stage
     using cell_value = std::uint8_t;
     using terrain_grid = dense_grid<cell_value>;
 
-    z2_universe* _universe;
+    z2_space* _space;
     terrain_grid _grid;
 
-    z2_universe& universe() { return *_universe; }
+    z2_space& space() { return *_space; }
     size_type size() const;
     auto& grid() { return _grid; }
 
-    z2_stage(z2_universe&);
+    z2_stage(z2_space&);
 };
 
-struct z2_universe
+struct z2_space
 {
     PZ_use_traits(spatial_traits);
 
@@ -80,7 +80,7 @@ struct z2_universe
     // index w/ morton code?
     node_type _root;
 
-    z2_universe(size_type, int);
+    z2_space(size_type, int);
     node_type* root() { return &_root; }
     z2_generator& generator() { return _generator; }
     size_type full_size() const { return _full_size; }

@@ -23,7 +23,7 @@ using options_map = permissive_map<std::string, Rxt::reactive_toggle>;
 
 
 using stage_type = zspace2::z2_stage;
-using universe_type = zspace2::z2_universe;
+using space_type = zspace2::z2_space;
 using cell_position = stage_type::position_type;
 using free_position = Rxt::fvec3;
     
@@ -49,7 +49,7 @@ struct plant_app : basic_app3d
     options_map opts;
     color_palette palette;
 
-    universe_type universe;
+    space_type space;
     Rxt::reactive_pointer<deep_stage<stage_type>> active_stage;
     entity_registry entities;
     entity_id e_debug;

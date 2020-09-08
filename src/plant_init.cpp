@@ -1,5 +1,7 @@
 #include "plant.hpp"
 #include "rendering.hpp"
+#include "stage.hpp"
+
 #include <Rxt/color.hpp>
 #include <Rxt/vec.hpp>
 #include <Rxt/vec_io.hpp>
@@ -149,7 +151,7 @@ void plant_app::_init_model()
         };
         auto cell_mesh = [&] (cpt::cell cell, auto& g)
         {
-            auto tm = Rxt::translate(cell.offset<free_position>());
+            auto tm = Rxt::translate(offset<free_position>(cell));
             g.render(g.transparent ? b_tris_txp : b_triangles, tm);
         };
         auto cell_skel = [&](auto cell, auto& g)
