@@ -78,8 +78,13 @@ void dirt_app::_init_ui()
         }
     };
 
-    keys().on_press["1"] = [=, this] { paint(&dirt_ns::build_house); };
-    keys().on_press["2"] = [=, this] { paint(&dirt_ns::build_tetroid); };
+    keys().on_press["1"] = std::bind(paint, &dirty::build_house);
+    keys().on_press["2"] = std::bind(paint, &dirty::build_tetroid);
+    keys().on_press["T"] = [this] {
+        _tick++;
+        _ent_update();
+        // what does it mean?
+    };
 }
 
 // load stage with already transformed position
