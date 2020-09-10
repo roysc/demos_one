@@ -1,9 +1,9 @@
-#include "plant.hpp"
+#include "dirt.hpp"
 
 #include <Rxt/math.hpp>
 
-plant_app::plant_app(viewport_uvec size)
-    : super_type("atrium: plant", size)
+dirt_app::dirt_app(viewport_uvec size)
+    : super_type("atrium: dirt", size)
     , palette(default_palette())
     , space(Rxt::uvec2(8), 42)
 {
@@ -22,7 +22,7 @@ plant_app::plant_app(viewport_uvec size)
     // stage_cache.emplace_back(entities, normbounds);
     // active_stage = &stage_cache[0];
 
-    // plant stage
+    // dirt stage
     // auto e1 = put_entity(entities, ivec2(0), board_unit);
     // entities.emplace<mesh>(e1, make_thing(geom, e1));
     // put_mesh(thing_mesh(), idk, &e1);
@@ -43,19 +43,20 @@ plant_app::plant_app(viewport_uvec size)
         cell_position pos;
         if (!highlighted_space(pos)) return;
         auto substage = active_stage->get_substage(pos);
+        Rxt::print("zooming to {}\n", substage->get_path());
         active_stage.emplace(substage);
     };
     keys().on_press["F"] = zoom;
 }
 
-void plant_app::draw_clear()
+void dirt_app::draw_clear()
 {
     auto bg = palette.at("bg");
     glClearColor(bg.r, bg.g, bg.b, 1);
     // super_type::draw();
 }
 
-void plant_app::advance(SDL_Event event)
+void dirt_app::advance(SDL_Event event)
 {
     // if (active_stage)
     //     active_stage->run();
@@ -83,7 +84,7 @@ void plant_app::advance(SDL_Event event)
     }
 }
 
-bool plant_app::highlighted_space(cell_position& out) const
+bool dirt_app::highlighted_space(cell_position& out) const
 {
     if (highlighted_faces) {
         auto [oi, fd] = *highlighted_faces;
@@ -95,7 +96,7 @@ bool plant_app::highlighted_space(cell_position& out) const
     return false;
 }
 
-entity_id plant_app::put_mesh(mesh_type mesh, mesh_color color, bool transparent, mesh_kind kind)
+entity_id dirt_app::put_mesh(mesh_type mesh, mesh_color color, bool transparent, mesh_kind kind)
 {
     auto* meshes = _geom[kind];
     auto ix = meshes->insert(mesh);

@@ -49,24 +49,6 @@ struct cell_path
     }
 };
 
-template <class P>
-struct cell_path
-{
-    using list = std::list<P>;
-    list path;
-
-    void append(cell_path rest)
-    {
-        path.insert(rest.path.begin(), rest.path.end());
-    }
-
-    void append(P part)
-    {
-        path.push_back(part);
-    }
-};
-
-
 // Recursive data-owning stage wrapper (tree node)
 template <class Stage>
 struct deep_stage

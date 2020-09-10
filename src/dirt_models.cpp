@@ -1,9 +1,9 @@
-#include "plant_models.hpp"
+#include "dirt_models.hpp"
 #include "geometry_mesh.hpp"
 #include <Rxt/geometry/shapes.hpp>
 
 
-namespace planty
+namespace dirt_ns
 {
 using Rxt::fvec3;
 

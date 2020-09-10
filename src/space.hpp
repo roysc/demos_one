@@ -14,8 +14,9 @@ inline Rxt::fvec3 apply(transform3 m, Rxt::fvec3 v)
     return Rxt::fvec3(m * Rxt::fvec4(v, 1));
 }
 
-#define PZ_use_traits(_traits_t)                                \
-    using position_type = typename _traits_t::position;    \
+#define PZ_use_traits(_traits_t)                    \
+    using traits = _traits_t;                       \
+    using position_type = typename _traits_t::position; \
     using size_type = typename _traits_t::size
 
 // index integer-positions ie. grid objects
@@ -65,7 +66,7 @@ struct z2_stage
     z2_stage(z2_space&);
 };
 
-struct z2_space
+struct z2_deep_space
 {
     PZ_use_traits(spatial_traits);
 
@@ -80,7 +81,7 @@ struct z2_space
     // index w/ morton code?
     node_type _root;
 
-    z2_space(size_type, int);
+    z2_deep_space(size_type, int);
     node_type* root() { return &_root; }
     z2_generator& generator() { return _generator; }
     size_type full_size() const { return _full_size; }

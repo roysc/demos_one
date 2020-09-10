@@ -80,18 +80,18 @@ Rxt_emscripten_use_boost(map_editor)
 add_executable(canvas canvas.hpp canvas.cpp)
 target_link_libraries(canvas PUBLIC app3d_base)
 
-set(_PLANT_HEADERS
-    plant_models.hpp
-    plant.hpp
+set(_DIRT_HEADERS
+    dirt_models.hpp
+    dirt.hpp
 )
-set(_PLANT_SOURCES
-    plant_models.cpp
-    plant.cpp
-    plant_init.cpp
-    plant_main.cpp
+set(_DIRT_SOURCES
+    dirt_models.cpp
+    dirt.cpp
+    dirt_init.cpp
+    dirt_main.cpp
 )
-add_executable(plant ${_PLANT_HEADERS} ${_PLANT_SOURCES})
-target_link_libraries(plant PUBLIC app3d)
+add_executable(dirt ${_DIRT_HEADERS} ${_DIRT_SOURCES})
+target_link_libraries(dirt PUBLIC app3d)
 
 function(_configure_emscripten _TARGET)
     set_target_properties(${_TARGET} PROPERTIES SUFFIX ".html")

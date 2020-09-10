@@ -1,6 +1,6 @@
 #pragma once
 
-#include "plant_models.hpp"
+#include "dirt_models.hpp"
 
 #include "space.hpp"
 #include "app3d.hpp"
@@ -16,18 +16,18 @@
 #include <optional>
 #include <map>
 
-namespace cpt = planty::_cpt;
+namespace cpt = dirt_ns::_cpt;
 using Rxt::adapt_reactive;
 // Toggleable options
 using options_map = permissive_map<std::string, Rxt::reactive_toggle>;
 
 
 using stage_type = zspace2::z2_stage;
-using space_type = zspace2::z2_space;
+using space_type = zspace2::z2_deep_space;
 using cell_position = stage_type::position_type;
 using free_position = Rxt::fvec3;
     
-using mesh_index = planty::mesh_data;
+using mesh_index = dirt_ns::mesh_data;
 
 // map to dependent faces
 using mesh_face = mesh_index::face_descriptor;
@@ -40,20 +40,18 @@ using face_to_space = std::map<mesh_index::source_face_descriptor, cell_position
 // indexed with mesh + face
 using mesh_to_space = std::map<mesh_index::key_type, face_to_space>;
 
-struct plant_app : basic_app3d
+struct dirt_app : basic_app3d
 {
     using super_type = basic_app3d;
     using position_type = cell_position;
     using mesh_type = mesh_index::source_mesh;
-    using mesh_color = planty::mesh_color;
+    using mesh_color = dirt_ns::mesh_color;
+    using hook_type = Rxt::hooks<>;
 
     options_map opts;
     color_palette palette;
 
-    space_type space;
-    Rxt::reactive_pointer<deep_stage<stage_type>> active_stage;
-    entity_registry entities;
-    entity_id e_debug;
+    hook_type _model_update, _ent_update;
 
     // geometry: 0 - spatially indexed, 1 - ephemeral
     mesh_index geom_, ephem_;
@@ -63,9 +61,13 @@ struct plant_app : basic_app3d
     adapt_reactive<face_set> highlighted_faces;
     adapt_reactive<vertex_set> highlighted_vertices;
 
-    Rxt::hooks<> _model_update, _ent_update;
+    space_type space;
+    int _tick = 0;
+    entity_registry entities;
+    entity_id e_debug;
+    Rxt::reactive_pointer<deep_stage<stage_type>> active_stage;
 
-    plant_app(viewport_uvec);
+    dirt_app(viewport_uvec);
     void _init_model();
     void _init_ui();
 
@@ -84,5 +86,5 @@ struct plant_app : basic_app3d
         return super_type::camera_type(pos, free_position(Rxt::fvec2(map_size) / 4.f, 0));
     }
 
-    entity_id load_stage(stage_type&);
+    entity_id update_stage(stage_type&);
 };

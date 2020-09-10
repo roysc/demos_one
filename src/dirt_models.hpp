@@ -21,7 +21,7 @@ struct alive
 // skeletal_animation
 
 
-namespace planty
+namespace dirt_ns
 {
 using mesh_type = atrium::surface_mesh;
 using mesh_data = atrium::indexed_mesh_vector<mesh_type>;
@@ -73,7 +73,7 @@ struct skel_geom
 using z2_traits = zspace2::spatial_traits;
 namespace _phys
 {
-struct motion { z2_traits::velocity v; };
+// struct motion { z2_traits::velocity v; };
 
 }
 

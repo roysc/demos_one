@@ -1,4 +1,4 @@
-#include "plant.hpp"
+#include "dirt.hpp"
 #include "rendering.hpp"
 #include "stage.hpp"
 
@@ -16,7 +16,7 @@ static float normalize_int(I t)
     return float(t)/max_elev;
 }
 
-void plant_app::_init_ui()
+void dirt_app::_init_ui()
 {
     PZ_observe(on_debug) {
         print("camera.pos={} .focus={} .up={}\n", camera.position(), camera.focus, camera.up);
@@ -64,30 +64,26 @@ void plant_app::_init_ui()
         auto ent = put_mesh(thing, to_rgba(Rxt::colors::gray), false);
         entities.emplace<cpt::cell>(ent, *active_stage, pos);
         _model_update();
-        print("put({}): ({})\n", pos, (std::size_t)ent);
+        print("put({}): ({})\n", pos, static_cast<std::size_t>(ent));
         // entities.emplace<cpt::name>(ent, "house");
         // entities.emplace<cpt::input<cpt::name>>(ent);
         // print("put({}): {}({})\n", pos, entity_name(entities, ent), (std::size_t)ent);
     };
 
-    PZ_observe(input.on_mouse_down, SDL_MouseButtonEvent button) {
+    PZ_observe_capv(input.on_mouse_down, SDL_MouseButtonEvent button) {
         switch (button.button) {
         case SDL_BUTTON_LEFT: {
-            paint(&planty::build_house);
+            paint(&dirt_ns::build_house);
         }
         }
     };
 
-    keys().on_press["1"] = std::bind(paint, &planty::build_house);
-    keys().on_press["2"] = std::bind(paint, &planty::build_tetroid);
-    keys().on_press["T"] =  {
-        tick++;
-        _ent_update();
-    };
+    keys().on_press["1"] = [=, this] { paint(&dirt_ns::build_house); };
+    keys().on_press["2"] = [=, this] { paint(&dirt_ns::build_tetroid); };
 }
 
 // load stage with already transformed position
-entity_id plant_app::load_stage(stage_type& stage)
+entity_id dirt_app::update_stage(stage_type& stage)
 {
     using Sfd = mesh_index::source_face_descriptor;
     mesh_type mesh, eph;
@@ -136,7 +132,7 @@ entity_id plant_app::load_stage(stage_type& stage)
     return ent;
 }
 
-void plant_app::_init_model()
+void dirt_app::_init_model()
 {
     auto& b_triangles = triangle_prog.buf["triangles"];
     auto& b_tris_txp = triangle_prog.buf["tris_txp"];
@@ -144,7 +140,7 @@ void plant_app::_init_model()
     auto& b_overlines = line_prog.buf["overlines"];
 
     PZ_observe(active_stage.on_update, auto stage) {
-        this->load_stage(*stage);
+        this->update_stage(*stage);
     };
 
     PZ_observe(_model_update) {

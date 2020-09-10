@@ -1,9 +1,9 @@
-#include "plant.hpp"
+#include "dirt.hpp"
 #include <string>
 
 extern "C" void step_state(void* c)
 {
-    sdl::em_advance<plant_app>(c);
+    sdl::em_advance<dirt_app>(c);
 }
 
 int main(int argc, char* argv[])
@@ -13,8 +13,8 @@ int main(int argc, char* argv[])
         seed = std::stoi(argv[1]);
     }
 
-    auto vpsize = plant_app::viewport_uvec{800};
-    auto loop = sdl::make_looper(new plant_app(vpsize), step_state);
+    auto vpsize = dirt_app::viewport_uvec{800};
+    auto loop = sdl::make_looper(new dirt_app(vpsize), step_state);
     loop();
     return 0;
 }
