@@ -22,6 +22,7 @@ namespace atrium_ecs
 struct name { std::string s; };
 struct parent { entity_id id; };
 struct children { std::set<entity_id> ids; };
+struct layer { int n; };
 
 // namespace input {
 // struct keyboard { };

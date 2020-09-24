@@ -25,7 +25,7 @@ namespace zspace2
 struct spatial_traits
 {
     using position = Rxt::ivec2; // could be unsigned (torus)
-    using velocity = Rxt::ivec2;
+    // using velocity = Rxt::ivec2;
     using size = Rxt::uvec2;
 
     enum direction : unsigned char { w, e, n, s };
@@ -90,4 +90,12 @@ struct z2_deep_space
     // stage_type* get_stage(stage_index);
     void generate_stage(stage_type&);
 };
+
+struct z2_body
+{
+    PZ_use_traits(spatial_traits);
+
+    z2_body(position);
+};
+// void collide(z2_body&, z2_body&, Index const&);
 }

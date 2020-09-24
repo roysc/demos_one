@@ -90,6 +90,12 @@ template <class C>
 struct input
 {};
 
+template <class M>
+struct agent
+{
+    bool move(M);
+};
+
 // struct zpos { Rxt::ivec2 r{0}; };
 // struct zvel { };
 // struct fbox2 { Rxt::bounding_box<float> b; };
