@@ -66,7 +66,7 @@ struct z2_stage
     z2_stage(z2_space&);
 };
 
-struct z2_deep_space
+struct z2_space
 {
     PZ_use_traits(spatial_traits);
 
@@ -81,7 +81,7 @@ struct z2_deep_space
     // index w/ morton code?
     node_type _root;
 
-    z2_deep_space(size_type, int);
+    z2_space(size_type, int);
     node_type* root() { return &_root; }
     z2_generator& generator() { return _generator; }
     size_type full_size() const { return _full_size; }
@@ -95,7 +95,8 @@ struct z2_body
 {
     PZ_use_traits(spatial_traits);
 
-    z2_body(position);
+    // z2_body(position);
 };
+
 // void collide(z2_body&, z2_body&, Index const&);
 }

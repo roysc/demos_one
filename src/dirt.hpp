@@ -23,7 +23,7 @@ using options_map = permissive_map<std::string, Rxt::reactive_toggle>;
 
 
 using stage_type = zspace2::z2_stage;
-using space_type = zspace2::z2_deep_space;
+using space_type = zspace2::z2_space;
 using cell_position = stage_type::position_type;
 using free_position = Rxt::vec::fvec3;
     
