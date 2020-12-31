@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.8)
-# "plaza" demo
-project(Plaza VERSION 0.1)
+project(Atrium VERSION 0.1)
+
+option(USE_RXT_SUBDIR "Use Rxt as subdirectory instead of package" OFF)
 
 set(CMAKE_FIND_USE_PACKAGE_REGISTRY FALSE)
 

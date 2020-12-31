@@ -1,16 +1,18 @@
 # Atrium source root CMakeLists.txt
 
-include(CMakeFindDependencyMacro)
-
 set(OpenGL_GL_PREFERENCE GLVND)
-find_dependency(Rxt 0.2 REQUIRED
-    COMPONENTS Graphics Geometry
-    NO_CMAKE_FIND_ROOT_PATH
-)
-find_dependency(EnTT REQUIRED)
-# if(NOT glm_DIR) #FIXME why do I need this? what's the point of find_dependency? fuck.
-#     find_dependency(glm CONFIG REQUIRED)
-# endif()
+
+if(NOT USE_RXT_SUBDIR)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/external/Rxt ${PROJECT_BINARY_DIR}/Rxt)
+else()
+    find_package(Rxt 0.2 REQUIRED
+        COMPONENTS Graphics Geometry
+        NO_CMAKE_FIND_ROOT_PATH
+    )
+endif()
+
+find_package(EnTT REQUIRED)
+find_package(glm REQUIRED)
 
 include(RxtEmscriptenHelpers)
 
