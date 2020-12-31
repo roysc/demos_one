@@ -37,7 +37,7 @@ struct pen_tool
 
 struct map_editor
     : Rxt::sdl::simple_gui
-    , Rxt::sdl::input_handler<map_editor, true>
+    , Rxt::sdl::input_handler_stubs_crt<map_editor>
 {
     using tick_duration = Rxt::duration_fps<30>;
     using tool_state = std::variant<std::monostate, selection_tool, pen_tool>;

@@ -1,11 +1,11 @@
 #pragma once
 
 #include "mouse_core.hpp"
-#include "controls.hpp"
 #include "events.hpp"
 #include "util.hpp"
-#include "reactive.hpp"
 
+#include <Rxt/reactive.hpp>
+#include <Rxt/controls.hpp>
 #include <Rxt/color.hpp>
 #include <Rxt/range.hpp>
 #include <Rxt/util.hpp>
@@ -13,23 +13,55 @@
 
 #include <optional>
 
+// controls position context
+template <class Num>
+struct cursor_port
+{
+    using position_type = Rxt::vec::tvec2<Num>;
+    using P = position_type;
+
+    virtual ~cursor_port() {}
+    virtual P cursor_viewspace() const = 0;
+    P cursor_worldspace() const { return cursor_viewspace() + viewport_worldspace(); }
+    virtual P viewport_worldspace() const = 0;
+
+    auto from_world(P w) const { return w - viewport_worldspace(); }
+};
+
+template <class Num>
+struct controls_2d : cursor_port<Num>
+{
+    using super_type = cursor_port<Num>;
+    using P = typename super_type::position_type;
+
+    using cursor_type = Rxt::basic_cursor<Num>;
+    using viewport_type = Rxt::basic_viewport<Num>;
+
+    cursor_type& _cursor;
+    viewport_type& _viewport;
+
+    controls_2d(cursor_type& c, viewport_type& v) : _cursor(c), _viewport(v) {}
+    P cursor_viewspace() const override { return _cursor.position(); }
+    P viewport_worldspace() const override { return _viewport.position(); }
+};
+
 // Select a box
-template <class ST>
+template <class Num>
 struct mouse_select_tool
     : public mouse_tool
 {
-    using P = typename ST::position_type;
+    using P = Rxt::vec::tvec2<Num>;
 
     using region = std::tuple<P, P>;
 
-    cursor_port<ST>& controls;
+    cursor_port<Num>& controls;
     std::optional<P> drag_origin;
     std::optional<region> selection;
     Rxt::rgba color = {1, 0, 1, 0.3};
 
     Rxt::hooks<> on_motion, on_selection;
 
-    mouse_select_tool(cursor_port<ST>& c) : controls{c} {}
+    mouse_select_tool(cursor_port<Num>& c) : controls{c} {}
 
     void mouse_down(mouse_button i) override
     {
@@ -75,7 +107,7 @@ struct mouse_select_tool
             auto [a, b] = Rxt::box(controls.cursor_viewspace(), controls.from_world(*drag_origin));
             buf.set_cursor(a, b-a+1, color);
         } else {
-            buf.set_cursor(controls.cursor_viewspace(), uvec{1}, color);
+            buf.set_cursor(controls.cursor_viewspace(), Rxt::vec::uvec2(1), color);
         }
     }
 
@@ -90,18 +122,18 @@ struct mouse_select_tool
     }
 };
 
-template <class ST>
+template <class Num>
 struct mouse_paint_tool : mouse_tool
 {
-    using P = typename ST::position_type;
+    using P = Rxt::vec::tvec2<Num>;
     using paint_method = std::function<void(P, int)>;
 
-    cursor_port<ST>& controls;
+    cursor_port<Num>& controls;
     paint_method _paint;
 
     Rxt::hooks<> on_edit;
 
-    mouse_paint_tool(cursor_port<ST>& u, paint_method m = {})
+    mouse_paint_tool(cursor_port<Num>& u, paint_method m = {})
         : controls{u}, _paint{m} {}
 
     void set_method(paint_method m) {_paint = m;}
@@ -116,14 +148,14 @@ struct mouse_paint_tool : mouse_tool
     void mouse_up(mouse_button i) override { }
 };
 
-template <class ST>
+template <class Num>
 struct mouse_stroke_tool : mouse_tool
 {
-    using P = typename ST::position_type;
+    using P = Rxt::vec::tvec2<Num>;
     using line = std::pair<P, P>;
     using stroke = std::vector<P>;
 
-    cursor_port<ST>& controls;
+    cursor_port<Num>& controls;
     std::vector<stroke> _strokes;
     std::optional<stroke> _current;
 
@@ -132,7 +164,7 @@ struct mouse_stroke_tool : mouse_tool
 
     Rxt::hooks<> on_edit;
 
-    mouse_stroke_tool(cursor_port<ST>& c) : controls{c} {}
+    mouse_stroke_tool(cursor_port<Num>& c) : controls{c} {}
 
     void mouse_down(mouse_button i) override
     {

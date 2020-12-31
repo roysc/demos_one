@@ -5,7 +5,6 @@
 #include <Rxt/color.hpp>
 #include <Rxt/math.hpp>
 #include <Rxt/vec.hpp>
-#include <Rxt/vec_io.hpp>
 
 #include "OpenSimplexNoise.hh"
 
@@ -179,7 +178,7 @@ void map_editor::draw()
     b_features.draw();
     interface.draw(viewport);
 
-    SDL_GL_SwapWindow(window.get());
+    SDL_GL_SwapWindow(&window());
 }
 
 const std::vector<tile_info> tiles = {
@@ -248,7 +247,7 @@ void map_editor::_update_cursor()
 
 void map_editor::on_mouse_motion(SDL_MouseMotionEvent motion)
 {
-    auto [x, y] = sdl::nds_coords(*window, motion.x, motion.y);
+    auto [x, y] = sdl::nds_coords(window(), motion.x, motion.y);
     cursor_position = nds_to_grid(glm::vec2(x, y), glm::vec2(viewport.size_cells() / 2u));
     send(update_cursor);
 }

@@ -5,10 +5,10 @@
 #include "space.hpp"
 #include "app3d.hpp"
 #include "entity.hpp"
-#include "reactive.hpp"
 #include "util.hpp"
 #include "palette.hpp"
 
+#include <Rxt/reactive.hpp>
 // #include <morton.h>
 
 #include <string>
@@ -25,7 +25,7 @@ using options_map = permissive_map<std::string, Rxt::reactive_toggle>;
 using stage_type = zspace2::z2_stage;
 using space_type = zspace2::z2_deep_space;
 using cell_position = stage_type::position_type;
-using free_position = Rxt::fvec3;
+using free_position = Rxt::vec::fvec3;
     
 using mesh_index = dirt_ns::mesh_data;
 
@@ -80,10 +80,10 @@ struct dirt_app : basic_app3d
     mesh_index& _mesh_index(mesh_kind mk = mesh_kind::tangible) { return *_geom[mk]; }
     entity_id put_mesh(mesh_type, mesh_color, bool, mesh_kind = mesh_kind::tangible);
 
-    static auto default_camera(Rxt::fvec2 map_size)
+    static auto default_camera(Rxt::vec::fvec2 map_size)
     {
         auto pos = free_position(map_size.x + map_size.y) / 2.f; // todo
-        return super_type::camera_type(pos, free_position(Rxt::fvec2(map_size) / 4.f, 0));
+        return super_type::camera_type(pos, free_position(Rxt::vec::fvec2(map_size) / 4.f, 0));
     }
 
     entity_id update_stage(stage_type&);

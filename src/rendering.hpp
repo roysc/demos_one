@@ -13,8 +13,8 @@
 #include <CGAL/boost/graph/helpers.h>
 #include <boost/property_map/property_map.hpp>
 
-inline Rxt::fvec3 to_glm(atrium_geom::point p) { return {p.x(), p.y(), p.z()}; }
-inline Rxt::fvec3 to_glm(atrium_geom::vector v) { return {v.x(), v.y(), v.z()}; }
+inline Rxt::vec::fvec3 to_glm(atrium_geom::point p) { return {p.x(), p.y(), p.z()}; }
+inline Rxt::vec::fvec3 to_glm(atrium_geom::vector v) { return {v.x(), v.y(), v.z()}; }
 
 template <class Trin, class Normals, class Color, class Bufs>
 void render_mesh(
@@ -43,7 +43,7 @@ template <class Mesh, class Bufs>
 void render_triangles(
     Mesh& m
     , Bufs& bufs
-    , transform3 tmat = Rxt::fmat4(1)
+    , transform3 tmat = Rxt::vec::fmat4(1)
 )
 {
     using Index = typename Mesh::index_type;
@@ -83,7 +83,7 @@ void render_hl(typename Index::face_descriptor fk,
 template <class G, class Lines>
 void render_skel(G const& g, Lines& lines, transform3 tm)
 {
-    using Tr = atrium::skel_traits<Rxt::rgb, Rxt::fvec3>;
+    using Tr = atrium::skel_traits<Rxt::rgb, Rxt::vec::fvec3>;
     // using skel_graph = color_graph_traits::graph_type;
 
     auto vp = get(Tr::vertex, g);

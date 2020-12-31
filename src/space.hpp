@@ -7,11 +7,11 @@
 #include <memory>
 #include <random>
 
-using transform3 = Rxt::fmat4;
+using transform3 = Rxt::vec::fmat4;
 
-inline Rxt::fvec3 apply(transform3 m, Rxt::fvec3 v)
+inline auto apply(transform3 m, Rxt::vec::fvec3 v)
 {
-    return Rxt::fvec3(m * Rxt::fvec4(v, 1));
+    return Rxt::vec::fvec3(m * Rxt::vec::fvec4(v, 1));
 }
 
 #define PZ_use_traits(_traits_t)                    \
@@ -24,9 +24,9 @@ namespace zspace2
 {
 struct spatial_traits
 {
-    using position = Rxt::ivec2; // could be unsigned (torus)
-    // using velocity = Rxt::ivec2;
-    using size = Rxt::uvec2;
+    using position = Rxt::vec::ivec2; // could be unsigned (torus)
+    using velocity = Rxt::vec::ivec2;
+    using size = Rxt::vec::uvec2;
 
     enum direction : unsigned char { w, e, n, s };
     static constexpr auto to_velocity(direction dir)

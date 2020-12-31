@@ -8,7 +8,7 @@ struct dense_grid
 {
     using value_type = T;
     using data_type = boost::multi_array<T, 2>;
-    using key_type = Rxt::uvec2;
+    using key_type = Rxt::vec::uvec2;
     using shape_type = key_type;
 
     data_type _data;

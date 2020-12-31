@@ -4,7 +4,7 @@
 void basic_app3d::_init_controls()
 {
     using Rxt::print;
-    using Rxt::fvec3;
+    using Rxt::vec::fvec3;
     using Ax = Rxt::axis3;
     float speed = 0.04;
 
@@ -41,11 +41,11 @@ void basic_app3d::_init_controls()
     _keys.on_press["Y"] = std::bind(put_camera, 10.f*Rxt::basis3<fvec3>(Rxt::axis3::y));
     _keys.on_press["Z"] = std::bind(put_camera, 10.f*Rxt::basis3<fvec3>(Rxt::axis3::z));
 
-    PZ_observe(input.on_quit) { quit = true; };
-    PZ_observe(input.on_key_down, SDL_Keysym k) { _keys.press(k); };
-    PZ_observe(input.on_mouse_motion, SDL_MouseMotionEvent motion) {
-        auto [x, y] = sdl::nds_coords(*window, motion.x, motion.y);
-        cursor.position({x, y});
+    RXT_observe(input.on_quit) { quit = true; };
+    RXT_observe(input.on_key_down, SDL_Keysym k) { _keys.press(k); };
+    RXT_observe(input.on_mouse_motion, SDL_MouseMotionEvent motion) {
+        auto [x, y] = sdl::nds_coords(window(), motion.x, motion.y);
+        cursor.set_position({x, y});
     };
 
     input.on_mouse_wheel += [=, this] (SDL_MouseWheelEvent wheel) {
@@ -55,14 +55,14 @@ void basic_app3d::_init_controls()
         //     camera.orbit(glm::angleAxis(wheel.x*speed, Rxt::basis3<fvec3>(Ax::z)));
     };
 
-    PZ_observe(input.on_mouse_down, SDL_MouseButtonEvent button) {
+    RXT_observe(input.on_mouse_down, SDL_MouseButtonEvent button) {
         switch (button.button) {
         case SDL_BUTTON_MIDDLE:
             drag_origin = {cursor.position(), camera};
             break;
         }
     };
-    PZ_observe(input.on_mouse_up, SDL_MouseButtonEvent button) {
+    RXT_observe(input.on_mouse_up, SDL_MouseButtonEvent button) {
         switch (button.button) {
         case SDL_BUTTON_MIDDLE:
             drag_origin = {};

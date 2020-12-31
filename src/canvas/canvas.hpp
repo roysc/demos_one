@@ -1,12 +1,12 @@
 #pragma once
 
-#include "map.hpp"
-#include "mouse_tools.hpp"
-#include "controls.hpp"
-#include "reactive.hpp"
-#include "input.hpp"
+#include "../map.hpp"
+#include "../mouse_tools.hpp"
 
+#include <Rxt/controls.hpp>
+#include <Rxt/reactive.hpp>
 #include <Rxt/graphics/sdl.hpp>
+#include <Rxt/graphics/sdl/reactive.hpp>
 #include <Rxt/graphics/shader/grid_quad_2D.hpp>
 #include <Rxt/graphics/shader/solid_color_3D.hpp>
 
@@ -17,17 +17,17 @@ using grid_program = Rxt::shader_programs::webcompat::grid_quad_2D;
 
 struct grid_traits
 {
-    using position_type = ivec;
-    using size_type = uvec;
+    using position_type = Rxt::vec::ivec2;
+    using size_type = Rxt::vec::uvec2;
 };
 
-using grid_controls = controls_2d<grid_traits>;
-using grid_selector = mouse_select_tool<grid_traits>;
-using grid_painter = mouse_paint_tool<grid_traits>;
-using stroke_tool = mouse_stroke_tool<grid_traits>;
+using grid_controls = controls_2d<int>;
+using grid_selector = mouse_select_tool<int>;
+using grid_painter = mouse_paint_tool<int>;
+using stroke_tool = mouse_stroke_tool<int>;
 
-using viewport_type = Rxt::adapt_reactive_crt<reactive_viewport, hooks<>, grid_traits>;
-using cursor_type = Rxt::adapt_reactive_crt<reactive_cursor, hooks<>, grid_traits>;
+using viewport_type = Rxt::adapt_reactive_crt<Rxt::reactive_viewport, hooks<>, int>;
+using cursor_type = Rxt::adapt_reactive_crt<Rxt::reactive_cursor, hooks<>, int>;
 
 struct tool_hooks
 {
@@ -51,7 +51,8 @@ struct tool_hooks
 
 using tool_router = Rxt::hook_router<mouse_tool*, tool_hooks>;
 
-using glm::fvec2;
+using Rxt::vec::fvec2;
+using Rxt::vec::ivec2;
 using line_program = Rxt::shader_programs::solid_color_3D<GL_LINES>;
 using Rxt::rgba;
 
@@ -59,7 +60,7 @@ struct model_buffers : grid_program::buffers
 {
     const rgba select_color {0, 0, 1, 1};
 
-    void add_selection(ivec a, ivec b)
+    void add_selection(ivec2 a, ivec2 b)
     {
         push(a, b-a+1, select_color);
     }
@@ -75,10 +76,9 @@ struct ui_buffers : grid_program::buffers
     }
 };
 
-struct line_buffers
-    : line_program::buffers
+struct line_buffers : line_program::buffers
 {
-    void add_line(ivec a, ivec b, rgba color)
+    void add_line(ivec2 a, ivec2 b, rgba color)
     {
         push(position_vec(a, 0), color);
         push(position_vec(b, 0), color);
@@ -89,7 +89,7 @@ struct canvas
     : Rxt::sdl::simple_gui
 {
     Rxt::sdl::key_dispatcher keys;
-    input_hooks input;
+    Rxt::sdl::input_hooks input;
     bool enable_edge_scroll = true;
     bool quit = false;
 

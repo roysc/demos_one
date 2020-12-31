@@ -5,7 +5,7 @@
 dirt_app::dirt_app(viewport_uvec size)
     : super_type("atrium: dirt", size)
     , palette(default_palette())
-    , space(Rxt::uvec2(8), 42)
+    , space(Rxt::vec::uvec2(8), 42)
 {
     initial_camera = default_camera(space.stage_size());
 

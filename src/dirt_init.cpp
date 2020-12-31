@@ -4,7 +4,7 @@
 
 #include <Rxt/color.hpp>
 #include <Rxt/vec.hpp>
-#include <Rxt/vec_io.hpp>
+
 
 using Rxt::print;
 using Rxt::to_rgba;
@@ -18,21 +18,21 @@ static float normalize_int(I t)
 
 void dirt_app::_init_ui()
 {
-    PZ_observe(on_debug) {
+    RXT_observe(on_debug) {
         print("camera.pos={} .focus={} .up={}\n", camera.position(), camera.focus, camera.up);
         if (drag_origin) print("drag_origin = {}\n", drag_origin->pos);
     };
 
-    PZ_observe(opts["highlight_face"].on_disable) {
+    RXT_observe(opts["highlight_face"].on_disable) {
         highlighted_faces.emplace();
         highlighted_faces.on_update();
     };
-    PZ_observe(opts["highlight_vertex"].on_disable) {
+    RXT_observe(opts["highlight_vertex"].on_disable) {
         highlighted_vertices.clear();
         highlighted_vertices.on_update();
     };
 
-    PZ_observe(cursor.on_update) {
+    RXT_observe(cursor.on_update) {
         using namespace atrium_geom;
         auto [source, dir] = Rxt::cast_ray(cursor.position(), camera);
         auto& geom = _mesh_index();
@@ -70,7 +70,7 @@ void dirt_app::_init_ui()
         // print("put({}): {}({})\n", pos, entity_name(entities, ent), (std::size_t)ent);
     };
 
-    PZ_observe_capv(input.on_mouse_down, SDL_MouseButtonEvent button) {
+    RXT_observe_capval(input.on_mouse_down, SDL_MouseButtonEvent button) {
         switch (button.button) {
         case SDL_BUTTON_LEFT: {
             paint(&dirt_ns::build_house);
@@ -78,8 +78,8 @@ void dirt_app::_init_ui()
         }
     };
 
-    keys().on_press["1"] = std::bind(paint, &dirty::build_house);
-    keys().on_press["2"] = std::bind(paint, &dirty::build_tetroid);
+    keys().on_press["1"] = std::bind(paint, &dirt_ns::build_house);
+    keys().on_press["2"] = std::bind(paint, &dirt_ns::build_tetroid);
     keys().on_press["T"] = [this] {
         _tick++;
         _ent_update();
@@ -124,8 +124,8 @@ entity_id dirt_app::update_stage(stage_type& stage)
     auto ephent = put_mesh(eph, to_rgba(palette.at("water"), .7), true, mesh_kind::ephemeral);
     auto ephid = entity_mesh(ephent).key;
     set_parent_entity(entities, ent, ephent);
-    entities.emplace<cpt::fpos3>(ent, Rxt::fvec3(0));
-    entities.emplace<cpt::fpos3>(ephent, Rxt::fvec3(0));
+    entities.emplace<cpt::fpos3>(ent, Rxt::vec::fvec3(0));
+    entities.emplace<cpt::fpos3>(ephent, Rxt::vec::fvec3(0));
 
     // map tangible face to stage position
     face_spaces[meshid] = f2s;
@@ -144,24 +144,24 @@ void dirt_app::_init_model()
     auto& b_lines = line_prog.buf["lines"];
     auto& b_overlines = line_prog.buf["overlines"];
 
-    PZ_observe(active_stage.on_update, auto stage) {
+    RXT_observe(active_stage.on_update, auto stage) {
         this->update_stage(*stage);
     };
 
-    PZ_observe(_model_update) {
+    RXT_observe(_model_update) {
         auto free_mesh = [&] (cpt::fpos3 pos, auto& g)
         {
-            auto tm = Rxt::translate(pos.r);
+            auto tm = translate(pos.r);
             g.render(g.transparent ? b_tris_txp : b_triangles, tm);
         };
         auto cell_mesh = [&] (cpt::cell cell, auto& g)
         {
-            auto tm = Rxt::translate(offset<free_position>(cell));
+            auto tm = translate(offset<free_position>(cell));
             g.render(g.transparent ? b_tris_txp : b_triangles, tm);
         };
         auto cell_skel = [&](auto cell, auto& g)
         {
-            auto tm = Rxt::translate(offset<free_position>(cell));
+            auto tm = translate(offset<free_position>(cell));
             g.render(b_lines, tm);
         };
 
@@ -177,7 +177,7 @@ void dirt_app::_init_model()
         b_lines.update();
     };
 
-    PZ_observe(highlighted_faces.on_update) {
+    RXT_observe(highlighted_faces.on_update) {
         auto& buf = line_prog.buf["over_lines_hl"];
         buf.clear();
         if (highlighted_faces) {
@@ -190,7 +190,7 @@ void dirt_app::_init_model()
         buf.update();
     };
 
-    PZ_observe(highlighted_vertices.on_update) {
+    RXT_observe(highlighted_vertices.on_update) {
         auto& b = point_prog.buf["points"];
         b.clear();
         for (auto [oi, vd]: highlighted_vertices) {

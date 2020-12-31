@@ -1,7 +1,6 @@
 #pragma once
 
 #include <entt/entt.hpp>
-#include <Rxt/demangle.hpp>
 #include <set>
 
 using entity_registry = entt::registry;

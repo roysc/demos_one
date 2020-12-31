@@ -29,7 +29,7 @@ using mesh_key = mesh_data::key_type;
 using mesh_color = Rxt::rgba;
 // using mesh_colors = std::map<mesh_key, mesh_color>;
 
-using skel_type = atrium::skel_traits<Rxt::rgb, Rxt::fvec3>::graph_type;
+using skel_type = atrium::skel_traits<Rxt::rgb, Rxt::vec::fvec3>::graph_type;
 
 // Could:
 // - look up mesh from entity id
@@ -73,7 +73,7 @@ struct skel_geom
 using z2_traits = zspace2::spatial_traits;
 namespace _phys
 {
-// struct motion { z2_traits::velocity v; };
+struct motion { z2_traits::velocity v; };
 
 }
 
@@ -96,11 +96,11 @@ struct agent
     bool move(M);
 };
 
-// struct zpos { Rxt::ivec2 r{0}; };
+// struct zpos { Rxt::vec::ivec2 r{0}; };
 // struct zvel { };
 // struct fbox2 { Rxt::bounding_box<float> b; };
-// struct fpos3 { Rxt::fvec3 r{0}; };
-struct fpos3 { Rxt::fvec3 r; };
+// struct fpos3 { Rxt::vec::fvec3 r{0}; };
+struct fpos3 { Rxt::vec::fvec3 r; };
 
 using skel = skel_geom;
 using mesh = mesh_geom;

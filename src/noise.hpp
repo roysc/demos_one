@@ -1,8 +1,6 @@
 // #include "map.hpp"
 
 #include <Rxt/math.hpp>
-#include <Rxt/io.hpp>
-#include <Rxt/vec_io.hpp>
 
 // using Vec4u8 = glm::tvec4<unsigned char, glm::highp>;
 // using image_data = boost::multi_array<Vec4u8, 2>;
@@ -18,7 +16,7 @@ struct sampler_range
 {
     Out out;
     // int width, height;
-    using size_type = Rxt::ivec2;
+    using size_type = Rxt::vec::ivec2;
     size_type size;
 
     sampler_range(Out o, size_type s) : out(o), size(s) {}
@@ -32,7 +30,7 @@ struct sampler_range
 
         auto sample_position() const
         {
-            using Rxt::fvec2;
+            using Rxt::vec::fvec2;
             return fvec2(pos.x, pos.y) / fvec2(_r->size);
         }
 
@@ -61,7 +59,6 @@ struct sampler_range
         friend bool operator!=(item it, sentinel) {
             auto end = it._r->size;
             end.x = 0;
-            // Rxt::print("sampling: {} != {}\n", end, it.pos);
             return end != it.pos;
         }
     };
@@ -77,7 +74,7 @@ sampler_range(T a, S) -> sampler_range<T>;
 template <class Noise4, class T>
 void fill_clifford_torus(Noise4 noise4, T& rg)
 {
-    using Rxt::fvec2;
+    using Rxt::vec::fvec2;
 
     const unsigned scale = 0xFF; // todo
     for (auto el: rg) {

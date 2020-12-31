@@ -1,11 +1,13 @@
-#include "controls.hpp"
-#include "input.hpp"
+#pragma once
 
-#include "reactive.hpp"
+#include <Rxt/reactive.hpp>
+#include <Rxt/controls.hpp>
+
+#include <Rxt/graphics/sdl.hpp>
+#include <Rxt/graphics/sdl/reactive.hpp>
+#include <Rxt/graphics/camera.hpp>
 #include <Rxt/graphics/shader/colored_triangle_3D.hpp>
 #include <Rxt/graphics/shader/solid_color_3D.hpp>
-#include <Rxt/graphics/sdl.hpp>
-#include <Rxt/graphics/camera.hpp>
 
 #include <optional>
 
@@ -21,20 +23,16 @@ struct basic_app3d : public sdl::simple_gui
     using line_program = Rxt::shader_programs::solid_color_3D<GL_LINES>;
     using point_program = Rxt::shader_programs::solid_color_3D<GL_POINTS>;
 
-    struct cursor_traits
-    {
-        using position_type = Rxt::fvec2;
-    };
-    using cursor_type = Rxt::adapt_reactive_crt<reactive_cursor, Rxt::hooks<>, cursor_traits>;
-    using cursor_fvec = cursor_traits::position_type;
-    using viewport_uvec = Rxt::uvec2;
+    using cursor_type = Rxt::adapt_reactive_crt<Rxt::reactive_cursor, Rxt::hooks<>, float>;
+    using cursor_position_type = typename cursor_type::position_type;
+    using viewport_uvec = Rxt::vec::uvec2;
 
     using camera_state = Rxt::focused_camera;
-    using camera_type = Rxt::adapt_reactive_crt<reactive_cam, Rxt::hooks<>, camera_state>;
-    struct drag_state { cursor_traits::position_type pos; camera_state cam; };
+    using camera_type = Rxt::adapt_reactive_crt<Rxt::reactive_camera, Rxt::hooks<>, camera_state>;
+    struct drag_state { cursor_position_type pos; camera_state cam; };
 
     bool quit = false;
-    input_hooks input;
+    Rxt::sdl::input_hooks input;
     sdl::key_dispatcher _keys;
     auto& keys() { return _keys; }
 
@@ -61,5 +59,5 @@ struct basic_app3d : public sdl::simple_gui
     void _init_ui();
 
     void reset_camera();
-    void handle_drag(cursor_fvec, camera_state);
+    void handle_drag(cursor_position_type, camera_state);
 };

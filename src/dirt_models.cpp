@@ -5,7 +5,7 @@
 
 namespace dirt_ns
 {
-using Rxt::fvec3;
+using Rxt::vec::fvec3;
 
 skel_type build_plant(entity_registry)
 {

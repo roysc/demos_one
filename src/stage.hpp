@@ -1,7 +1,7 @@
 #pragma once
+
 #include "map.hpp"
 #include <Rxt/io.hpp>
-#include <Rxt/vec_io.hpp>
 
 #include <memory>
 #include <list>
@@ -110,7 +110,7 @@ std::ostream& operator<<(std::ostream& o, cell_path<P> const& cp)
     unsigned i = 0;
     for (auto p: cp.path) {
         if (i++) o << '.';
-        o << p;
+        o << fmt::format("{}", p);
     }
     return o;
 }

@@ -10,13 +10,13 @@
 #include <string>
 #include <iomanip>
 
-using Rxt::ivec2;
-using Rxt::fvec3;
-using Rxt::fvec4;
+using Rxt::vec::ivec2;
+using Rxt::vec::fvec3;
+using Rxt::vec::fvec4;
 
 basic_app3d::basic_app3d(const char* title, viewport_uvec size)
     : simple_gui(title, size)
-    , initial_camera(fvec3{1}, fvec3{0})
+    , initial_camera(fvec3(1), fvec3(0))
     , camera(initial_camera)
     // , metronome(Rxt::duration_fps<30>(1), [this] { return !is_stopped(); })
     // , ui_viewport(uvec2(20))
@@ -34,11 +34,11 @@ basic_app3d::basic_app3d(const char* title, viewport_uvec size)
 
 void basic_app3d::reset_camera() { camera.emplace(initial_camera); };
 
-void basic_app3d::handle_drag(cursor_fvec dist_nds, camera_state cam_start)
+void basic_app3d::handle_drag(cursor_position_type dist_nds, camera_state cam_start)
 {
     float mag = length(dist_nds);
-    assert(dist_nds != cursor_fvec(0));// degenerate
-    auto perp_nds = cursor_fvec(-dist_nds.y, dist_nds.x); // ccw
+    assert(dist_nds != cursor_position_type(0));// degenerate
+    auto perp_nds = cursor_position_type(-dist_nds.y, dist_nds.x); // ccw
     auto perp_vs = fvec4(perp_nds, 0, 0);
     auto about_ms = normalize(Rxt::unview(perp_vs, cam_start));
     auto q_drag_ms = glm::angleAxis(-(mag) * Rxt::tau, about_ms);
@@ -87,5 +87,5 @@ void basic_app3d::draw()
     draw_buf("over_lines_hl", line_prog);
     draw_buf("points", point_prog);
 
-    SDL_GL_SwapWindow(window.get());
+    SDL_GL_SwapWindow(&window());
 }

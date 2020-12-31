@@ -25,13 +25,10 @@ set(_HEADERS_BASE
     util.hpp
     mouse_tools.hpp
     mouse_core.hpp
-    viewport.hpp
-    controls.hpp
     space.hpp
     app3d.hpp
     palette.hpp
     stage.hpp
-    reactive.hpp
 )
 set(_SOURCES_BASE
     app3d_ui.cpp
@@ -66,20 +63,6 @@ target_link_libraries(app3d
     EnTT::EnTT
 )
 
-add_executable(map_editor
-    old/interface_display.hpp
-    old/texture_display.cpp
-    old/texture_display.hpp
-    old/map_editor.hpp
-    old/map_editor.cpp
-)
-target_link_libraries(map_editor PUBLIC app3d_base)
-target_include_directories(app3d_base PUBLIC ${PROJECT_SOURCE_DIR}/external)
-Rxt_emscripten_use_boost(map_editor)
-
-add_executable(canvas canvas.hpp canvas.cpp)
-target_link_libraries(canvas PUBLIC app3d_base)
-
 set(_DIRT_HEADERS
     dirt_models.hpp
     dirt.hpp
@@ -94,6 +77,10 @@ add_executable(dirt ${_DIRT_HEADERS} ${_DIRT_SOURCES})
 target_link_libraries(dirt PUBLIC app3d)
 
 function(_configure_emscripten _TARGET)
+    if(NOT EMSCRIPTEN)
+        return()
+    endif()
+
     set_target_properties(${_TARGET} PROPERTIES SUFFIX ".html")
     install(DIRECTORY "${PROJECT_SOURCE_DIR}/data/" DESTINATION ${PROJECT_BINARY_DIR})
 
@@ -103,7 +90,5 @@ function(_configure_emscripten _TARGET)
     # target_link_options(${_TARGET} PUBLIC --emrun) #needed?
 endfunction()
 
-if(EMSCRIPTEN)
-    _configure_emscripten(map_editor)
-    _configure_emscripten(canvas)
-endif()
+add_subdirectory(old)
+add_subdirectory(canvas)
