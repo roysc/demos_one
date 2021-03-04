@@ -184,5 +184,5 @@ void canvas::draw()
     b_ui.draw();
     b_lines_cursor.draw();
 
-    SDL_GL_SwapWindow(&window());
+    SDL_GL_SwapWindow(window());
 }

@@ -13,7 +13,7 @@ int main(int argc, char* argv[])
         seed = std::stoi(argv[1]);
     }
 
-    auto vpsize = dirt_app::viewport_uvec{800};
+    auto vpsize = dirt_app::viewport_size_type{800};
     auto loop = sdl::make_looper(new dirt_app(vpsize), step_state);
     loop();
     return 0;

@@ -2,7 +2,7 @@
 
 #include <Rxt/math.hpp>
 
-dirt_app::dirt_app(viewport_uvec size)
+dirt_app::dirt_app(viewport_size_type size)
     : super_type("atrium: dirt", size)
     , palette(default_palette())
     , space(Rxt::vec::uvec2(8), 42)

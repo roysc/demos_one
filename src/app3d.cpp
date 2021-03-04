@@ -14,7 +14,7 @@ using Rxt::vec::ivec2;
 using Rxt::vec::fvec3;
 using Rxt::vec::fvec4;
 
-basic_app3d::basic_app3d(const char* title, viewport_uvec size)
+basic_app3d::basic_app3d(const char* title, viewport_size_type size)
     : simple_gui(title, size)
     , initial_camera(fvec3(1), fvec3(0))
     , camera(initial_camera)
@@ -87,5 +87,5 @@ void basic_app3d::draw()
     draw_buf("over_lines_hl", line_prog);
     draw_buf("points", point_prog);
 
-    SDL_GL_SwapWindow(&window());
+    SDL_GL_SwapWindow(window());
 }

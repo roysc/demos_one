@@ -178,7 +178,7 @@ void map_editor::draw()
     b_features.draw();
     interface.draw(viewport);
 
-    SDL_GL_SwapWindow(&window());
+    SDL_GL_SwapWindow(window());
 }
 
 const std::vector<tile_info> tiles = {

@@ -26,8 +26,8 @@ using grid_selector = mouse_select_tool<int>;
 using grid_painter = mouse_paint_tool<int>;
 using stroke_tool = mouse_stroke_tool<int>;
 
-using viewport_type = Rxt::adapt_reactive_crt<Rxt::reactive_viewport, hooks<>, int>;
-using cursor_type = Rxt::adapt_reactive_crt<Rxt::reactive_cursor, hooks<>, int>;
+using viewport_type = Rxt::adapt_reactive_template<Rxt::reactive_viewport, hooks<>, int>;
+using cursor_type = Rxt::adapt_reactive_template<Rxt::reactive_cursor, hooks<>, int>;
 
 struct tool_hooks
 {

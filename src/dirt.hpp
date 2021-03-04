@@ -67,7 +67,7 @@ struct dirt_app : basic_app3d
     entity_id e_debug;
     Rxt::reactive_pointer<deep_stage<stage_type>> active_stage;
 
-    dirt_app(viewport_uvec);
+    dirt_app(viewport_size_type);
     void _init_model();
     void _init_ui();
 
