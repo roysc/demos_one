@@ -125,11 +125,11 @@ struct indexed_mesh_vector
     }
 
     template <class Q>
-    friend auto vertex_query(Q q, self_type const& i, unsigned n)
+    friend auto vertex_query(Q q, self_type const& ix, unsigned n)
     {
         // static_assert(!no_index);
         ray_distance dist;
-        return ray_search(i.point_tree, q, n, 0, true, dist);
+        return ray_search(ix.point_tree, q, n, 0, true, dist);
     }
 };
 }

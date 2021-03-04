@@ -40,11 +40,7 @@ void render_mesh(
 
 // todo - what is Mesh
 template <class Mesh, class Bufs>
-void render_triangles(
-    Mesh& m
-    , Bufs& bufs
-    , transform3 tmat = Rxt::vec::fmat4(1)
-)
+void render_triangles(Mesh& m, Bufs& bufs, transform3 tmat = Rxt::vec::fmat4(1))
 {
     using Index = typename Mesh::index_type;
     using TriMesh = typename Index::triangle_mesh;

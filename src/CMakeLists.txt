@@ -2,7 +2,7 @@
 
 set(OpenGL_GL_PREFERENCE GLVND)
 
-if(NOT USE_RXT_SUBDIR)
+if(USE_RXT_SUBDIR)
     add_subdirectory(${PROJECT_SOURCE_DIR}/external/Rxt ${PROJECT_BINARY_DIR}/Rxt)
 else()
     find_package(Rxt 0.2 REQUIRED
