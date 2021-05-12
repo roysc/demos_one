@@ -94,3 +94,6 @@ endfunction()
 
 add_subdirectory(old)
 add_subdirectory(canvas)
+
+add_executable(garden garden.cpp)
+target_link_libraries(garden PUBLIC Rxt::Graphics Rxt::Data)
