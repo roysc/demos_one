@@ -139,10 +139,10 @@ entity_id dirt_app::update_stage(stage_type& stage)
 
 void dirt_app::_init_model()
 {
-    auto& b_triangles = triangle_prog.buf["triangles"];
-    auto& b_tris_txp = triangle_prog.buf["tris_txp"];
-    auto& b_lines = line_prog.buf["lines"];
-    auto& b_overlines = line_prog.buf["overlines"];
+    auto& b_triangles = triangle_prog.buf("triangles");
+    auto& b_tris_txp = triangle_prog.buf("tris_txp");
+    auto& b_lines = line_prog.buf("lines");
+    auto& b_overlines = line_prog.buf("overlines");
 
     RXT_observe(active_stage.on_update, auto stage) {
         this->update_stage(*stage);
@@ -178,7 +178,7 @@ void dirt_app::_init_model()
     };
 
     RXT_observe(highlighted_faces.on_update) {
-        auto& buf = line_prog.buf["over_lines_hl"];
+        auto& buf = line_prog.buf("over_lines_hl");
         buf.clear();
         if (highlighted_faces) {
             render_hl(*highlighted_faces, _mesh_index(),
@@ -191,7 +191,7 @@ void dirt_app::_init_model()
     };
 
     RXT_observe(highlighted_vertices.on_update) {
-        auto& b = point_prog.buf["points"];
+        auto& b = point_prog.buf("points");
         b.clear();
         for (auto [oi, vd]: highlighted_vertices) {
             auto pos = get(CGAL::vertex_point, _mesh_index().sources[oi], vd);

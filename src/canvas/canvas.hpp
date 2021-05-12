@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../map.hpp"
-#include "../mouse_tools.hpp"
+#include "mouse_tools.hpp"
 
 #include <Rxt/controls.hpp>
 #include <Rxt/reactive.hpp>
@@ -29,6 +29,7 @@ using stroke_tool = mouse_stroke_tool<int>;
 using viewport_type = Rxt::adapt_reactive_template<Rxt::reactive_viewport, hooks<>, int>;
 using cursor_type = Rxt::adapt_reactive_template<Rxt::reactive_cursor, hooks<>, int>;
 
+// Set of hooks to be swapped out whenever the tool changes
 struct tool_hooks
 {
     hooks<> on_viewport_update;
