@@ -47,7 +47,6 @@ set(_SOURCES_APP3D
 add_library(app3d_base ${_HEADERS_BASE} ${_SOURCES_BASE})
 target_link_libraries(app3d_base
     Rxt::Graphics
-    glm::glm
 )
 
 add_library(app3d ${_HEADERS_APP3D} ${_SOURCES_APP3D})
