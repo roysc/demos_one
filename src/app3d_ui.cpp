@@ -41,7 +41,7 @@ void basic_app3d::_init_ui()
         using namespace Rxt::colors;
         Rxt::rgb const axis_colors[3] {red, green, blue};
 
-        auto& b_overlines = line_prog.buf["over_lines_axes"];
+        auto& b_overlines = line_prog.buf("over_lines_axes");
         b_overlines.clear();
         for (unsigned i = 0; i < 3; ++i) {
             auto c = axis_colors[i];

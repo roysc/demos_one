@@ -11,8 +11,9 @@ struct texture_display
     using texture_program = Rxt::shader_programs::texture_quad_2D;
 
     uvec grid_size;
+    Rxt::gl::texture tex;
     texture_program tex_prog;
-    texture_program::buffers b_texture {tex_prog};
+    texture_program::buffers b_texture {tex_prog, tex};
 
     texture_display(uvec);
     texture_program& texture_prog() { return tex_prog; }
