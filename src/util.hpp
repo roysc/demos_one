@@ -56,13 +56,13 @@ struct map_chain
     using key_type = typename M::key_type;
     using value_type = typename M::value_type;
 
-    std::vector<M*> list;
+    std::vector<M*> m_chain;
 
     auto at(key_type key)
     {
-        for (auto& head: list) {
-            auto it = head.find(key);
-            if (it != end(head))
+        for (auto& link: m_chain) {
+            auto it = link.find(key);
+            if (it != end(link))
                 return it->second;
         }
         throw std::out_of_range(key);
@@ -72,5 +72,5 @@ struct map_chain
 template <class M>
 map_chain<M> chain_map(M const& head, M const& next)
 {
-    return {{head, next}};
+    return {{&head, &next}};
 }
