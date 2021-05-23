@@ -74,3 +74,46 @@ map_chain<M> chain_map(M const& head, M const& next)
 {
     return {{&head, &next}};
 }
+
+// Produces minimal available index within a range
+struct index_registry
+{
+    unsigned m_max_count;
+    unsigned m_next_valid = 0;
+    std::vector<bool> m_gaps;
+
+    index_registry(unsigned max_count)
+        : m_max_count(max_count)
+    {}
+
+    // Get next available index
+    unsigned next()
+    {
+        // no gaps
+        if (m_next_valid == m_gaps.size()) {
+            m_gaps.push_back(false);
+            return m_next_valid++;
+        }
+
+        auto next = m_next_valid;
+        m_gaps[m_next_valid] = false;
+        // search ahead for next gap
+        do { ++m_next_valid; }
+        while (m_next_valid < m_gaps.size() &&
+               !m_gaps[m_next_valid]);
+        return next;
+    }
+
+    // Mark index available
+    void release(unsigned ix)
+    {
+        m_gaps.at(ix) = true;
+        if (ix < m_next_valid)
+            m_next_valid = ix;
+    }
+
+    bool full() const
+    {
+        return m_next_valid >= m_max_count;
+    }
+};
