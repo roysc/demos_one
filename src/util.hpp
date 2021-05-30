@@ -70,7 +70,7 @@ struct map_chain
 };
 
 template <class M>
-map_chain<M> chain_map(M const& head, M const& next)
+map_chain<M> chain_maps(M const& head, M const& next)
 {
     return {{&head, &next}};
 }
