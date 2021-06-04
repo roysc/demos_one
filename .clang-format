@@ -1,0 +1,4 @@
+BasedOnStyle: GNU
++AlwaysBreakAfterReturnType: None
++AlwaysBreakTemplateDeclarations: Yes
++IndentWidth:     4
