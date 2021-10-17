@@ -24,7 +24,7 @@ int main(int argc, char** argv)
         seed = std::stoi(argv[1]);
     }
 
-    gl::debug_context::enable_logging = false;
+    gl::get_config().enable_logging = false;
 
     auto loop = sdl::make_looper(
         new canvas(viewport_type{uvec2(80), uvec2(8)}),

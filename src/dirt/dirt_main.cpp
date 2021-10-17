@@ -1,11 +1,6 @@
 #include "dirt.hpp"
 #include <string>
 
-extern "C" void step_state(void* c)
-{
-    sdl::em_advance<dirt_app>(c);
-}
-
 int main(int argc, char* argv[])
 {
     int seed = 42;
@@ -14,7 +9,7 @@ int main(int argc, char* argv[])
     }
 
     auto vpsize = dirt_app::viewport_size_type{800};
-    auto loop = sdl::make_looper(new dirt_app(vpsize), step_state);
+    auto loop = sdl::make_looper(new dirt_app(vpsize));
     loop();
     return 0;
 }

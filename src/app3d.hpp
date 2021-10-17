@@ -51,7 +51,7 @@ struct basic_app3d : public sdl::simple_gui
 
     basic_app3d(const char*, viewport_size_type);
     Rxt::reactive_handle _update(SDL_Event);
-    bool is_stopped() const { return quit; }
+    bool running() const { return !quit; }
     void draw();
 
     void _init_controls();

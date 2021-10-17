@@ -2,6 +2,7 @@
 
 #include <entt/entt.hpp>
 #include <set>
+#include <string>
 
 using entity_registry = entt::registry;
 using entity_id = entt::entity;

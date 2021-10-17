@@ -13,7 +13,7 @@ struct texture_display
     uvec grid_size;
     Rxt::gl::texture tex;
     texture_program tex_prog;
-    texture_program::buffers b_texture {tex_prog, tex};
+    texture_program::buffers b_texture {tex_prog};
 
     texture_display(uvec);
     texture_program& texture_prog() { return tex_prog; }

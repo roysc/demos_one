@@ -1,5 +1,4 @@
 #include "entity.hpp"
-#include "matter.hpp"
 
 #include <Rxt/geometry/shapes.hpp>
 #include <Rxt/io.hpp>
@@ -19,7 +18,7 @@ entity_id set_parent_entity(entity_registry& r, entity_id par, entity_id child)
     pc.ids.insert(child);
     // just use two-way pointers
     entity_id ret = nullent;
-    if (r.has<_cpt::parent>(child)) {
+    if (r.try_get<_cpt::parent>(child)) {
         ret = r.get<_cpt::parent>(child).id;
     }
     r.emplace<_cpt::parent>(child, par);

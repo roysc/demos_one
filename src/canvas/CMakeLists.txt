@@ -5,7 +5,6 @@ set(canvas_HEADERS
 )
 
 add_executable(canvas canvas.cpp)
-target_link_libraries(canvas PUBLIC app3d_base)
-target_include_directories(canvas PUBLIC ..)
+target_link_libraries(canvas PUBLIC Rxt::Base)
 
 _configure_emscripten(canvas)
