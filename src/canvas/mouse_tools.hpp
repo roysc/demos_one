@@ -1,8 +1,8 @@
 #pragma once
 
-#include "mouse_core.hpp"
-#include "events.hpp"
-#include "util.hpp"
+#include "../mouse_core.hpp"
+#include "../events.hpp"
+#include "../util.hpp"
 
 #include <Rxt/reactive.hpp>
 #include <Rxt/controls.hpp>

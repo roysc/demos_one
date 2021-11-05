@@ -12,11 +12,6 @@ namespace sdl = Rxt::sdl;
 using Rxt::print;
 using Rxt::vec::uvec2;
 
-extern "C" void step_state(void* c)
-{
-    sdl::em_advance<canvas>(c);
-}
-
 int main(int argc, char** argv)
 {
     int seed = 42;
@@ -26,10 +21,7 @@ int main(int argc, char** argv)
 
     gl::get_config().enable_logging = false;
 
-    auto loop = sdl::make_looper(
-        new canvas(viewport_type{uvec2(80), uvec2(8)}),
-        step_state
-    );
+    auto loop = sdl::make_looper(new canvas(viewport_type{uvec2(80), uvec2(8)}));
     loop();
 
     return 0;

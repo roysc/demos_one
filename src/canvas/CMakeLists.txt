@@ -5,6 +5,6 @@ set(canvas_HEADERS
 )
 
 add_executable(canvas canvas.cpp)
-target_link_libraries(canvas PUBLIC Rxt::Base)
+target_link_libraries(canvas PUBLIC Rxt::Base Rxt::Graphics)
 
 _configure_emscripten(canvas)

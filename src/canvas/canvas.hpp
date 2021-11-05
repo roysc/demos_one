@@ -129,7 +129,7 @@ struct canvas
     void advance(SDL_Event);
     void draw();
 
-    bool is_stopped() const { return quit; }
+    bool running() const { return !quit; }
 
     void _init_controls();
     void _init_observers();
