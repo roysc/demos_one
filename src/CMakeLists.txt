@@ -74,5 +74,5 @@ if(NOT DISABLE_3D)
         EnTT::EnTT)
 
     add_subdirectory(dirt)
-    add_subdirectory(old)
+    # add_subdirectory(old)
 endif()
