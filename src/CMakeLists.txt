@@ -1,7 +1,5 @@
 # Atrium source root CMakeLists.txt
 
-include(CMakePrintHelpers)
-
 set(OpenGL_GL_PREFERENCE GLVND)
 
 if(USE_RXT_SUBDIR)
@@ -43,12 +41,7 @@ function(_configure_emscripten TGT)
 endfunction()
 
 add_subdirectory(canvas)
-
-add_executable(garden garden.cpp)
-target_link_libraries(garden PUBLIC Rxt::Graphics Rxt::Data)
-if(EMSCRIPTEN)
-    _configure_emscripten(garden)
-endif()
+add_subdirectory(garden)
 
 if(NOT DISABLE_3D)
     set(_HEADERS_APP3D
