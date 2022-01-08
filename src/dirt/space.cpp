@@ -33,19 +33,22 @@ z2_space::z2_space(size_type ss, int seed)
 
 void z2_space::generate_stage(z2_stage& out)
 {
-    using noise_function = OSN::Noise<4>;
+    using NoiseFunc = OSN::Noise<4>;
     // todo deterministic wrt. cell path?
     std::uniform_int_distribution<int> dist{0, 64};
     auto seed = dist(_generator.gen);
-    noise_function noise{seed};
+    NoiseFunc noise{seed};
     auto scale = 0xFF;
-    auto put_2d = [&] (int x, int y, auto a)
-    {
+    auto put_2d = [&] (int x, int y, auto a) {
         out.grid().put({x, y}, a * scale / 2);
     };
-    auto sampler = sampler_range(put_2d, out.size());
-    auto noise_4d = [&] (auto... args) { return noise.eval(args...); };
-    fill_clifford_torus(noise_4d, sampler);
+    // auto sampler = sampler_range(put_2d, out.size());
+    // auto noise_4d = [&] (auto... args) { return noise.eval(args...); };
+    // fill_clifford_torus(noise_4d, sampler);
+    fill_clifford_torus(
+        [&] (auto... args) { return noise.eval(args...); },
+        sampler_range(put_2d, out.size()),
+    );
 }
 
 // z2_stage* z2_space::get_stage(stage_index i)

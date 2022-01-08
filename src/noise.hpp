@@ -11,12 +11,14 @@
 //     OSN::Noise<4> osn4{seed};
 // };
 
+// Out should be callable as out(i2, i2, float)
 template <class Out>
 struct sampler_range
 {
     Out out;
     // int width, height;
     using size_type = Rxt::vec::ivec2;
+    // Size of the domain in cells
     size_type size;
 
     sampler_range(Out o, size_type s) : out(o), size(s) {}
@@ -28,6 +30,7 @@ struct sampler_range
         size_type pos;
         sampler_range* _r;
 
+        // Normalized position of sample cell within domain
         auto sample_position() const
         {
             using Rxt::vec::fvec2;
@@ -87,3 +90,4 @@ void fill_clifford_torus(Noise4 noise4, T& rg)
         el.put(sample);
     }
 }
+
