@@ -1,6 +1,10 @@
-// #include "map.hpp"
+#include "map.hpp"
 
 #include <Rxt/math.hpp>
+#include "OpenSimplexNoise.hh"
+
+#include <limits>
+#include <random>
 
 // using Vec4u8 = glm::tvec4<unsigned char, glm::highp>;
 // using image_data = boost::multi_array<Vec4u8, 2>;
@@ -91,3 +95,18 @@ void fill_clifford_torus(Noise4 noise4, T out)
     }
 }
 
+template <class T>
+void generate_map(dense_grid<T>& out, std::default_random_engine gen)
+{
+    using NoiseFunc = OSN::Noise<4>;
+    std::uniform_int_distribution<int> dist{0, 64};
+    NoiseFunc noise{dist(gen)}; // seed
+    auto scale = std::numeric_limits<T>::max();
+    auto put_2d = [&] (int x, int y, auto a) {
+        out.put({x, y}, a * scale);
+    };
+    fill_clifford_torus(
+        [&] (auto... args) { return noise.eval(args...); },
+        sampler_range(put_2d, out.shape())
+    );
+}
