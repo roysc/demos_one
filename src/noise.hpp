@@ -75,12 +75,12 @@ template <class T, class S>
 sampler_range(T a, S) -> sampler_range<T>;
 
 template <class Noise4, class T>
-void fill_clifford_torus(Noise4 noise4, T& rg)
+void fill_clifford_torus(Noise4 noise4, T out)
 {
     using Rxt::vec::fvec2;
 
     const unsigned scale = 0xFF; // todo
-    for (auto el: rg) {
+    for (auto el: out) {
         fvec2 c = el.sample_position();
         float sample = 0;
         for (int i = 0; i < 8; ++i) {

@@ -1,7 +1,7 @@
 #include "canvas.hpp"
 #include "../util.hpp"
 
-#include <Rxt/graphics/gl_handy.hpp>
+#include <Rxt/graphics/gl/handy.hpp>
 #include <Rxt/range.hpp>
 #include <Rxt/log.hpp>
 

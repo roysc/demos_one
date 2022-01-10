@@ -47,7 +47,7 @@ void z2_space::generate_stage(z2_stage& out)
     // fill_clifford_torus(noise_4d, sampler);
     fill_clifford_torus(
         [&] (auto... args) { return noise.eval(args...); },
-        sampler_range(put_2d, out.size()),
+        sampler_range(put_2d, out.size())
     );
 }
 
