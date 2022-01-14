@@ -6,12 +6,15 @@
 ** position
 ** velocity
 ** acceleration
-* TODO interface
-** TODO mouse pan
+* ??? interface
+** DO mouse pan
 
 * cleanup
 
 ** move reactive to Rxt
 
-* WIP render child entities with parent
+* DONE render child entities with parent
 
+* WIP spatial movement based on velocity
+
+* DO fix mouse input
