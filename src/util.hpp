@@ -29,6 +29,15 @@ auto orbit_cam = [](auto& cam, auto axis, float d)
     cam->orbit(glm::angleAxis(d, about));
 };
 
+// Set at index, expanding vector as needed
+template <class T>
+void set_and_resize(std::vector<T>& c, std::size_t i, T const& val)
+{
+    if (i >= c.size())
+        c.resize(i + 1);
+    c[i] = val;
+}
+
 // Return inserted value, whether or not it existed
 template <class C, class... Ts>
 auto& get_or_emplace(C& c, Ts&&... a)

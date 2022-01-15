@@ -6,6 +6,8 @@
 
 using entity_registry = entt::registry;
 using entity_id = entt::entity;
+using entity_handle = entt::handle;
+
 inline constexpr entity_id nullent = entt::null;
 
 // Get entity name
