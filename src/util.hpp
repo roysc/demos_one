@@ -5,26 +5,33 @@
 #include <Rxt/math.hpp>
 #include <SDL2/SDL.h>
 
-#include <vector>
+#include <map>
 #include <stdexcept>
 #include <utility>
-#include <map>
+#include <vector>
 
 template <unsigned ix, class Vec>
-Vec invert(Vec v) { v[ix] = -v[ix]; return v; }
+Vec invert(Vec v)
+{
+    v[ix] = -v[ix];
+    return v;
+}
 
 inline mouse_button mouse_button_from_sdl(SDL_MouseButtonEvent button)
 {
     switch (button.button) {
-    case SDL_BUTTON_LEFT: return mouse_button::left;
-    case SDL_BUTTON_MIDDLE: return mouse_button::middle;
-    case SDL_BUTTON_RIGHT: return mouse_button::right;
-    default: return mouse_button::invalid;
+    case SDL_BUTTON_LEFT:
+        return mouse_button::left;
+    case SDL_BUTTON_MIDDLE:
+        return mouse_button::middle;
+    case SDL_BUTTON_RIGHT:
+        return mouse_button::right;
+    default:
+        return mouse_button::invalid;
     }
 }
 
-auto orbit_cam = [](auto& cam, auto axis, float d)
-{
+auto orbit_cam = [](auto& cam, auto axis, float d) {
     auto about = Rxt::basis3<glm::vec3>(axis);
     cam->orbit(glm::angleAxis(d, about));
 };
@@ -53,10 +60,7 @@ struct permissive_map
     using value_type = V;
     std::map<K, V> _map;
 
-    value_type& operator[](key_type k)
-    {
-        return get_or_emplace(_map, k, V{});
-    }
+    value_type& operator[](key_type k) { return get_or_emplace(_map, k, V{}); }
 };
 
 template <class M>
@@ -69,7 +73,7 @@ struct map_chain
 
     auto at(key_type key)
     {
-        for (auto& link: m_chain) {
+        for (auto& link : m_chain) {
             auto it = link.find(key);
             if (it != end(link))
                 return it->second;
@@ -87,16 +91,18 @@ map_chain<M> chain_maps(M const& head, M const& next)
 // Produces minimal available index within a range
 struct index_registry
 {
+    using index_type = unsigned;
+
     unsigned m_max_count;
     unsigned m_next_valid = 0;
     std::vector<bool> m_gaps;
 
-    index_registry(unsigned max_count)
+    index_registry(unsigned max_count = 2 << 16)
         : m_max_count(max_count)
     {}
 
     // Get next available index
-    unsigned next()
+    index_type next()
     {
         // no gaps
         if (m_next_valid == m_gaps.size()) {
@@ -107,22 +113,19 @@ struct index_registry
         auto next = m_next_valid;
         m_gaps[m_next_valid] = false;
         // search ahead for next gap
-        do { ++m_next_valid; }
-        while (m_next_valid < m_gaps.size() &&
-               !m_gaps[m_next_valid]);
+        do {
+            ++m_next_valid;
+        } while (m_next_valid < m_gaps.size() && !m_gaps[m_next_valid]);
         return next;
     }
 
     // Mark index available
-    void release(unsigned ix)
+    void release(index_type ix)
     {
         m_gaps.at(ix) = true;
         if (ix < m_next_valid)
             m_next_valid = ix;
     }
 
-    bool full() const
-    {
-        return m_next_valid >= m_max_count;
-    }
+    bool full() const { return m_next_valid >= m_max_count; }
 };
