@@ -61,27 +61,15 @@ void dirt_app::advance(SDL_Event event)
     // if (active_stage)
     //     active_stage->run();
 
-    auto up1 = super_type::_update(event);
-    auto up2 = {
-        &_model_update,
-        &highlighted_faces.on_update,
-    };
+    auto updates = Rxt::make_hooks(
+        super_type::_updates(event),
+        _model_update,
+        highlighted_faces.on_update
+    );
+    auto dirty = updates.flush();
 
-    auto dirty = flush_all(up1) + flush_all(up2);
-
-    auto motion = [&] (auto& mot)
-    {
-        // auto ent = entity_for
-
-        dirty++;
-    };
-    entities.view<cpt::motion>().each(motion);
-
-    if (dirty) {
-        draw_clear();
-        super_type::draw();
-        // draw();
-    }
+    draw_clear();
+    super_type::draw();
 }
 
 bool dirt_app::highlighted_space(cell_position& out) const

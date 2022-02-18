@@ -46,17 +46,17 @@ void basic_app3d::handle_drag(cursor_position_type dist_nds, camera_state cam_st
     camera.emplace(cam_start);
 }
 
-Rxt::reactive_handle basic_app3d::_update(SDL_Event event)
+Rxt::hooks<> basic_app3d::_updates(SDL_Event event)
 {
     do {
         input.handle_input(event);
     } while (SDL_PollEvent(&event));
     keys().scan();
 
-    return {
-        &cursor.on_update,
-        &camera.on_update,
-    };
+    return Rxt::make_hooks(
+        cursor.on_update,
+        camera.on_update
+    );
 }
 
 void basic_app3d::draw()

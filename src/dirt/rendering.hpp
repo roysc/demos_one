@@ -44,7 +44,7 @@ void render_triangles(Mesh& m, Bufs& bufs, transform3 tmat = Rxt::vec::fmat4(1))
 {
     using Index = typename Mesh::index_type;
     using TriMesh = typename Index::triangle_mesh;
-    using TriFace = Rxt::graph_traits<TriMesh>::face_descriptor;
+    using TriFace = typename Rxt::graph_traits<TriMesh>::face_descriptor;
     using NormalMap = std::map<TriFace, atrium_geom::vector>;
 
     auto i = m.key;

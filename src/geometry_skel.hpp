@@ -17,7 +17,7 @@ struct skel_traits
     using edge_prop = Rxt::property<edge_t, E>;
     using graph_type = Rxt::directed_adj_list<vert_prop, edge_prop>;
 
-    using vdesc = Rxt::graph_traits<graph_type>::vertex_descriptor;
-    using edesc = Rxt::graph_traits<graph_type>::edge_descriptor;
+    using vdesc = typename Rxt::graph_traits<graph_type>::vertex_descriptor;
+    using edesc = typename Rxt::graph_traits<graph_type>::edge_descriptor;
 };
 }

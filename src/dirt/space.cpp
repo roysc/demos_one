@@ -1,6 +1,5 @@
 #include "space.hpp"
 #include "noise.hpp"
-#include "OpenSimplexNoise.hh"
 
 namespace zspace2
 {
@@ -19,7 +18,7 @@ z2_stage::size_type z2_stage::size() const
 
 z2_space::z2_space(size_type ss, int seed)
     : _stage_size(ss)
-    , _generator{seed}
+    , _generator{unsigned(seed)}
     , _root{*this}
 {
     auto depth = 1;

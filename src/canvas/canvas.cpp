@@ -91,7 +91,7 @@ void canvas::_init_observers()
 
     RXT_observe(router->on_debug) {
         print("cursor={}\nviewport=(pos={}, scale={})\n",
-              cursor.position(), viewport.position(), viewport.scale_factor()
+              cursor.position(), viewport.position(), viewport.scale()
         );
     };
 
@@ -132,7 +132,7 @@ void canvas::_init_controls()
     RXT_observe(input.on_mouse_wheel, SDL_MouseWheelEvent wheel) {
         if (wheel.y == 0) return;
         auto sf = viewport.scale_pow(-wheel.y);
-        viewport.scale_to(sf, controls.cursor_worldspace());
+        viewport.set_scale_focused(sf, controls.cursor_worldspace());
     };
     RXT_observe(input.on_mouse_down, SDL_MouseButtonEvent button) {
         tool->mouse_down(mouse_button_from_sdl(button));
@@ -155,14 +155,7 @@ void canvas::advance(SDL_Event event)
         viewport.edge_scroll(cursor.position(), 1);
     }
 
-    auto updates = {
-        &cursor.on_update,
-        &viewport.on_update,
-        &router.on_update,
-    };
-    auto dirty = Rxt::flush_all(updates);
-
-    if (dirty) draw();
+    draw();
 }
 
 void canvas::draw()

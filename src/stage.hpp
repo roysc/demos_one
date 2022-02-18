@@ -55,7 +55,7 @@ struct deep_stage
     : Stage
 {
     using super_type = Stage;
-    using position_type = Stage::position_type;
+    using position_type = typename Stage::position_type;
 
     using pointer = std::unique_ptr<deep_stage>; // tradeoffs v T*?
     using depth_t = unsigned char;

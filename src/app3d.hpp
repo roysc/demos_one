@@ -1,12 +1,12 @@
 #pragma once
 
-#include <Rxt/reactive.hpp>
-#include <Rxt/controls.hpp>
 #include <Rxt/camera.hpp>
+#include <Rxt/controls.hpp>
 #include <Rxt/graphics/sdl.hpp>
 #include <Rxt/graphics/sdl/reactive.hpp>
 #include <Rxt/graphics/shader/colored_triangle_3D.hpp>
 #include <Rxt/graphics/shader/solid_color_3D.hpp>
+#include <Rxt/reactive.hpp>
 
 #include <optional>
 
@@ -27,8 +27,13 @@ struct basic_app3d : public sdl::simple_gui
     using viewport_size_type = Rxt::vec::uvec2;
 
     using camera_state = Rxt::focused_camera;
-    using camera_type = Rxt::adapt_reactive_template<Rxt::reactive_camera, Rxt::hooks<>, camera_state>;
-    struct drag_state { cursor_position_type pos; camera_state cam; };
+    using camera_type
+        = Rxt::adapt_reactive_template<Rxt::reactive_camera, Rxt::hooks<>, camera_state>;
+    struct drag_state
+    {
+        cursor_position_type pos;
+        camera_state cam;
+    };
 
     bool quit = false;
     Rxt::sdl::input_hooks input;
@@ -50,7 +55,7 @@ struct basic_app3d : public sdl::simple_gui
     Rxt::hooks<> on_debug;
 
     basic_app3d(const char*, viewport_size_type);
-    Rxt::reactive_handle _update(SDL_Event);
+    Rxt::hooks<> _updates(SDL_Event);
     bool running() const { return !quit; }
     void draw();
 
