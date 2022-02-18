@@ -1,9 +1,6 @@
 #include "app3d.hpp"
 
-extern "C" void step_state(void* c)
-{
-    sdl::em_advance<basic_app3d>(c);
-}
+extern "C" void step_state(void* c) { sdl::em_advance<basic_app3d>(c); }
 
 int main(int argc, char* argv[])
 {

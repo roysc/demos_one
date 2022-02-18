@@ -1,11 +1,11 @@
 #pragma once
 
-#include "geometry.hpp"
-#include "geometry_skel.hpp"
-#include "geometry_mesh.hpp"
 #include "entity.hpp"
-#include "space.hpp"
+#include "geometry.hpp"
+#include "geometry_mesh.hpp"
+#include "geometry_skel.hpp"
 #include "rendering.hpp"
+#include "space.hpp"
 
 #include <Rxt/color.hpp>
 #include <optional>
@@ -19,7 +19,6 @@ struct alive
 };
 
 // skeletal_animation
-
 
 namespace dirt_ns
 {
@@ -73,7 +72,10 @@ struct skel_geom
 using z2_traits = zspace2::spatial_traits;
 namespace _phys
 {
-struct motion { z2_traits::velocity v; };
+struct motion
+{
+    z2_traits::velocity v;
+};
 
 }
 
@@ -100,7 +102,10 @@ struct agent
 // struct zvel { };
 // struct fbox2 { Rxt::bounding_box<float> b; };
 // struct fpos3 { Rxt::vec::fvec3 r{0}; };
-struct fpos3 { Rxt::vec::fvec3 r; };
+struct fpos3
+{
+    Rxt::vec::fvec3 r;
+};
 
 using skel = skel_geom;
 using mesh = mesh_geom;

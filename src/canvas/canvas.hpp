@@ -4,11 +4,11 @@
 #include "mouse_tools.hpp"
 
 #include <Rxt/controls.hpp>
-#include <Rxt/reactive.hpp>
 #include <Rxt/graphics/sdl.hpp>
 #include <Rxt/graphics/sdl/reactive.hpp>
 #include <Rxt/graphics/shader/grid_quad_2D.hpp>
 #include <Rxt/graphics/shader/solid_color_3D.hpp>
+#include <Rxt/reactive.hpp>
 
 #include <array>
 
@@ -39,7 +39,7 @@ struct tool_hooks
     hooks<> on_debug;
 
     static constexpr auto members()
-    {
+    { // clang-format off
         return std::array{
             (&tool_hooks::on_viewport_update),
             (&tool_hooks::on_cursor_update),
@@ -47,7 +47,7 @@ struct tool_hooks
             (&tool_hooks::on_select),
             (&tool_hooks::on_debug)
         };
-    }
+    } // clang-format on
 };
 
 using tool_router = Rxt::hook_router<mouse_tool*, tool_hooks>;

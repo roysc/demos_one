@@ -23,7 +23,7 @@ struct basic_app3d : public sdl::simple_gui
     using point_program = Rxt::shader_programs::solid_color_3D<GL_POINTS>;
 
     using cursor_type = Rxt::adapt_reactive_template<Rxt::reactive_cursor, Rxt::hooks<>, float>;
-    using cursor_position_type = typename cursor_type::position_type;
+    using cursor_position_type = cursor_type::position_type;
     using viewport_size_type = Rxt::vec::uvec2;
 
     using camera_state = Rxt::focused_camera;

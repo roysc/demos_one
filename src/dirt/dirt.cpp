@@ -38,10 +38,10 @@ dirt_app::dirt_app(viewport_size_type size)
     // https://ourmachinery.com/post/syncing-a-data-oriented-ecs/
     // changing<component> for update?
 
-    auto zoom = [&]
-    {
+    auto zoom = [&] {
         cell_position pos;
-        if (!highlighted_space(pos)) return;
+        if (!highlighted_space(pos))
+            return;
         auto substage = active_stage->get_substage(pos);
         Rxt::print("zooming to {}\n", substage->get_path());
         active_stage.emplace(substage);
@@ -61,11 +61,8 @@ void dirt_app::advance(SDL_Event event)
     // if (active_stage)
     //     active_stage->run();
 
-    auto updates = Rxt::make_hooks(
-        super_type::_updates(event),
-        _model_update,
-        highlighted_faces.on_update
-    );
+    auto updates
+        = Rxt::make_hooks(super_type::_updates(event), _model_update, highlighted_faces.on_update);
     auto dirty = updates.flush();
 
     draw_clear();

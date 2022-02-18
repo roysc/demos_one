@@ -38,16 +38,12 @@ void z2_space::generate_stage(z2_stage& out)
     auto seed = dist(_generator.gen);
     NoiseFunc noise{seed};
     auto scale = 0xFF;
-    auto put_2d = [&] (int x, int y, auto a) {
-        out.grid().put({x, y}, a * scale / 2);
-    };
+    auto put_2d = [&](int x, int y, auto a) { out.grid().put({x, y}, a * scale / 2); };
     // auto sampler = sampler_range(put_2d, out.size());
     // auto noise_4d = [&] (auto... args) { return noise.eval(args...); };
     // fill_clifford_torus(noise_4d, sampler);
-    fill_clifford_torus(
-        [&] (auto... args) { return noise.eval(args...); },
-        sampler_range(put_2d, out.size())
-    );
+    fill_clifford_torus([&](auto... args) { return noise.eval(args...); },
+                        sampler_range(put_2d, out.size()));
 }
 
 // z2_stage* z2_space::get_stage(stage_index i)

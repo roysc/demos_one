@@ -14,8 +14,8 @@ inline auto apply(transform3 m, Rxt::vec::fvec3 v)
     return Rxt::vec::fvec3(m * Rxt::vec::fvec4(v, 1));
 }
 
-#define PZ_use_traits(_traits_t)                    \
-    using traits = _traits_t;                       \
+#define PZ_use_traits(_traits_t)                        \
+    using traits = _traits_t;                           \
     using position_type = typename _traits_t::position; \
     using size_type = typename _traits_t::size
 

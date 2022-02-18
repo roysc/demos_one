@@ -1,9 +1,9 @@
 #include "app3d.hpp"
 
 #include <Rxt/color.hpp>
+#include <Rxt/io.hpp>
 #include <Rxt/math.hpp>
 #include <Rxt/vec.hpp>
-#include <Rxt/io.hpp>
 
 #include <glm/gtc/epsilon.hpp>
 
@@ -14,7 +14,7 @@ void basic_app3d::_init_ui()
 
     set(ui_line_prog->mvp_matrix, Rxt::vec::mat4(1));
 
-    RXT_observe(cursor.on_update) {
+    RXT_observe (cursor.on_update) {
         // if (enable_drag_around)
         if (drag_origin) {
             auto [pos, cam] = *drag_origin;
@@ -25,7 +25,7 @@ void basic_app3d::_init_ui()
         }
     };
 
-    RXT_observe(camera.on_update) {
+    RXT_observe (camera.on_update) {
         auto m = camera.model_matrix();
         auto v = camera.view_matrix();
         set(triangle_prog->model_matrix, m);
@@ -37,9 +37,9 @@ void basic_app3d::_init_ui()
         set(point_prog->mvp_matrix, camera.projection_matrix() * v * m);
     };
 
-    RXT_observe(camera.on_update) {
+    RXT_observe (camera.on_update) {
         using namespace Rxt::colors;
-        Rxt::rgb const axis_colors[3] {red, green, blue};
+        Rxt::rgb const axis_colors[3]{red, green, blue};
 
         auto& b_overlines = line_prog.buf("over_lines_axes");
         b_overlines.clear();
@@ -51,10 +51,11 @@ void basic_app3d::_init_ui()
         b_overlines.update();
     };
 
-    RXT_observe(on_debug) {
+    RXT_observe (on_debug) {
         // using namespace Rxt::operators;
         // using Rxt::operators::operator<<;
         print("camera.pos={} .focus={} .up={}\n", camera.position(), camera.focus, camera.up);
-        if (drag_origin) print("drag_origin = {}\n", drag_origin->pos);
+        if (drag_origin)
+            print("drag_origin = {}\n", drag_origin->pos);
     };
 }

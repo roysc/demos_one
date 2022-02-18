@@ -2,8 +2,8 @@
 #include "../util.hpp"
 
 #include <Rxt/graphics/gl/handy.hpp>
-#include <Rxt/range.hpp>
 #include <Rxt/log.hpp>
+#include <Rxt/range.hpp>
 
 #include <iostream>
 
@@ -33,66 +33,69 @@ void canvas::_init_observers()
     router.insert(&stroker);
     router.insert(&painter);
 
-    RXT_observe(cursor.on_update) {
+    RXT_observe (cursor.on_update) {
         router->on_cursor_update();
     };
     // The UI heeds updates in viewport size, but not position
-    RXT_observe(viewport.on_update) {
+    RXT_observe (viewport.on_update) {
         set(p_ui->viewport_size, viewport.size_cells());
         router->on_viewport_update();
     };
     // Model programs heed all viewport updates
-    RXT_observe(router->on_viewport_update) {
+    RXT_observe (router->on_viewport_update) {
         set(p_quad->viewport_size, viewport.size_cells());
         set(p_quad->viewport_position, viewport.position());
         set(p_lines->mvp_matrix, viewport.view_matrix());
     };
 
-    RXT_observe(router->on_enable) {
+    RXT_observe (router->on_enable) {
         viewport.on_update();
         cursor.on_update();
     };
 
-    RXT_observe(selector.on_selection) {
-        b_ui.clear(); b_ui.update();
+    RXT_observe (selector.on_selection) {
+        b_ui.clear();
+        b_ui.update();
         selector.render_selection(b_model);
     };
-    RXT_observe(selector.on_motion) {
+    RXT_observe (selector.on_motion) {
         cursor.on_update();
     };
-    RXT_observe(router[&selector].on_cursor_update) {
+    RXT_observe (router[&selector].on_cursor_update) {
         selector.render_cursor(b_ui);
     };
-    RXT_observe(router[&selector].on_disable) {
-        b_ui.clear(); b_ui.update();
+    RXT_observe (router[&selector].on_disable) {
+        b_ui.clear();
+        b_ui.update();
     };
 
-    RXT_observe(painter.on_edit) {
+    RXT_observe (painter.on_edit) {
         b_paint.clear();
-        paint_layer.for_each([&] (auto pos, auto& cell) {
-            if (!cell) return;
+        paint_layer.for_each([&](auto pos, auto& cell) {
+            if (!cell)
+                return;
             b_paint.push(pos, uvec2(1), rgba(Rxt::colors::sand, 1));
         });
         b_paint.update();
     };
 
-    RXT_observe(stroker.on_edit) {
+    RXT_observe (stroker.on_edit) {
         stroker.render_cursor(b_lines_cursor);
         stroker.render_model(b_lines);
     };
-    RXT_observe(router[&stroker].on_cursor_update) {
+    RXT_observe (router[&stroker].on_cursor_update) {
         stroker.render_cursor(b_lines_cursor);
     };
-    RXT_observe(router[&stroker].on_debug) {
+    RXT_observe (router[&stroker].on_debug) {
         if (stroker._current)
             RXT_show(stroker._current->at(0));
-        else print("nothing\n");
+        else
+            print("nothing\n");
     };
 
-    RXT_observe(router->on_debug) {
-        print("cursor={}\nviewport=(pos={}, scale={})\n",
-              cursor.position(), viewport.position(), viewport.scale()
-        );
+    RXT_observe (router->on_debug) {
+        print("cursor={}\nviewport=(pos={}, scale={})\n", cursor.position(), viewport.position(),
+              viewport.scale());
     };
 
     set(p_ui->viewport_position, ivec2{0});
@@ -101,9 +104,12 @@ void canvas::_init_observers()
 
 void canvas::_init_controls()
 {
-    auto move = [this] (int dx, int dy) { viewport.translate(ivec2(dx, dy)); };
-    auto scale_center = [this] (int a) { viewport.set_scale(viewport.scale_pow(a)); };
-    auto set_tool = [this] (auto t) { tool = t; router.enable(t); };
+    auto move = [this](int dx, int dy) { viewport.translate(ivec2(dx, dy)); };
+    auto scale_center = [this](int a) { viewport.set_scale(viewport.scale_pow(a)); };
+    auto set_tool = [this](auto t) {
+        tool = t;
+        router.enable(t);
+    };
     auto paint = [this](auto p, int) { paint_layer.put(p, 1); };
 
     set_tool(&selector);
@@ -111,10 +117,10 @@ void canvas::_init_controls()
     paint_layer.resize(uvec2(320));
 
     keys.on_press["C-W"] = [this] { quit = true; };
-    keys.on_scan["Left"]  = std::bind(move, -1, 0);
+    keys.on_scan["Left"] = std::bind(move, -1, 0);
     keys.on_scan["Right"] = std::bind(move, +1, 0);
-    keys.on_scan["Down"]  = std::bind(move, 0, -1);
-    keys.on_scan["Up"]    = std::bind(move, 0, +1);
+    keys.on_scan["Down"] = std::bind(move, 0, -1);
+    keys.on_scan["Up"] = std::bind(move, 0, +1);
     keys.on_press["."] = std::bind(scale_center, +1);
     keys.on_press[","] = std::bind(scale_center, -1);
     keys.on_press["1"] = std::bind(set_tool, &selector);
@@ -122,22 +128,27 @@ void canvas::_init_controls()
     keys.on_press["3"] = std::bind(set_tool, &stroker);
     keys.on_press["D"] = [&] { router->on_debug(); };
 
-    RXT_observe(input.on_mouse_motion, SDL_MouseMotionEvent motion) {
+    RXT_observe (input.on_mouse_motion, SDL_MouseMotionEvent motion) {
         auto [x, y] = Rxt::sdl::nds_coords(window(), motion.x, motion.y);
         auto gridpos = viewport.from_nds(x, y);
         cursor.set_position(gridpos);
     };
-    RXT_observe(input.on_quit) { quit = true; };
-    RXT_observe(input.on_key_down, SDL_Keysym k) { keys.press(k); };
-    RXT_observe(input.on_mouse_wheel, SDL_MouseWheelEvent wheel) {
-        if (wheel.y == 0) return;
+    RXT_observe (input.on_quit) {
+        quit = true;
+    };
+    RXT_observe (input.on_key_down, SDL_Keysym k) {
+        keys.press(k);
+    };
+    RXT_observe (input.on_mouse_wheel, SDL_MouseWheelEvent wheel) {
+        if (wheel.y == 0)
+            return;
         auto sf = viewport.scale_pow(-wheel.y);
         viewport.set_scale_focused(sf, controls.cursor_worldspace());
     };
-    RXT_observe(input.on_mouse_down, SDL_MouseButtonEvent button) {
+    RXT_observe (input.on_mouse_down, SDL_MouseButtonEvent button) {
         tool->mouse_down(mouse_button_from_sdl(button));
     };
-    RXT_observe(input.on_mouse_up, SDL_MouseButtonEvent button) {
+    RXT_observe (input.on_mouse_up, SDL_MouseButtonEvent button) {
         tool->mouse_up(mouse_button_from_sdl(button));
     };
 }
