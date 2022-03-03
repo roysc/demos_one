@@ -29,7 +29,16 @@ struct dense_grid
     void resize(shape_type shape) { _data.resize(boost::extents[shape.x][shape.y]); }
 
     value_type& at(key_type i) { return _data[i.x][i.y]; }
-    value_type const& at(key_type i) const { return _data[i.x][i.y]; }
+    value_type const& at(key_type i) const { return at(i); }
+
+    value_type& at_or(key_type i, value_type def)
+    {
+        key_type upper(_data.shape()[0], _data.shape()[1]);
+        if (any(lessThan(i, key_type(0))) || any(lessThanEqual(i, upper)))
+            return def;
+        return _data[i.x][i.y];
+    }
+    value_type const& at_or(key_type i, value_type def) const { return at_or(i, def); }
 
     void put(key_type i, T a) { _data[i.x][i.y] = a; }
 
