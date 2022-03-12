@@ -83,7 +83,7 @@ void fill_clifford_torus(Noise4 noise4, T out)
 {
     using Rxt::vec::fvec2;
 
-    const unsigned scale = 0xFF; // todo
+    // const unsigned scale = 0xFF; // todo
     for (auto el: out) {
         fvec2 c = el.sample_position();
         float sample = 0;
