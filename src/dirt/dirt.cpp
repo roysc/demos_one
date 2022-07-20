@@ -1,6 +1,7 @@
 #include "dirt.hpp"
 
 #include <Rxt/math.hpp>
+#include <string>
 
 dirt_app::dirt_app(viewport_size_type size)
     : super_type("atrium: dirt", size)
@@ -47,6 +48,19 @@ dirt_app::dirt_app(viewport_size_type size)
         active_stage.emplace(substage);
     };
     keys().on_press["F"] = zoom;
+}
+
+int main(int argc, char* argv[])
+{
+    int seed = 42;
+    if (argc > 1) {
+        seed = std::stoi(argv[1]);
+    }
+
+    auto vpsize = dirt_app::viewport_size_type{800};
+    auto loop = sdl::make_looper(new dirt_app(vpsize));
+    loop();
+    return 0;
 }
 
 void dirt_app::draw_clear()

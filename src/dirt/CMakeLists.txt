@@ -8,8 +8,7 @@ set(dirt_HEADERS
 set(dirt_SOURCES
     dirt_models.cpp
     dirt.cpp
-    dirt_init.cpp
-    dirt_main.cpp
+    dirt.init.cpp
     space.cpp
 )
 
