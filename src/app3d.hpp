@@ -22,13 +22,13 @@ struct basic_app3d : public sdl::simple_gui
     using line_program = Rxt::shader_programs::solid_color_3D<GL_LINES>;
     using point_program = Rxt::shader_programs::solid_color_3D<GL_POINTS>;
 
-    using cursor_type = Rxt::adapt_reactive_template<Rxt::reactive_cursor, Rxt::hooks<>, float>;
+    using cursor_type = Rxt::wrap_reactive_crt<Rxt::reactive_cursor, Rxt::hooks<>, float>;
     using cursor_position_type = cursor_type::position_type;
     using viewport_size_type = Rxt::vec::uvec2;
 
     using camera_state = Rxt::focused_camera;
     using camera_type
-        = Rxt::adapt_reactive_template<Rxt::reactive_camera, Rxt::hooks<>, camera_state>;
+        = Rxt::wrap_reactive_crt<Rxt::reactive_camera, Rxt::hooks<>, camera_state>;
     struct drag_state
     {
         cursor_position_type pos;

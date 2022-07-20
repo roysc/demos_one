@@ -17,7 +17,7 @@
 #include <vector>
 
 namespace cpt = dirt_ns::_cpt;
-using Rxt::adapt_reactive;
+using Rxt::wrap_reactive;
 // Toggleable options
 using options_map = permissive_map<std::string, Rxt::reactive_toggle>;
 
@@ -57,8 +57,8 @@ struct dirt_app : basic_app3d
     mesh_index* _geom[2] = {&geom_, &ephem_};
     foreign_face_map face_ephem; // geom. faces to ephemeral dependencies
     mesh_to_space face_spaces;   // each mesh's faces -> grid spaces
-    adapt_reactive<face_set> highlighted_faces;
-    adapt_reactive<vertex_set> highlighted_vertices;
+    wrap_reactive<face_set> highlighted_faces;
+    wrap_reactive<vertex_set> highlighted_vertices;
 
     space_type space;
     int _tick = 0;
