@@ -5,7 +5,7 @@ set(OpenGL_GL_PREFERENCE GLVND)
 if(USE_RXT_SUBDIR)
     add_subdirectory(${PROJECT_SOURCE_DIR}/external/Rxt ${PROJECT_BINARY_DIR}/Rxt)
 else()
-    find_package(Rxt 0.2 REQUIRED
+    find_package(Rxt REQUIRED
         COMPONENTS Graphics Geometry
         NO_CMAKE_FIND_ROOT_PATH
     )
@@ -24,6 +24,10 @@ set(_HEADERS_BASE
     palette.hpp
     stage.hpp
 )
+# https://gitlab.kitware.com/cmake/community/-/wikis/doc/tutorials/How-To-Write-Platform-Checks#platform-variables
+if(APPLE)
+    set(_SOURCES_BASE)
+endif()
 
 function(_configure_emscripten TGT)
     if(NOT EMSCRIPTEN)
@@ -45,10 +49,12 @@ add_subdirectory(garden)
 
 if(NOT DISABLE_3D)
     set(_HEADERS_APP3D
+        ${_HEADERS_BASE}
         app3d.hpp
         geometry.hpp
         geometry_mesh.hpp)
     set(_SOURCES_APP3D
+        ${_SOURCES_BASE}
         app3d_ui.cpp
         app3d_controls.cpp
         app3d.cpp
@@ -56,13 +62,11 @@ if(NOT DISABLE_3D)
         geometry.cpp
         geometry_mesh.cpp)
 
-    add_library(app3d_base ${_HEADERS_BASE} ${_SOURCES_BASE})
-    target_link_libraries(app3d_base Rxt::Graphics)
-
     add_library(app3d ${_HEADERS_APP3D} ${_SOURCES_APP3D})
     target_include_directories(app3d PUBLIC ${PROJECT_SOURCE_DIR}/external)
     target_link_libraries(app3d
         app3d_base
+        Rxt::Graphics
         Rxt::Geometry
         EnTT::EnTT)
 
