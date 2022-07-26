@@ -43,12 +43,12 @@ struct indexed_mesh_vector
     using source_mesh = Mesh;
     using point_type = typename Rxt::mesh_traits<source_mesh>::point;
 
-    using source_meshes = std::vector<Mesh>;
-    using SourceTraits = boost::graph_traits<source_mesh>;
+    using source_meshes = std::vector<source_mesh>;
+    using source_traits = boost::graph_traits<source_mesh>;
 
-    using source_face_descriptor = typename SourceTraits::face_descriptor;
+    using source_face_descriptor = typename source_traits::face_descriptor;
     using face_descriptor = std::pair<key_type, source_face_descriptor>;
-    using vertex_descriptor = std::pair<key_type, typename SourceTraits::vertex_descriptor>;
+    using vertex_descriptor = std::pair<key_type, typename source_traits::vertex_descriptor>;
 
     // Ephemeral triangulation layer
     using triangle_mesh = Mesh;
@@ -112,8 +112,8 @@ struct indexed_mesh_vector
 
     void clear() {}
 
-    template <class Query>
-    friend auto face_query(Query query, self_type const& ix)
+    template <class Q>
+    friend auto face_query(Q query, self_type const& ix)
     {
         // static_assert(!no_index);
         std::optional<face_descriptor> ret;

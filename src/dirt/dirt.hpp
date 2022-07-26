@@ -81,7 +81,7 @@ struct dirt_app : basic_app3d
         ephemeral = 1
     };
     mesh_index& _mesh_index(mesh_kind mk = mesh_kind::tangible) { return *_geom[mk]; }
-    entity_id put_mesh(mesh_type, mesh_color, bool, mesh_kind = mesh_kind::tangible);
+    entity_id put_mesh(mesh_type, mesh_color, bool, mesh_kind _ = mesh_kind::tangible);
 
     static auto default_camera(Rxt::vec::fvec2 map_size)
     {
