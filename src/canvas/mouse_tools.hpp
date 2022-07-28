@@ -1,15 +1,15 @@
 #pragma once
 
-#include "../mouse_core.hpp"
 #include "../events.hpp"
+#include "../mouse_core.hpp"
 #include "../util.hpp"
 
-#include <Rxt/reactive.hpp>
-#include <Rxt/controls.hpp>
 #include <Rxt/color.hpp>
-#include <Rxt/range.hpp>
-#include <Rxt/util.hpp>
+#include <Rxt/controls.hpp>
 #include <Rxt/log.hpp>
+#include <Rxt/range.hpp>
+#include <Rxt/reactive.hpp>
+#include <Rxt/util.hpp>
 
 #include <optional>
 
@@ -40,15 +40,17 @@ struct controls_2d : cursor_port<Num>
     cursor_type& _cursor;
     viewport_type& _viewport;
 
-    controls_2d(cursor_type& c, viewport_type& v) : _cursor(c), _viewport(v) {}
+    controls_2d(cursor_type& c, viewport_type& v)
+        : _cursor(c)
+        , _viewport(v)
+    {}
     P cursor_viewspace() const override { return _cursor.position(); }
     P viewport_worldspace() const override { return _viewport.position(); }
 };
 
 // Select a box
 template <class Num>
-struct mouse_select_tool
-    : public mouse_tool
+struct mouse_select_tool : public mouse_tool
 {
     using P = Rxt::vec::tvec2<Num>;
 
@@ -61,7 +63,9 @@ struct mouse_select_tool
 
     Rxt::hooks<> on_motion, on_selection;
 
-    mouse_select_tool(cursor_port<Num>& c) : controls{c} {}
+    mouse_select_tool(cursor_port<Num>& c)
+        : controls{c}
+    {}
 
     void mouse_down(mouse_button i) override
     {
@@ -69,7 +73,8 @@ struct mouse_select_tool
         case mouse_button::left:
             drag_origin = controls.cursor_worldspace();
             break;
-        default: {}
+        default: {
+        }
         }
         on_motion();
     }
@@ -96,7 +101,8 @@ struct mouse_select_tool
                 on_selection();
             }
             break;
-        default: {}
+        default: {
+        }
         }
     }
 
@@ -105,7 +111,7 @@ struct mouse_select_tool
     {
         if (drag_origin) {
             auto [a, b] = Rxt::box(controls.cursor_viewspace(), controls.from_world(*drag_origin));
-            buf.set_cursor(a, b-a+1, color);
+            buf.set_cursor(Rxt::vec::ivec3(a, 0), b - a + 1, color);
         } else {
             buf.set_cursor(controls.cursor_viewspace(), Rxt::vec::uvec2(1), color);
         }
@@ -115,7 +121,7 @@ struct mouse_select_tool
     void render_selection(Objbuf& buf) const
     {
         buf.clear();
-        for (auto [a, b]: Rxt::to_range(selection)) {
+        for (auto [a, b] : Rxt::to_range(selection)) {
             buf.add_selection(a, b);
         }
         buf.update();
@@ -134,9 +140,11 @@ struct mouse_paint_tool : mouse_tool
     Rxt::hooks<> on_edit;
 
     mouse_paint_tool(cursor_port<Num>& u, paint_method m = {})
-        : controls{u}, _paint{m} {}
+        : controls{u}
+        , _paint{m}
+    {}
 
-    void set_method(paint_method m) {_paint = m;}
+    void set_method(paint_method m) { _paint = m; }
 
     void mouse_down(mouse_button i) override
     {
@@ -145,7 +153,7 @@ struct mouse_paint_tool : mouse_tool
         on_edit();
     }
 
-    void mouse_up(mouse_button i) override { }
+    void mouse_up(mouse_button i) override {}
 };
 
 template <class Num>
@@ -159,12 +167,14 @@ struct mouse_stroke_tool : mouse_tool
     std::vector<stroke> _strokes;
     std::optional<stroke> _current;
 
-    const Rxt::rgba cursor_color {Rxt::colors::yellow, 1};
-    const Rxt::rgba stroke_color {Rxt::colors::white, 1};
+    const Rxt::rgba cursor_color{Rxt::colors::yellow, 1};
+    const Rxt::rgba stroke_color{Rxt::colors::white, 1};
 
     Rxt::hooks<> on_edit;
 
-    mouse_stroke_tool(cursor_port<Num>& c) : controls{c} {}
+    mouse_stroke_tool(cursor_port<Num>& c)
+        : controls{c}
+    {}
 
     void mouse_down(mouse_button i) override
     {
@@ -182,12 +192,14 @@ struct mouse_stroke_tool : mouse_tool
 
     void finish()
     {
-        if (!_current) return;
+        if (!_current)
+            return;
         if (_current->empty())
             return Rxt::print("ignoring empty stroke\n");
 
         _strokes.emplace_back(*_current);
-        for (auto& p: _strokes.back()) RXT_show(p);
+        for (auto& p : _strokes.back())
+            RXT_show(p);
 
         _current.reset();
         on_edit();
@@ -197,7 +209,8 @@ struct mouse_stroke_tool : mouse_tool
     void render_cursor(Buf& buf) const
     {
         buf.clear();
-        if (!_current) return;
+        if (!_current)
+            return;
 
         P a = _current->back(), b = controls.cursor_worldspace();
         buf.add_line(a, b, cursor_color);
@@ -208,15 +221,15 @@ struct mouse_stroke_tool : mouse_tool
     void render_model(Buf& buf) const
     {
         auto add_lines = [&](auto& s, auto color) {
-            for (auto it = s.begin(); it+1 != s.end(); ++it) {
-                buf.add_line(*it, *(it+1), color);
+            for (auto it = s.begin(); it + 1 != s.end(); ++it) {
+                buf.add_line(*it, *(it + 1), color);
             }
         };
 
         buf.clear();
         if (_current)
             add_lines(*_current, cursor_color);
-        for (auto& s:_strokes) {
+        for (auto& s : _strokes) {
             assert(!s.empty());
             add_lines(s, stroke_color);
         }

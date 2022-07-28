@@ -52,27 +52,24 @@ struct tool_hooks
 
 using tool_router = Rxt::hook_router<mouse_tool*, tool_hooks>;
 
-using Rxt::vec::fvec2;
 using Rxt::vec::ivec2;
+using Rxt::vec::ivec3;
 using line_program = Rxt::shader_programs::solid_color_3D<GL_LINES>;
 using Rxt::rgba;
 
 struct model_buffers : grid_program::buffers
 {
-    const rgba select_color {0, 0, 1, 1};
+    const rgba select_color{0, 0, 1, 1};
 
-    void add_selection(ivec2 a, ivec2 b)
-    {
-        push(a, b-a+1, select_color);
-    }
+    void add_selection(ivec2 a, ivec2 b) { push(position_vec(a,0), b - a + 1, select_color); }
 };
 
 struct ui_buffers : grid_program::buffers
 {
-    void set_cursor(position_vec p, size_vec s, rgba color)
+    void set_cursor(ivec2 p, size_vec s, rgba color)
     {
         clear();
-        push(p, s, color);
+        push(position_vec(p, 0), s, color);
         update();
     }
 };
@@ -86,8 +83,7 @@ struct line_buffers : line_program::buffers
     }
 };
 
-struct canvas
-    : Rxt::sdl::simple_gui
+struct canvas : Rxt::sdl::simple_gui
 {
     Rxt::sdl::key_dispatcher keys;
     Rxt::sdl::input_hooks input;
@@ -98,10 +94,10 @@ struct canvas
     cursor_type cursor;
     grid_controls controls{cursor, viewport};
 
-    grid_selector selector {controls};
-    stroke_tool stroker {controls};
-    grid_painter painter {controls};
-    mouse_tool* tool {};
+    grid_selector selector{controls};
+    stroke_tool stroker{controls};
+    grid_painter painter{controls};
+    mouse_tool* tool{};
     tool_router router;
 
     grid_program p_ui, p_quad;

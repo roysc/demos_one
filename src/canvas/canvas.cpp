@@ -12,6 +12,8 @@ namespace sdl = Rxt::sdl;
 using Rxt::print;
 using Rxt::vec::uvec2;
 
+mouse_button mouse_button_from_sdl(SDL_MouseButtonEvent button);
+
 int main(int argc, char** argv)
 {
     int seed = 42;
@@ -74,7 +76,7 @@ void canvas::_init_observers()
         paint_layer.for_each([&](auto pos, auto& cell) {
             if (!cell)
                 return;
-            b_paint.push(pos, uvec2(1), rgba(Rxt::colors::sand, 1));
+            b_paint.push(ivec3(pos, 0), uvec2(1), rgba(Rxt::colors::sand, 1));
         });
         b_paint.update();
     };

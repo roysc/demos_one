@@ -152,12 +152,12 @@ void dirt_app::_init_model()
         auto free_mesh = [&] (cpt::fpos3 pos, auto& g)
         {
             auto tm = translate(pos.r);
-            g.render(g.transparent ? b_triangles_txp : b_triangles, tm);
+            g.render(g.transparent ? b_transparent_tris : b_triangles, tm);
         };
         auto cell_mesh = [&] (cpt::cell cell, auto& g)
         {
             auto tm = translate(offset<free_position>(cell));
-            g.render(g.transparent ? b_triangles_txp : b_triangles, tm);
+            g.render(g.transparent ? b_transparent_tris : b_triangles, tm);
         };
         auto cell_skel = [&](auto cell, auto& g)
         {
@@ -166,12 +166,12 @@ void dirt_app::_init_model()
         };
 
         b_triangles.clear();
-        b_triangles_txp.clear();
+        b_transparent_tris.clear();
         // entities.view<cpt::mesh>().each([&] (auto& m) { free_mesh(m, cpt::fpos3()); });
         entities.view<cpt::fpos3, cpt::mesh>().each(free_mesh);
         entities.view<cpt::cell, cpt::mesh>().each(cell_mesh);
         b_triangles.update();
-        b_triangles_txp.update();
+        b_transparent_tris.update();
         b_lines.clear();
         entities.view<cpt::cell, cpt::skel>().each(cell_skel);
         b_lines.update();

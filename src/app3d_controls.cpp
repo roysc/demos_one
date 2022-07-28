@@ -50,7 +50,7 @@ void basic_app3d::_init_controls()
         cursor.set_position({x, y});
     };
 
-    input.on_mouse_wheel += [=, this](SDL_MouseWheelEvent wheel) {
+    input.on_mouse_wheel += [=](SDL_MouseWheelEvent wheel) {
         if (wheel.y != 0)
             camera_forward(wheel.y);
         // if (wheel.x != 0)
