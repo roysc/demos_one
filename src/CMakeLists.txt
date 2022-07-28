@@ -65,7 +65,6 @@ if(NOT DISABLE_3D)
     add_library(app3d ${_HEADERS_APP3D} ${_SOURCES_APP3D})
     target_include_directories(app3d PUBLIC ${PROJECT_SOURCE_DIR}/external)
     target_link_libraries(app3d
-        app3d_base
         Rxt::Graphics
         Rxt::Geometry
         EnTT::EnTT)
