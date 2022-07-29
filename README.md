@@ -1,10 +1,9 @@
-Atrium
-=====
+# Atrium
 
 Stage for game & ui dev
 
-Building
-========
+## Building
+
 Dependencies:
 - Boost (multi_array)
 - {fmt}
@@ -19,3 +18,9 @@ Emscripten:
 
     $ emconfigure cmake .. -D CMAKE_PREFIX_PATH=$HOME/.local_em
     $ emcmake cmake ..
+
+## Dependencies
+
+# EnTT
+
+`git@github.com:skypjack/entt.git`
