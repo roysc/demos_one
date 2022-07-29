@@ -16,7 +16,7 @@ Vec invert(Vec v)
     return v;
 }
 
-auto orbit_cam = [](auto& cam, auto axis, float d) {
+inline auto orbit_cam = [](auto& cam, auto axis, float d) {
     auto about = Rxt::basis3<glm::vec3>(axis);
     cam->orbit(glm::angleAxis(d, about));
 };
