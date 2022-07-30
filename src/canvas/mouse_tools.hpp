@@ -153,7 +153,7 @@ struct mouse_paint_tool : mouse_tool
         on_edit();
     }
 
-    void mouse_up(mouse_button i) override {}
+    void mouse_up(mouse_button) override {}
 };
 
 template <class Num>
@@ -188,7 +188,7 @@ struct mouse_stroke_tool : mouse_tool
         on_edit();
     }
 
-    void mouse_up(mouse_button i) override {}
+    void mouse_up(mouse_button) override {}
 
     void finish()
     {

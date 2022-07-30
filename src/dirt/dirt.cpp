@@ -1,6 +1,7 @@
 #include "dirt.hpp"
-
 #include <Rxt/math.hpp>
+#include <Rxt/loop.hpp>
+
 #include <string>
 
 dirt_app::dirt_app(viewport_size_type size)
@@ -58,8 +59,9 @@ int main(int argc, char* argv[])
     }
 
     auto vpsize = dirt_app::viewport_size_type{800};
-    auto loop = sdl::make_looper(new dirt_app(vpsize));
-    loop();
+    auto context = new dirt_app(vpsize);
+    Rxt::smooth_loop(context);
+
     return 0;
 }
 

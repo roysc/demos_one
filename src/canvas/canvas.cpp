@@ -23,9 +23,7 @@ int main(int argc, char** argv)
 
     gl::get_config().enable_logging = false;
 
-    auto loop = sdl::make_looper(new canvas(viewport_type{uvec2(80), uvec2(8)}));
-    loop();
-
+    sdl::run_loop(new canvas(viewport_type{uvec2(80), uvec2(8)}));
     return 0;
 }
 
