@@ -60,7 +60,8 @@ int main(int argc, char* argv[])
 
     auto vpsize = dirt_app::viewport_size_type{800};
     auto context = new dirt_app(vpsize);
-    Rxt::smooth_loop(context);
+    auto runtime = sdl::as_runtime(*context);
+    Rxt::smooth_loop(runtime, Rxt::duration_fps<60>(1));
 
     return 0;
 }
@@ -79,7 +80,7 @@ void dirt_app::advance(SDL_Event event)
 
     auto updates
         = Rxt::make_hooks(super_type::_updates(event), _model_update, highlighted_faces.on_update);
-    auto dirty = updates.flush();
+    updates.flush();
 
     draw_clear();
     super_type::draw();

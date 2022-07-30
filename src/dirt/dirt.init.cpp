@@ -142,7 +142,7 @@ void dirt_app::_init_model()
     auto& b_triangles = triangle_prog.buf("triangles");
     auto& b_transparent_tris = triangle_prog.buf("transparent_tris");
     auto& b_lines = line_prog.buf("lines");
-    auto& b_overlines = line_prog.buf("overlines");
+    // auto& b_overlines = line_prog.buf("overlines");
 
     RXT_observe(active_stage.on_update, auto stage) {
         this->update_stage(*stage);
