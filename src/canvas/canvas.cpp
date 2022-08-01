@@ -95,7 +95,7 @@ void canvas::_init_observers()
 
     RXT_observe (router->on_debug) {
         print("cursor={}\nviewport=(pos={}, scale={})\n", cursor.position(), viewport.position(),
-              viewport.scale());
+              viewport.scale_factor());
     };
 
     set(p_ui->viewport_position, ivec2{0});
