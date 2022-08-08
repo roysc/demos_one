@@ -3,8 +3,8 @@
 #include "map.hpp"
 #include <Rxt/io.hpp>
 
-#include <memory>
 #include <list>
+#include <memory>
 #include <string>
 
 // Fat pointer to a single cell
@@ -17,7 +17,10 @@ struct stage_cell
     S* env;
     vec_type _pos;
 
-    stage_cell(S& e, vec_type v) : env(&e), _pos(v) {}
+    stage_cell(S& e, vec_type v)
+        : env(&e)
+        , _pos(v)
+    {}
 
     auto& stage() { return *env; }
     auto position() const { return _pos; }
@@ -29,7 +32,7 @@ template <class Vec, class S>
 Vec offset(stage_cell<S> const& c)
 {
     auto elev = float(c.value()) / 0xFF; // todo
-    return Vec(c.position(), elev) + Vec(.5,.5,0);
+    return Vec(c.position(), elev) + Vec(.5, .5, 0);
 }
 
 template <class P>
@@ -38,21 +41,14 @@ struct cell_path
     using list = std::list<P>;
     list path;
 
-    void append(cell_path rest)
-    {
-        path.insert(rest.path.begin(), rest.path.end());
-    }
+    void append(cell_path rest) { path.insert(rest.path.begin(), rest.path.end()); }
 
-    void append(P part)
-    {
-        path.push_back(part);
-    }
+    void append(P part) { path.push_back(part); }
 };
 
 // Recursive data-owning stage wrapper (tree node)
 template <class Stage>
-struct deep_stage
-    : Stage
+struct deep_stage : Stage
 {
     using super_type = Stage;
     using position_type = typename Stage::position_type;
@@ -60,7 +56,8 @@ struct deep_stage
     using pointer = std::unique_ptr<deep_stage>; // tradeoffs v T*?
     using depth_t = unsigned char;
     using cell_type = stage_cell<deep_stage>;
-    using path = cell_path<position_type>;
+    using cell_path = cell_path<position_type>;
+    // using path = std::list<position_type>;
 
     // contains our position in the superstage
     struct superstage_cell
@@ -81,9 +78,9 @@ struct deep_stage
     {}
 
     // return full cell path to this stage
-    path get_path()
+    cell_path get_path()
     {
-        path ret;
+        cell_path ret;
         if (_address) {
             ret = _address.stage->get_path();
             ret.append(_address.pos);
@@ -101,19 +98,7 @@ struct deep_stage
         }
         return ptr.get();
     }
-
 };
-
-template <class P>
-std::ostream& operator<<(std::ostream& o, cell_path<P> const& cp)
-{
-    unsigned i = 0;
-    for (auto p: cp.path) {
-        if (i++) o << '.';
-        o << fmt::format("{}", p);
-    }
-    return o;
-}
 
 template <class S>
 struct fmt::formatter<stage_cell<S>>
@@ -122,5 +107,24 @@ struct fmt::formatter<stage_cell<S>>
     auto format(stage_cell<S> const& cell, FC& ctx)
     {
         return fmt::format_to(ctx.out(), "cell({1}, env={0})", (std::size_t)cell.env, cell.r);
+    }
+};
+
+template <class P>
+struct fmt::formatter<cell_path<P>>
+{
+    auto parse(format_parse_context& c) { return c.begin(); }
+
+    template <class FC>
+    auto format(cell_path<P> const& cp, FC& ctx)
+    {
+        unsigned i = 0;
+        auto out = ctx.out();
+        for (auto p : cp.path) {
+            if (i++)
+                out = format_to(out, "/");
+            out = format_to(out, "{}:{}", p.x, p.y);
+        }
+        return out;
     }
 };
