@@ -66,13 +66,6 @@ int main(int argc, char* argv[])
     return 0;
 }
 
-void dirt_app::draw_clear()
-{
-    auto bg = palette.at("bg");
-    glClearColor(bg.r, bg.g, bg.b, 1);
-    // super_type::draw();
-}
-
 void dirt_app::advance(SDL_Event event)
 {
     // if (active_stage)
@@ -82,7 +75,8 @@ void dirt_app::advance(SDL_Event event)
         = Rxt::make_hooks(super_type::_updates(event), _model_update, highlighted_faces.on_update);
     updates.flush();
 
-    draw_clear();
+    auto bg = palette.at("bg");
+    glClearColor(bg.r, bg.g, bg.b, 1);
     super_type::draw();
 }
 

@@ -70,7 +70,7 @@ void dirt_app::_init_ui()
         // print("put({}): {}({})\n", pos, entity_name(entities, ent), (std::size_t)ent);
     };
 
-    RXT_observe_capval(input.on_mouse_down, SDL_MouseButtonEvent button) {
+    input.on_mouse_down += [=] (SDL_MouseButtonEvent button) {
         switch (button.button) {
         case SDL_BUTTON_LEFT: {
             paint(&dirt_ns::build_house);
