@@ -1,9 +1,9 @@
 #pragma once
 
-#include <Rxt/io.hpp>
 #include <Rxt/math.hpp>
-#include <SDL2/SDL.h>
+#include <Rxt/vec.hpp>
 
+#include <limits>
 #include <map>
 #include <stdexcept>
 #include <utility>
@@ -17,8 +17,8 @@ Vec invert(Vec v)
 }
 
 inline auto orbit_cam = [](auto& cam, auto axis, float d) {
-    auto about = Rxt::basis3<glm::vec3>(axis);
-    cam->orbit(glm::angleAxis(d, about));
+    auto about = Rxt::basis3<Rxt::vec::fvec3>(axis);
+    cam->orbit(angleAxis(d, about));
 };
 
 // Set at index, expanding vector as needed
@@ -36,6 +36,15 @@ auto& get_or_emplace(C& c, Ts&&... a)
 {
     auto [it, did] = c.emplace(std::forward<Ts>(a)...);
     return it->second;
+}
+
+template <class M, class K>
+auto map_get(M& m, K const& k) -> typename M::mapped_type const*
+{
+    auto it = m.find(k);
+    if (it != m.end())
+        return &it->second;
+    return nullptr;
 }
 
 template <class K, class V>
@@ -78,12 +87,14 @@ struct index_registry
 {
     using index_type = unsigned;
 
-    unsigned m_max_count;
-    unsigned m_next_valid = 0;
+    unsigned m_offset;
+    unsigned m_max_index;
+    unsigned m_next_valid = m_offset;
     std::vector<bool> m_gaps;
 
-    index_registry(unsigned max_count = 2 << 16)
-        : m_max_count(max_count)
+    index_registry(unsigned offset = 0, unsigned max_index = std::numeric_limits<uint16_t>::max())
+        : m_offset(offset)
+        , m_max_index(max_index)
     {}
 
     // Get next available index
@@ -107,10 +118,15 @@ struct index_registry
     // Mark index available
     void release(index_type ix)
     {
+        if (ix < m_offset)
+            throw std::runtime_error("cannot release index preceding initial offset");
+        ix -= m_offset;
         m_gaps.at(ix) = true;
         if (ix < m_next_valid)
             m_next_valid = ix;
     }
 
-    bool full() const { return m_next_valid >= m_max_count; }
+    bool full() const { return m_next_valid >= m_max_index; }
+
+    // auto top() const { return m_gaps.size(); }
 };

@@ -12,7 +12,7 @@ void basic_app3d::_init_ui()
     using Rxt::print;
     using Rxt::vec::fvec3;
 
-    set(ui_line_prog->mvp_matrix, Rxt::vec::mat4(1));
+    set(ui_line_prog->mvp_matrix, Rxt::vec::fmat4(1));
 
     RXT_observe (cursor.on_update) {
         // if (enable_drag_around)
