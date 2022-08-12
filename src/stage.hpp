@@ -48,7 +48,7 @@ struct cell_path
 
 // Recursive data-owning stage wrapper (tree node)
 template <class Stage>
-struct deep_stage : Stage
+struct deep_stage : public Stage
 {
     using super_type = Stage;
     using position_type = typename Stage::position_type;
@@ -56,8 +56,7 @@ struct deep_stage : Stage
     using pointer = std::unique_ptr<deep_stage>; // tradeoffs v T*?
     using depth_t = unsigned char;
     using cell_type = stage_cell<deep_stage>;
-    using cell_path = cell_path<position_type>;
-    // using path = std::list<position_type>;
+    using stage_path = cell_path<position_type>;
 
     // contains our position in the superstage
     struct superstage_cell
@@ -78,9 +77,9 @@ struct deep_stage : Stage
     {}
 
     // return full cell path to this stage
-    cell_path get_path()
+    stage_path get_path()
     {
-        cell_path ret;
+        stage_path ret;
         if (_address) {
             ret = _address.stage->get_path();
             ret.append(_address.pos);
