@@ -6,7 +6,7 @@ if(USE_RXT_SUBDIR)
     add_subdirectory(${PROJECT_SOURCE_DIR}/external/Rxt ${PROJECT_BINARY_DIR}/Rxt)
 else()
     find_package(Rxt REQUIRED
-        COMPONENTS Graphics Geometry
+        COMPONENTS Graphics Geometry Data
         NO_CMAKE_FIND_ROOT_PATH
     )
 endif()
