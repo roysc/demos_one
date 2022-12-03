@@ -7,7 +7,7 @@ all: garden garden-assets
 garden-assets: sprites
 
 garden:
-	cmake --build build -j3 -t garden
+	cmake --build build -t garden
 
 sprites: \
 	art/garden/sprites/*.ase \

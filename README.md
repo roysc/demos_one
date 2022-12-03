@@ -11,7 +11,7 @@ Dependencies:
 
 CMake:
 
-    $ cmake ..
+    $ cmake -S. -B build
     $ make
 
 Emscripten:
