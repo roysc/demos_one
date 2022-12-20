@@ -4,16 +4,15 @@ TEXTURE_OUT := data/texture
 
 all: garden garden-assets
 
-garden-assets: sprites
-
 garden:
 	cmake --build build -t garden
 
-sprites: \
+garden-assets: \
 	art/garden/sprites/*.ase \
 	art/garden/tiles/*.ase \
 	art/garden/walls/brick.ase \
 	art/garden/others/*.ase
+
 	aseprite_export.sh \
 		-o $(TMP)/_sprites \
 		$^
@@ -22,4 +21,7 @@ sprites: \
 		--tile-pivot 8,8 \
 		$(TMP)/_sprites sprites
 
-.PHONY: garden sprites
+tags:
+	ctags -Re src
+
+.PHONY: garden garden-assets tags
