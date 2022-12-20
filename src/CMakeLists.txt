@@ -18,7 +18,6 @@ find_package(EnTT REQUIRED ${RXT_EMSCRIPTEN_FIND_ROOT_PATH_MODE})
 
 set(_HEADERS_BASE
     map.hpp
-    tiles.hpp
     util.hpp
     mouse_core.hpp
     palette.hpp
