@@ -1,0 +1,16 @@
+* Garden:
+What's the _?
+game or sandbox?
+
+** Staging ground of:
+discrete grid-based spatial system; strict cardinal motion
+entt/ECS design
+cyclic & dynamic sprite shaders
+
+** Models
+homms
+plants
+critters
+
+** "player"
+?
