@@ -3,6 +3,8 @@
 #include <Rxt/vec.hpp>
 #include <boost/multi_array.hpp>
 
+#include <concepts>
+
 template <class T>
 struct dense_grid
 {
@@ -53,9 +55,8 @@ struct dense_grid
         }
     }
 
-    template <class F>
+    template <std::invocable<key_type, value_type const&> F>
     auto for_each(F&& f) const
-        -> std::enable_if_t<std::is_invocable_v<F, key_type, value_type const&>>
     {
         auto shape = _data.shape();
         for (unsigned y = 0; y < shape[1]; ++y) {

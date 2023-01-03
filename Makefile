@@ -1,4 +1,5 @@
-# build assets from art
+#!/usr/bin/make -f
+
 TMP := $(shell mktemp -d)
 TEXTURE_OUT := data/texture
 
@@ -7,6 +8,7 @@ all: garden garden-assets
 garden:
 	cmake --build build -t garden
 
+# Build assets from art
 garden-assets: \
 	art/garden/sprites/*.ase \
 	art/garden/tiles/*.ase \

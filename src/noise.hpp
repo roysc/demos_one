@@ -15,6 +15,7 @@
 //     OSN::Noise<4> osn4{seed};
 // };
 
+// Iterator abstraction over a sink function?
 // Out should be callable as out(i2, i2, float)
 template <class Out>
 struct sampler_range
