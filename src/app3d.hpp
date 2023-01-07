@@ -4,8 +4,8 @@
 #include <Rxt/controls.hpp>
 #include <Rxt/graphics/sdl.hpp>
 #include <Rxt/graphics/sdl/reactive.hpp>
-#include <Rxt/graphics/shader/colored_triangle_3D.hpp>
-#include <Rxt/graphics/shader/solid_color_3D.hpp>
+#include <Rxt/graphics/shaders/colored_triangle_3D.hpp>
+#include <Rxt/graphics/shaders/solid_color_3D.hpp>
 #include <Rxt/reactive.hpp>
 
 #include <optional>
@@ -18,9 +18,9 @@ namespace sdl = Rxt::sdl;
 
 struct basic_app3d : public sdl::simple_gui
 {
-    using triangle_program = Rxt::shader_programs::colored_triangle_3D;
-    using line_program = Rxt::shader_programs::solid_color_3D<GL_LINES>;
-    using point_program = Rxt::shader_programs::solid_color_3D<GL_POINTS>;
+    using triangle_program = Rxt::shaders::colored_triangle_3D;
+    using line_program = Rxt::shaders::solid_color_3D<GL_LINES>;
+    using point_program = Rxt::shaders::solid_color_3D<GL_POINTS>;
 
     using cursor_type = Rxt::wrap_reactive_crt<Rxt::reactive_cursor, Rxt::hooks<>, float>;
     using cursor_position_type = cursor_type::position_type;

@@ -6,14 +6,14 @@
 #include <Rxt/controls.hpp>
 #include <Rxt/graphics/sdl.hpp>
 #include <Rxt/graphics/sdl/reactive.hpp>
-#include <Rxt/graphics/shader/grid_quad_2D.hpp>
-#include <Rxt/graphics/shader/solid_color_3D.hpp>
+#include <Rxt/graphics/shaders/grid_quad_2D.hpp>
+#include <Rxt/graphics/shaders/solid_color_3D.hpp>
 #include <Rxt/reactive.hpp>
 
 #include <array>
 
 using Rxt::hooks;
-using grid_program = Rxt::shader_programs::webcompat::grid_quad_2D;
+using grid_program = Rxt::shaders::webcompat::grid_quad_2D;
 
 struct grid_traits
 {
@@ -54,7 +54,7 @@ using tool_router = Rxt::hook_router<mouse_tool*, tool_hooks>;
 
 using Rxt::vec::ivec2;
 using Rxt::vec::ivec3;
-using line_program = Rxt::shader_programs::solid_color_3D<GL_LINES>;
+using line_program = Rxt::shaders::solid_color_3D<GL_LINES>;
 using Rxt::rgba;
 
 struct model_buffers : grid_program::buffers
