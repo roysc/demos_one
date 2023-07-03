@@ -85,7 +85,7 @@ struct mouse_select_tool : public mouse_tool
         case mouse_button::left:
             if (drag_origin) {
                 auto abspos = controls.cursor_worldspace();
-                auto [a, b] = Rxt::box(*drag_origin, abspos);
+                auto [a, b] = Rxt::box_bounds(*drag_origin, abspos);
                 selection = {a, b};
                 drag_origin = {};
                 on_motion();
@@ -110,7 +110,7 @@ struct mouse_select_tool : public mouse_tool
     void render_cursor(UIbuf& buf) const
     {
         if (drag_origin) {
-            auto [a, b] = Rxt::box(controls.cursor_viewspace(), controls.from_world(*drag_origin));
+            auto [a, b] = Rxt::box_bounds(controls.cursor_viewspace(), controls.from_world(*drag_origin));
             buf.set_cursor(Rxt::vec::ivec3(a, 0), b - a + 1, color);
         } else {
             buf.set_cursor(controls.cursor_viewspace(), Rxt::vec::uvec2(1), color);
