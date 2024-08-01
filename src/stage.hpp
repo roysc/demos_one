@@ -6,6 +6,7 @@
 #include <list>
 #include <memory>
 #include <string>
+#include <format>
 
 // Fat pointer to a single cell
 template <class S>
@@ -100,22 +101,22 @@ struct deep_stage : public Stage
 };
 
 template <class S>
-struct fmt::formatter<stage_cell<S>>
+struct std::formatter<stage_cell<S>>
 {
     template <class FC>
-    auto format(stage_cell<S> const& cell, FC& ctx)
+    auto format(stage_cell<S> const& cell, FC& ctx) const
     {
-        return fmt::format_to(ctx.out(), "cell({1}, env={0})", (std::size_t)cell.env, cell.r);
+        return std::format_to(ctx.out(), "cell({1}, env={0})", (std::size_t)cell.env, cell.r);
     }
 };
 
 template <class P>
-struct fmt::formatter<cell_path<P>>
+struct std::formatter<cell_path<P>>
 {
     auto parse(format_parse_context& c) { return c.begin(); }
 
     template <class FC>
-    auto format(cell_path<P> const& cp, FC& ctx)
+    auto format(cell_path<P> const& cp, FC& ctx) const
     {
         unsigned i = 0;
         auto out = ctx.out();
