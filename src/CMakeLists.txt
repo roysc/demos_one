@@ -23,6 +23,7 @@ set(_HEADERS_BASE
     palette.hpp
     stage.hpp
 )
+
 # https://gitlab.kitware.com/cmake/community/-/wikis/doc/tutorials/How-To-Write-Platform-Checks#platform-variables
 if(APPLE)
     set(_SOURCES_BASE)
