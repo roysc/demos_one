@@ -58,7 +58,7 @@ Rxt::hooks<> basic_app3d::_updates(SDL_Event event)
 
 void basic_app3d::draw()
 {
-    auto draw_buf = [this](std::string n, auto& p) {
+    auto draw_buf = [](std::string n, auto& p) {
         if (auto b = p.buf.ptr(n))
             b->draw();
     };
