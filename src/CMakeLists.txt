@@ -12,6 +12,7 @@ else()
         NO_CMAKE_FIND_ROOT_PATH
     )
 endif()
+
 include(RxtEmscriptenHelpers)
 
 # set(CMAKE_FIND_DEBUG_MODE TRUE)
@@ -45,26 +46,29 @@ add_subdirectory(canvas)
 add_subdirectory(garden)
 
 if(NOT DISABLE_3D)
-    set(_HEADERS_APP3D
+    add_library(app3d)
+    target_sources(app3d PRIVATE
         ${_HEADERS_BASE}
         app3d.hpp
         geometry.hpp
-        geometry_mesh.hpp)
-    set(_SOURCES_APP3D
+        geometry_mesh.hpp
+    )
+    target_sources(app3d PRIVATE
         ${_SOURCES_BASE}
         app3d_ui.cpp
         app3d_controls.cpp
         app3d.cpp
         entity.cpp
         geometry.cpp
-        geometry_mesh.cpp)
+        geometry_mesh.cpp
+    )
 
-    add_library(app3d ${_HEADERS_APP3D} ${_SOURCES_APP3D})
     target_include_directories(app3d PUBLIC ${PROJECT_SOURCE_DIR}/external)
     target_link_libraries(app3d
         Rxt::Graphics
         Rxt::Geometry
-        EnTT::EnTT)
+        EnTT::EnTT
+    )
 
     add_subdirectory(dirt)
     # add_subdirectory(old)
