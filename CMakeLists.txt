@@ -21,5 +21,3 @@ add_compile_options(-Wall -Wextra)
 add_compile_options(-Werror=return-type)
 
 add_subdirectory(src)
-
-# TODO art -> asset generation

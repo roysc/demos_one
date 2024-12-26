@@ -1,29 +1,19 @@
 #!/usr/bin/make -f
 
+RXT_SOURCE_PATH ?=
+BUILDDIR := build
 TMP := $(shell mktemp -d)
-TEXTURE_OUT := data/texture
 
-all: garden garden-assets
+all: garden
 
-garden:
-	cmake --build build -t garden
+$(BUILDDIR):
+	mkdir -p $@
 
-# Build assets from art
-garden-assets: \
-	art/garden/sprites/*.ase \
-	art/garden/tiles/*.ase \
-	art/garden/walls/brick.ase \
-	art/garden/others/*.ase
-
-	aseprite_export.sh \
-		-o $(TMP)/_sprites \
-		$^
-	pack_texture.py \
-		-o $(TEXTURE_OUT)/garden \
-		--tile-pivot 8,8 \
-		$(TMP)/_sprites sprites
+garden: $(BUILDDIR)
+	cmake -S $(CURDIR) -B $(BUILDDIR) -D RXT_AS_SUBDIR=$(shell readlink -f $(RXT_SOURCE_PATH))
+	cmake --build $(BUILDDIR) -t garden
 
 tags:
 	ctags -Re src
 
-.PHONY: garden garden-assets tags
+.PHONY: garden tags
