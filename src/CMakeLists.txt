@@ -26,11 +26,6 @@ set(_HEADERS_BASE
     stage.hpp
 )
 
-# https://gitlab.kitware.com/cmake/community/-/wikis/doc/tutorials/How-To-Write-Platform-Checks#platform-variables
-if(APPLE)
-    set(_SOURCES_BASE)
-endif()
-
 function(_configure_emscripten TGT)
     if(NOT EMSCRIPTEN)
         return()
