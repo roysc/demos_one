@@ -2,8 +2,10 @@
 
 set(OpenGL_GL_PREFERENCE GLVND)
 
-if(USE_RXT_SUBDIR)
-    add_subdirectory(${PROJECT_SOURCE_DIR}/external/Rxt ${PROJECT_BINARY_DIR}/Rxt)
+if(NOT RXT_AS_SUBDIR STREQUAL "")
+    # create a symlink to Rxt so we can add it as a subdirectory
+    file(CREATE_LINK "${RXT_AS_SUBDIR}" "${PROJECT_SOURCE_DIR}/external/Rxt" SYMBOLIC)
+    add_subdirectory("${PROJECT_SOURCE_DIR}/external/Rxt" "${PROJECT_BINARY_DIR}/Rxt")
 else()
     find_package(Rxt REQUIRED
         COMPONENTS Graphics Geometry Data

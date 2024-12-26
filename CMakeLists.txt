@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.17)
 project(Atrium VERSION 0.1.1)
 
-option(USE_RXT_SUBDIR "Use Rxt as subdirectory instead of package" OFF)
+set(RXT_AS_SUBDIR "" CACHE STRING
+    "Path to Rxt to use as a source subdirectory instead of package")
 
 set(CMAKE_FIND_USE_PACKAGE_REGISTRY FALSE)
 
