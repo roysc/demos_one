@@ -7,7 +7,7 @@
 #include <Rxt/util.hpp>
 
 #include <CGAL/AABB_tree.h>
-#include <CGAL/AABB_traits.h>
+#include <CGAL/AABB_traits_3.h>
 
 #include <CGAL/Search_traits_3.h>
 #include <CGAL/Search_traits_adapter.h>
@@ -59,7 +59,7 @@ struct indexed_mesh_vector
     using triangle_comaps = std::map<key_type, typename mesh_transformer::face_comap>;
     using triangle_primitive = Rxt::triangle_primitive<triangulated_meshes>;
     using triangle_aabb_tree = CGAL::AABB_tree<
-        CGAL::AABB_traits<mesh_kernel_t<triangle_mesh>, triangle_primitive>>;
+        CGAL::AABB_traits_3<mesh_kernel_t<triangle_mesh>, triangle_primitive>>;
 
     // Vertex indexing
     using triangle_point = typename Rxt::mesh_traits<triangle_mesh>::point;

@@ -17,7 +17,7 @@ using Triangle_comaps = std::map<Source_key, typename Mesh_transformer::face_com
 
 using Triangle_primitive = Rxt::triangle_primitive<Trins>;
 using Triangle_aabb_tree
-    = CGAL::AABB_tree<CGAL::AABB_traits<atrium_geom::kernel, Triangle_primitive>>;
+    = CGAL::AABB_tree<CGAL::AABB_traits_3<atrium_geom::kernel, Triangle_primitive>>;
 }
 
 namespace atrium_geom
@@ -39,8 +39,9 @@ template <>
 void build_triangulations(Sources const& sources, Trins& triangulations,
                           Triangle_comaps& face_comaps)
 {
-    auto transform
-        = [](Trin& mesh) { return CGAL::Polygon_mesh_processing::triangulate_faces<Trin>(mesh); };
+    auto transform = [](Trin& mesh) {
+        return CGAL::Polygon_mesh_processing::triangulate_faces<Trin>(mesh);
+    };
     Mesh_transformer transformer(transform);
 
     unsigned i = 0;

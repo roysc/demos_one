@@ -5,6 +5,8 @@
 #include <Rxt/color.hpp>
 #include <Rxt/vec.hpp>
 
+#include <CGAL/boost/graph/generators.h>
+
 
 using Rxt::print;
 using Rxt::to_rgba;

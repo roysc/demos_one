@@ -11,7 +11,6 @@
 #include <Rxt/range.hpp>
 #include <Rxt/vec.hpp>
 
-#include <CGAL/boost/graph/helpers.h>
 #include <boost/property_map/property_map.hpp>
 
 inline Rxt::vec::fvec3 to_glm(atrium_geom::point p) { return {p.x(), p.y(), p.z()}; }
