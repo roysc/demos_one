@@ -1,4 +1,5 @@
 #include "dirt.hpp"
+#include "dirt/dirt_models.hpp"
 #include "rendering.hpp"
 #include "stage.hpp"
 
@@ -35,7 +36,7 @@ void dirt_app::_init_ui()
     };
 
     RXT_observe(cursor.on_update) {
-        using namespace atrium_geom;
+        using namespace geom;
         auto [source, dir] = Rxt::cast_ray(cursor.position(), camera);
         auto& geom = _mesh_index();
 
@@ -64,7 +65,7 @@ void dirt_app::_init_ui()
 
         auto thing = factory();
         auto ent = put_mesh(thing, to_rgba(Rxt::colors::gray), false);
-        entities.emplace<cpt::cell>(ent, *active_stage, pos);
+        entities.emplace<z2_cell>(ent, *active_stage, pos);
         _model_update();
         print("put({}): ({})\n", pos, static_cast<std::size_t>(ent));
         // entities.emplace<cpt::name>(ent, "house");
@@ -75,13 +76,13 @@ void dirt_app::_init_ui()
     input.on_mouse_down += [=] (SDL_MouseButtonEvent button) {
         switch (button.button) {
         case SDL_BUTTON_LEFT: {
-            paint(&dirt_ns::build_house);
+            paint(&build_house);
         }
         }
     };
 
-    keys().on_press["1"] = std::bind(paint, &dirt_ns::build_house);
-    keys().on_press["2"] = std::bind(paint, &dirt_ns::build_tetroid);
+    keys().on_press["1"] = std::bind(paint, &build_house);
+    keys().on_press["2"] = std::bind(paint, &build_tetroid);
     keys().on_press["T"] = [this] {
         _tick++;
         _ent_update();
@@ -100,7 +101,7 @@ entity_id dirt_app::update_stage(stage_type& stage)
     stage.grid().for_each([&](auto pos, auto& cell) {
         auto _quad = [pos](float elev, auto& m) {
             auto x = pos.x, y = pos.y;
-            atrium_geom::point corners[4] = {
+            geom::point corners[4] = {
                 {  x,   y, elev},
                 {x+1,   y, elev},
                 {x+1, y+1, elev},
@@ -119,15 +120,15 @@ entity_id dirt_app::update_stage(stage_type& stage)
         }
     });
 
-    auto entity_mesh = [&] (auto e) { return entities.get<cpt::mesh>(e); };
+    auto entity_mesh = [&] (auto e) { return entities.get<mesh_geom>(e); };
 
     auto ent = put_mesh(mesh, palette.at("sand"), false);
     auto meshid = entity_mesh(ent).key;
     auto ephent = put_mesh(eph, to_rgba(palette.at("water"), .7), true, mesh_kind::ephemeral);
     auto ephid = entity_mesh(ephent).key;
     set_parent_entity(entities, ent, ephent);
-    entities.emplace<cpt::fpos3>(ent, Rxt::vec::fvec3(0));
-    entities.emplace<cpt::fpos3>(ephent, Rxt::vec::fvec3(0));
+    entities.emplace<fpos3>(ent, Rxt::vec::fvec3(0));
+    entities.emplace<fpos3>(ephent, Rxt::vec::fvec3(0));
 
     // map tangible face to stage position
     face_spaces[meshid] = f2s;
@@ -151,12 +152,12 @@ void dirt_app::_init_model()
     };
 
     RXT_observe(_model_update) {
-        auto free_mesh = [&] (cpt::fpos3 pos, auto& g)
+        auto free_mesh = [&] (fpos3 pos, auto& g)
         {
             auto tm = translate(pos.r);
             g.render(g.transparent ? b_transparent_tris : b_triangles, tm);
         };
-        auto cell_mesh = [&] (cpt::cell cell, auto& g)
+        auto cell_mesh = [&] (z2_cell cell, auto& g)
         {
             auto tm = translate(offset<free_position>(cell));
             g.render(g.transparent ? b_transparent_tris : b_triangles, tm);
@@ -170,12 +171,12 @@ void dirt_app::_init_model()
         b_triangles.clear();
         b_transparent_tris.clear();
         // entities.view<cpt::mesh>().each([&] (auto& m) { free_mesh(m, cpt::fpos3()); });
-        entities.view<cpt::fpos3, cpt::mesh>().each(free_mesh);
-        entities.view<cpt::cell, cpt::mesh>().each(cell_mesh);
+        entities.view<fpos3, mesh_geom>().each(free_mesh);
+        entities.view<z2_cell, mesh_geom>().each(cell_mesh);
         b_triangles.update();
         b_transparent_tris.update();
         b_lines.clear();
-        entities.view<cpt::cell, cpt::skel>().each(cell_skel);
+        entities.view<z2_cell, skel_geom>().each(cell_skel);
         b_lines.update();
     };
 

@@ -6,8 +6,8 @@
 namespace
 {
 // Specialize for a vector of meshes
-using Source = atrium_geom::surface_mesh;
-using Trin = atrium_geom::surface_mesh;
+using Source = geom::surface_mesh;
+using Trin = geom::surface_mesh;
 using Sources = std::vector<Source>;
 using Trins = std::vector<Trin>;
 using Source_key = std::size_t;
@@ -17,10 +17,10 @@ using Triangle_comaps = std::map<Source_key, typename Mesh_transformer::face_com
 
 using Triangle_primitive = Rxt::triangle_primitive<Trins>;
 using Triangle_aabb_tree
-    = CGAL::AABB_tree<CGAL::AABB_traits_3<atrium_geom::kernel, Triangle_primitive>>;
+    = CGAL::AABB_tree<CGAL::AABB_traits_3<geom::kernel, Triangle_primitive>>;
 }
 
-namespace atrium_geom
+namespace geom
 {
 template <>
 void build_triangulations(Sources const& meshes, Trins& triangulations)

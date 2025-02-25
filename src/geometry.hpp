@@ -3,7 +3,7 @@
 #include <CGAL/Simple_cartesian.h>
 #include <CGAL/Surface_mesh.h>
 
-namespace atrium_geom
+namespace geom
 {
 namespace cgal
 {
@@ -25,11 +25,6 @@ using surface_mesh_edge = surface_mesh::Edge_index;
 
 template <class T>
 point to_point(T);
-}
-
-namespace atrium
-{
-using namespace atrium_geom;
 }
 
 namespace props

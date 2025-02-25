@@ -1,7 +1,7 @@
 #pragma once
 
-#include "_debug.hpp"
 #include "geometry.hpp"
+#include "geometry_skel.hpp"
 #include "space.hpp"
 // #include "geometry_skel.hpp"
 
@@ -13,8 +13,8 @@
 
 #include <boost/property_map/property_map.hpp>
 
-inline Rxt::vec::fvec3 to_glm(atrium_geom::point p) { return {p.x(), p.y(), p.z()}; }
-inline Rxt::vec::fvec3 to_glm(atrium_geom::vector v) { return {v.x(), v.y(), v.z()}; }
+inline Rxt::vec::fvec3 to_glm(geom::point p) { return {p.x(), p.y(), p.z()}; }
+inline Rxt::vec::fvec3 to_glm(geom::vector v) { return {v.x(), v.y(), v.z()}; }
 
 template <class Trin, class Normals, class Color, class Bufs>
 void render_mesh(Trin const& trin, Normals get_normal, Color color, Bufs& bufs, transform3 tmat)
@@ -39,7 +39,7 @@ void render_triangles(Mesh& m, Bufs& bufs, transform3 tmat = Rxt::vec::fmat4(1))
     using Index = typename Mesh::index_type;
     using TriMesh = typename Index::triangle_mesh;
     using TriFace = typename Rxt::graph_traits<TriMesh>::face_descriptor;
-    using NormalMap = std::map<TriFace, atrium_geom::vector>;
+    using NormalMap = std::map<TriFace, geom::vector>;
 
     auto i = m.key;
     Index& geom = *m.index;
@@ -71,7 +71,7 @@ void render_hl(typename Index::face_descriptor fk, Index const& geom, LineBufs& 
 template <class G, class Lines>
 void render_skel(G const& g, Lines& lines, transform3 tm)
 {
-    using Tr = atrium::skel_traits<Rxt::rgb, Rxt::vec::fvec3>;
+    using Tr = geom::skel_traits<Rxt::rgb, Rxt::vec::fvec3>;
     // using skel_graph = color_graph_traits::graph_type;
 
     auto vp = get(Tr::vertex, g);

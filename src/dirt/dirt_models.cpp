@@ -1,15 +1,13 @@
 #include "dirt_models.hpp"
-#include "geometry_mesh.hpp"
+#include "entity.hpp"
 #include <Rxt/geometry/shapes.hpp>
 
-namespace dirt_ns
-{
 using Rxt::vec::fvec3;
 
 skel_type build_plant(entity_registry)
 {
     skel_type g;
-    auto root = add_vertex(fvec3(0), g);
+    // auto root = add_vertex(fvec3(0), g);
     return g;
 }
 
@@ -39,7 +37,7 @@ skel_type build_kord()
 
 skel_type build_man()
 {
-    using namespace atrium_geom;
+    using namespace geom;
     auto ret = build_kord();
 
     return ret;
@@ -47,7 +45,7 @@ skel_type build_man()
 
 mesh_type build_tetroid()
 {
-    using namespace atrium_geom;
+    using namespace geom;
     surface_mesh m;
     point bottom(0, 0, 0), front(0, .1, .8), left(-.1, -.4, .8), right(.1, -.4, .8);
 
@@ -57,14 +55,13 @@ mesh_type build_tetroid()
 
 mesh_type build_house()
 {
-    using namespace atrium_geom;
+    using namespace geom;
     surface_mesh g;
     point min{-.2, -.2, 0}, max{.2, .2, .1};
-    auto hd = Rxt::make_cuboid(min, max, g);
+    // auto hd = Rxt::make_cuboid(min, max, g);
     // delete floor & roof
 
     return g;
 }
 
 mesh_type build_wall() { return {}; }
-}

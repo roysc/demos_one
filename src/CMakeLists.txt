@@ -58,7 +58,6 @@ if(NOT DISABLE_3D)
         app3d_ui.cpp
         app3d_controls.cpp
         app3d.cpp
-        entity.cpp
         geometry.cpp
         geometry_mesh.cpp
     )

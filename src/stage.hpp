@@ -5,7 +5,6 @@
 
 #include <list>
 #include <memory>
-#include <string>
 #include <format>
 
 // Fat pointer to a single cell

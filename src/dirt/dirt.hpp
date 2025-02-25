@@ -16,7 +16,6 @@
 #include <string>
 #include <vector>
 
-namespace cpt = dirt_ns::_cpt;
 using Rxt::wrap_reactive;
 // Toggleable options
 using options_map = permissive_map<std::string, Rxt::reactive_toggle>;
@@ -25,8 +24,6 @@ using stage_type = zspace2::z2_stage;
 using space_type = zspace2::z2_space;
 using cell_position = stage_type::position_type;
 using free_position = Rxt::vec::fvec3;
-
-using mesh_index = dirt_ns::mesh_data;
 
 // map to dependent faces
 using mesh_face = mesh_index::face_descriptor;
@@ -44,7 +41,6 @@ struct dirt_app : basic_app3d
     using super_type = basic_app3d;
     using position_type = cell_position;
     using mesh_type = mesh_index::source_mesh;
-    using mesh_color = dirt_ns::mesh_color;
     using hook_type = Rxt::hooks<>;
 
     options_map opts;

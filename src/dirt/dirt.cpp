@@ -5,7 +5,7 @@
 #include <string>
 
 dirt_app::dirt_app(viewport_size_type size)
-    : super_type("atrium: dirt", size)
+    : super_type("geom: dirt", size)
     , palette(default_palette())
     , space(Rxt::vec::uvec2(8), 42)
 {
@@ -104,6 +104,6 @@ entity_id dirt_app::put_mesh(mesh_type mesh, mesh_color color, bool transparent,
     meshes->build();
 
     auto ent = entities.create();
-    entities.emplace<cpt::mesh>(ent, meshes, ix, color, transparent);
+    entities.emplace<mesh_geom>(ent, meshes, ix, color, transparent);
     return ent;
 }

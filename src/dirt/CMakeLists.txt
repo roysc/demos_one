@@ -4,12 +4,14 @@ set(dirt_HEADERS
     dirt.hpp
     rendering.hpp
     space.hpp
+    entity.hpp
 )
 set(dirt_SOURCES
     dirt_models.cpp
     dirt.cpp
     dirt.init.cpp
     space.cpp
+    entity.cpp
 )
 
 add_executable(dirt ${dirt_HEADERS} ${dirt_SOURCES})

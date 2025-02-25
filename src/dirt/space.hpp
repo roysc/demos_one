@@ -4,7 +4,6 @@
 #include "stage.hpp"
 
 #include <Rxt/vec.hpp>
-#include <memory>
 #include <random>
 
 using transform3 = Rxt::vec::fmat4;

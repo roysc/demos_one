@@ -19,7 +19,7 @@
 #include <utility>
 #include <optional>
 
-namespace atrium_geom
+namespace geom
 {
 template <class Meshes, class Trins>
 void build_triangulations(Meshes const&, Trins&);
