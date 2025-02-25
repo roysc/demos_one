@@ -153,12 +153,12 @@ void canvas::_init_controls()
     };
 }
 
-void canvas::advance(SDL_Event event)
+void canvas::advance(Rxt::loop_duration)
 {
-    do {
+    SDL_Event event;
+    while (SDL_PollEvent(&event)) {
         input.handle_input(event);
-    } while (SDL_PollEvent(&event));
-
+    }
     keys.scan();
 
     // Per-tick handlers

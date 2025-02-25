@@ -60,19 +60,24 @@ int main(int argc, char* argv[])
 
     auto vpsize = dirt_app::viewport_size_type{800};
     auto context = new dirt_app(vpsize);
-    auto runtime = sdl::as_runtime(*context);
-    Rxt::smooth_loop(runtime, Rxt::duration_fps<60>(1));
+    Rxt::sdl::run_loop(context);
 
     return 0;
 }
 
-void dirt_app::advance(SDL_Event event)
+void dirt_app::advance(Rxt::loop_duration)
 {
-    // if (active_stage)
-    //     active_stage->run();
+    SDL_Event event;
+    while (SDL_PollEvent(&event)) {
+        input.handle_input(event);
+    }
+    keys().scan();
 
-    auto updates
-        = Rxt::make_hooks(super_type::_updates(event), _model_update, highlighted_faces.on_update);
+    auto updates = Rxt::make_hooks(
+        super_type::_updates(event),
+        _model_update,
+        highlighted_faces.on_update
+    );
     updates.flush();
 
     auto bg = palette.at("bg");

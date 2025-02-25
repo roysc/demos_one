@@ -70,7 +70,7 @@ struct dirt_app : basic_app3d
     void _init_model();
     void _init_ui();
 
-    void advance(SDL_Event);
+    void advance(Rxt::loop_duration);
 
     bool highlighted_space(position_type&) const;
 

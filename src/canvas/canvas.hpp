@@ -122,7 +122,7 @@ struct canvas : Rxt::sdl::simple_gui
         glClearColor(0, 0, 0, 1);
     }
 
-    void advance(SDL_Event);
+    void advance(Rxt::loop_duration);
     void draw();
 
     bool running() const { return !quit; }
