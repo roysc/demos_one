@@ -114,7 +114,7 @@ struct canvas : Rxt::sdl::simple_gui
 
     template <class V>
     canvas(V vp)
-        : simple_gui("atrium: canvas", vp.size_pixels())
+        : simple_gui("canvas", vp.size_pixels())
         , viewport(vp)
     {
         _init_observers();

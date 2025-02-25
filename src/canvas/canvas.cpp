@@ -1,11 +1,9 @@
 #include "canvas.hpp"
-#include "../util.hpp"
 
 #include <Rxt/graphics/gl/handy.hpp>
 #include <Rxt/log.hpp>
 #include <Rxt/range.hpp>
 
-#include <iostream>
 
 namespace gl = Rxt::gl;
 namespace sdl = Rxt::sdl;
@@ -14,13 +12,8 @@ using Rxt::vec::uvec2;
 
 mouse_button mouse_button_from_sdl(SDL_MouseButtonEvent button);
 
-int main(int argc, char** argv)
+int main(int, char**)
 {
-    int seed = 42;
-    if (argc > 1) {
-        seed = std::stoi(argv[1]);
-    }
-
     gl::get_config().enable_logging = false;
 
     sdl::run_loop(new canvas(viewport_type{uvec2(80), uvec2(8)}));
