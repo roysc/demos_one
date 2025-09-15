@@ -21,7 +21,7 @@ void basic_app3d::_init_controls()
         camera.forward(dist);
         auto distance_threshold = 0.001f;
         if (length(camera.offset()) < distance_threshold) {
-            print("Resetting degenerate camera position...\n");
+            print("Resetting degenerate camera position\n");
             reset_camera();
         }
     };
@@ -39,13 +39,13 @@ void basic_app3d::_init_controls()
     _keys.on_press["Y"] = std::bind(put_camera, 10.f * Rxt::basis3<fvec3>(Rxt::axis3::y));
     _keys.on_press["Z"] = std::bind(put_camera, 10.f * Rxt::basis3<fvec3>(Rxt::axis3::z));
 
-    RXT_observe (input.on_quit) {
+    input.on_quit += [this] {
         quit = true;
     };
-    RXT_observe (input.on_key_down, SDL_Keysym k) {
+    input.on_key_down += [this] (SDL_Keysym k) {
         _keys.press(k);
     };
-    RXT_observe (input.on_mouse_motion, SDL_MouseMotionEvent motion) {
+    input.on_mouse_motion += [this] (SDL_MouseMotionEvent motion) {
         auto [x, y] = sdl::nds_coords(window(), motion.x, motion.y);
         cursor.set_position({x, y});
     };
@@ -57,14 +57,14 @@ void basic_app3d::_init_controls()
         //     camera.orbit(glm::angleAxis(wheel.x*speed, Rxt::basis3<fvec3>(Ax::z)));
     };
 
-    RXT_observe (input.on_mouse_down, SDL_MouseButtonEvent button) {
+    input.on_mouse_down+= [this] (SDL_MouseButtonEvent button) {
         switch (button.button) {
         case SDL_BUTTON_MIDDLE:
             drag_origin = {cursor.position(), camera};
             break;
         }
     };
-    RXT_observe (input.on_mouse_up, SDL_MouseButtonEvent button) {
+    input.on_mouse_up += [this] (SDL_MouseButtonEvent button) {
         switch (button.button) {
         case SDL_BUTTON_MIDDLE:
             drag_origin = {};

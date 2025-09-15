@@ -21,21 +21,21 @@ static float normalize_int(I t)
 
 void dirt_app::_init_ui()
 {
-    RXT_observe(on_debug) {
+    on_debug += [this] {
         print("camera.pos={} .focus={} .up={}\n", camera.position(), camera.focus, camera.up);
         if (drag_origin) print("drag_origin = {}\n", drag_origin->pos);
     };
 
-    RXT_observe(opts["highlight_face"].on_disable) {
+    opts["highlight_face"].on_disable += [this] {
         highlighted_faces.emplace();
         highlighted_faces.on_update();
     };
-    RXT_observe(opts["highlight_vertex"].on_disable) {
+    opts["highlight_vertex"].on_disable += [this] {
         highlighted_vertices.clear();
         highlighted_vertices.on_update();
     };
 
-    RXT_observe(cursor.on_update) {
+    cursor.on_update += [this] {
         using namespace geom;
         auto [source, dir] = Rxt::cast_ray(cursor.position(), camera);
         auto& geom = _mesh_index();
@@ -147,11 +147,11 @@ void dirt_app::_init_model()
     auto& b_lines = line_prog.buf("lines");
     // auto& b_overlines = line_prog.buf("overlines");
 
-    RXT_observe(active_stage.on_update, auto stage) {
+    active_stage.on_update += [this] (auto stage) {
         this->update_stage(*stage);
     };
 
-    RXT_observe(_model_update) {
+    _model_update += [&, this] {
         auto free_mesh = [&] (fpos3 pos, auto& g)
         {
             auto tm = translate(pos.r);
@@ -180,7 +180,7 @@ void dirt_app::_init_model()
         b_lines.update();
     };
 
-    RXT_observe(highlighted_faces.on_update) {
+    highlighted_faces.on_update += [this] {
         auto& buf = line_prog.buf("over_lines_hl");
         buf.clear();
         if (highlighted_faces) {
@@ -193,7 +193,7 @@ void dirt_app::_init_model()
         buf.update();
     };
 
-    RXT_observe(highlighted_vertices.on_update) {
+    highlighted_vertices.on_update += [this] {
         auto& b = point_prog.buf("points");
         b.clear();
         for (auto [oi, vd]: highlighted_vertices) {

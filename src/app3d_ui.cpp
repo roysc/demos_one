@@ -14,8 +14,7 @@ void basic_app3d::_init_ui()
 
     set(ui_line_prog->mvp_matrix, Rxt::vec::fmat4(1));
 
-    RXT_observe (cursor.on_update) {
-        // if (enable_drag_around)
+    cursor.on_update += [this] {
         if (drag_origin) {
             auto [pos, cam] = *drag_origin;
             auto drag = cursor.position() - pos;
@@ -25,7 +24,7 @@ void basic_app3d::_init_ui()
         }
     };
 
-    RXT_observe (camera.on_update) {
+    camera.on_update += [this] {
         auto m = camera.model_matrix();
         auto v = camera.view_matrix();
         set(triangle_prog->model_matrix, m);
@@ -37,7 +36,7 @@ void basic_app3d::_init_ui()
         set(point_prog->mvp_matrix, camera.projection_matrix() * v * m);
     };
 
-    RXT_observe (camera.on_update) {
+    camera.on_update += [this] {
         using namespace Rxt::colors;
         Rxt::rgb const axis_colors[3]{red, green, blue};
 
@@ -51,7 +50,7 @@ void basic_app3d::_init_ui()
         b_overlines.update();
     };
 
-    RXT_observe (on_debug) {
+    on_debug += [this] {
         // using namespace Rxt::operators;
         // using Rxt::operators::operator<<;
         print("camera.pos={} .focus={} .up={}\n", camera.position(), camera.focus, camera.up);
