@@ -48,6 +48,7 @@ endfunction()
 
 add_subdirectory(canvas)
 add_subdirectory(garden)
+add_subdirectory(agents)
 
 if(NOT DISABLE_3D)
     add_library(app3d)
