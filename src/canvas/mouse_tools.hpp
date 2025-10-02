@@ -73,8 +73,7 @@ struct mouse_select_tool : public mouse_tool
         case mouse_button::left:
             drag_origin = controls.cursor_worldspace();
             break;
-        default: {
-        }
+        default: {}
         }
         on_motion();
     }
@@ -101,8 +100,6 @@ struct mouse_select_tool : public mouse_tool
                 on_selection();
             }
             break;
-        default: {
-        }
         }
     }
 
