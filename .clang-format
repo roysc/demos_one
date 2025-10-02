@@ -1,9 +1,9 @@
 # -*- mode: yaml -*-
-# BasedOnStyle:  GNU
+# BasedOnStyle:  BSD
 AlignConsecutiveMacros: false
 AlignConsecutiveAssignments: false
 AlignConsecutiveDeclarations: false
-AlignOperands:   true
+AlignOperands: true
 AlignTrailingComments: true
 AllowAllConstructorInitializersOnNextLine: true
 AllowShortIfStatementsOnASingleLine: Never
@@ -11,12 +11,16 @@ AlwaysBreakAfterDefinitionReturnType: None
 AlwaysBreakAfterReturnType: None
 AlwaysBreakTemplateDeclarations: Yes
 BraceWrapping:
-  AfterCaseLabel:  false
+  AfterCaseLabel: false
+  AfterClass: true
+  AfterStruct: true
   AfterControlStatement: false
   AfterExternBlock: true
-  BeforeCatch:     false
-  BeforeElse:      false
-  IndentBraces:    false
+  AfterFunction: true
+  AfterNamespace: true
+  BeforeCatch: false
+  BeforeElse: false
+  IndentBraces: false
   SplitEmptyFunction: false
   SplitEmptyRecord: false
   SplitEmptyNamespace: false
@@ -25,16 +29,16 @@ BreakBeforeInheritanceComma: false
 BreakBeforeTernaryOperators: true
 BreakConstructorInitializers: BeforeComma
 BreakAfterJavaFieldAnnotations: false
-ColumnLimit:     99
+ColumnLimit: 100
 ConstructorInitializerAllOnOneLineOrOnePerLine: false
 Cpp11BracedListStyle: true
 DeriveLineEnding: true
-IndentWidth:     4
+IndentWidth: 4
 PointerAlignment: Left
-SortIncludes:    true
+SortIncludes: true
 SortUsingDeclarations: true
 SpaceBeforeParens: ControlStatements
-SpacesInAngles:  false
+SpacesInAngles: false
 SpaceBeforeSquareBrackets: false
-Standard:        c++20
-UseCRLF:         false
+Standard: c++23
+UseCRLF: false
