@@ -5,12 +5,11 @@
 
 #include <Rxt/color.hpp>
 #include <Rxt/vec.hpp>
-
 #include <CGAL/boost/graph/generators.h>
 
+#include <print>
 
-using Rxt::print;
-using Rxt::to_rgba;
+using std::print;
 
 template <class I>
 static float normalize_int(I t)
@@ -64,7 +63,7 @@ void dirt_app::_init_ui()
         }
 
         auto thing = factory();
-        auto ent = put_mesh(thing, to_rgba(Rxt::colors::gray), false);
+        auto ent = put_mesh(thing, Rxt::colors::gray, false);
         entities.emplace<z2_cell>(ent, *active_stage, pos);
         _model_update();
         print("put({}): ({})\n", pos, static_cast<std::size_t>(ent));
@@ -124,7 +123,7 @@ entity_id dirt_app::update_stage(stage_type& stage)
 
     auto ent = put_mesh(mesh, palette.at("sand"), false);
     auto meshid = entity_mesh(ent).key;
-    auto ephent = put_mesh(eph, to_rgba(palette.at("water"), .7), true, mesh_kind::ephemeral);
+    auto ephent = put_mesh(eph, palette.at("water"), .7, true, mesh_kind::ephemeral);
     auto ephid = entity_mesh(ephent).key;
     set_parent_entity(entities, ent, ephent);
     entities.emplace<fpos3>(ent, Rxt::vec::fvec3(0));
