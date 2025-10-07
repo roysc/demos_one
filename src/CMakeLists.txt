@@ -2,11 +2,8 @@
 
 set(OpenGL_GL_PREFERENCE GLVND)
 
+# If RXT_AS_SUBDIR is passed, link to it from external and treat it as a subdirectory
 if(NOT RXT_AS_SUBDIR STREQUAL "")
-    # ensure the directory exists
-    if(NOT IS_DIRECTORY "${RXT_AS_SUBDIR}")
-        message(SEND_ERROR "RXT_AS_SUBDIR is set to '${RXT_AS_SUBDIR}' but that directory does not exist.")
-    endif()
     # create a symlink to Rxt so we can add it as a subdirectory
     file(CREATE_LINK "${RXT_AS_SUBDIR}" "${PROJECT_SOURCE_DIR}/external/Rxt" SYMBOLIC)
     add_subdirectory("${PROJECT_SOURCE_DIR}/external/Rxt" "${PROJECT_BINARY_DIR}/Rxt")
