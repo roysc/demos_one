@@ -2,23 +2,26 @@
 
 set(OpenGL_GL_PREFERENCE GLVND)
 
-# If RXT_AS_SUBDIR is passed, link to it from external and treat it as a subdirectory
-if(NOT RXT_AS_SUBDIR STREQUAL "")
-    # create a symlink to Rxt so we can add it as a subdirectory
-    file(CREATE_LINK "${RXT_AS_SUBDIR}" "${PROJECT_SOURCE_DIR}/external/Rxt" SYMBOLIC)
-    add_subdirectory("${PROJECT_SOURCE_DIR}/external/Rxt" "${PROJECT_BINARY_DIR}/Rxt")
-else()
+include(CMakePrintHelpers)
+
+if(RXT_DIR STREQUAL "")
     find_package(Rxt REQUIRED
         COMPONENTS Graphics Geometry Data
         NO_CMAKE_FIND_ROOT_PATH
     )
+else()
+    cmake_print_variables(RXT_DIR)
+    add_subdirectory("${RXT_DIR}" ${CMAKE_BINARY_DIR}/Rxt)
+endif()
+
+if(ENTT_DIR STREQUAL "")
+    find_package(EnTT REQUIRED ${RXT_EMSCRIPTEN_FIND_ROOT_PATH_MODE})
+else()
+    cmake_print_variables(ENTT_DIR)
+    add_subdirectory("${ENTT_DIR}" ${CMAKE_BINARY_DIR}/entt)
 endif()
 
 include(RxtEmscriptenHelpers)
-
-# set(CMAKE_FIND_DEBUG_MODE TRUE)
-find_package(glm REQUIRED ${RXT_EMSCRIPTEN_FIND_ROOT_PATH_MODE})
-find_package(EnTT REQUIRED ${RXT_EMSCRIPTEN_FIND_ROOT_PATH_MODE})
 
 set(_HEADERS_BASE
     map.hpp
