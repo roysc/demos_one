@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.17)
-project(Atrium VERSION 0.1.1)
+project(DemosOne VERSION 0.1.1)
 
 set(RXT_AS_SUBDIR "" CACHE STRING
     "[DEV] Path to Rxt to use as a source subdirectory instead of package")

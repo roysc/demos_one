@@ -1,13 +1,8 @@
-# Atrium
+# Demos #1
 
-Stage for game & ui dev
+Basic 2d & 3d graphics demos
 
 ## Building
-
-Dependencies:
-- Boost (multi_array)
-- {fmt}
-- tcb/span
 
 CMake:
 
@@ -21,6 +16,4 @@ Emscripten:
 
 ## Dependencies
 
-# EnTT
-
-`git@github.com:skypjack/entt.git`
+- EnTT

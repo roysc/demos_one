@@ -1,5 +1,3 @@
-# Atrium source root CMakeLists.txt
-
 set(OpenGL_GL_PREFERENCE GLVND)
 
 include(CMakePrintHelpers)
