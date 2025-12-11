@@ -1,3 +1,0 @@
-[submodule "external/rxt"]
-	path = external/rxt
-	url = git@github.com:roysc/rxt.git
