@@ -8,7 +8,7 @@ set(RXT_AS_SUBDIR "" CACHE STRING
 if(NOT RXT_AS_SUBDIR STREQUAL "")
     file(REAL_PATH "${RXT_AS_SUBDIR}" RXT_AS_SUBDIR)
     if(NOT IS_DIRECTORY "${RXT_AS_SUBDIR}")
-        message(SEND_ERROR "RXT_AS_SUBDIR is set to '${RXT_AS_SUBDIR}' but that directory does not exist.")
+        message(SEND_ERROR "RXT_AS_SUBDIR directory does not exist: '${RXT_AS_SUBDIR}'")
     endif()
 endif()
 
